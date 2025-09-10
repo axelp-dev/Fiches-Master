@@ -1,0 +1,154 @@
+
+\minitoc
+
+
+% ========================================================================================================
+% Introduction 
+
+Jusqu'à maintenant, nous avons étudié des suites de variables aléatoires dites iid (indépendantes et 
+identiquement distribuées). Ces propriétés nous ont permis de développer beaucoup d'outils pour les étudier 
+tels que la loi forte des grands nombres ou le théorème central limite. 
+
+Or nous n'utilisons pas beaucoup ce type de suite de variables aléatoires en simulation. En effet, ces propriétés 
+plutôt fortes ne permettent pas de modéliser des phénomènes dont l'évolution est plus complexe. Nous allons donc 
+continuer à étudier des suites de variables aléatoires mais en rajoutant des relations de dépendance entre celles-ci. 
+Cela nous permettra de modéliser des systèmes dynnamiques au cours du temps plus complexes. 
+
+% ========================================================================================================
+% Définition et Généralités
+
+\section{Définitions et Généralités}
+
+On se place ici dans un espace probabilisé $(E, \mathcal(F), \myP)$  et $E$ un \emph{espace d'état}
+fini ou dénombrable. On s'intéresse à une suite de variables aléatoires $(X_n)_{n \in \N}$ ou $X_k$ est 
+l'état du système au temps $k$. 
+
+\begin{definition}[Trajectoire]
+    On appelle \emph{trajectoire du système} jusqu'au temps $n \in \N^*$ la donnée $(X_1, \dots, X_n)$. 
+\end{definition}
+
+\begin{definition}[Chaîne de Markov]
+    On dit qu'une suite $(X_n)_{n \geqslant 0}$ est une \emph{chaîne de Markov} si elle 
+    vérifie la \emph{propriété de Markov} : 
+        \[ \forall n \in \N, \forall i_0, i_1, \dots, i_{n-1} \in E, \] 
+        \[ \boxed{ \myP (X_{n+1} = j \; | \; X_n = i, X_{n-1} = i_{n-1}, \dots, X_0 = i_0) = \myP (X_{n+1} = j \; | \; X_n = i)} \]
+\end{definition}
+
+\begin{remark}
+    Conditionnellement à l'état présent $\{X_n = i\}$, la probabilité d'arriver à l'état $\{X_{n+1} = j\}$ 
+    à l'itération suivante ne dépend pas des évènnements du passé $\{X_0 = i_0, \dots, X_{n-1} = n-1\}$. 
+    On parle \emph{d'abscence de mémoire}. 
+\end{remark}
+
+\begin{definition}[Chaîne de Markov Homogène]
+    Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov. On dit qu'elle est \emph{homogène} si : 
+        \[ \forall n \in \N, \forall i,j \in E, \quad \myP (X_{n+1} = j \; | \; X_n = i) = \myP(X_1 = j \; | \; X_0 = i) \]
+    On se placera toujours dans ce cadre.
+\end{definition}
+
+\begin{remark}
+    Une chaîne de Markov homogène est une chaîne de Markov où le temps ($n$) n'apparaît pas dans la probabilité de 
+    passer d'un état à l'autre. 
+\end{remark}
+
+\begin{example}[Marche Aléatoire]
+    On modélise le mouvement d'une particule sur une grille par une chaîne de Markov où $X_n$ représente 
+    la position de la particule au temps $n \in  \N$. On considère que la particule se déplace sur une 
+    seule dimension. Elle peut donc avancer d'une case ou reculer d'une case à chaque itération. On notera 
+    $ p \in [0,1]$ la probabilité qu'elle avance et $1-p$ la probabilité qu'elle recule indépendament du passé. 
+    
+    Soit $ (\varepsilon_i)_{i \geqslant 0}$ à valeurs dans $\{-1, 1\}$ telle que : 
+        \[ \myP( \varepsilon_i = 1) 1 - \myP( \varepsilon_i = -1) = p \in [0,1] \]
+    la variable aléatoire qui représente le mouvement de la particule.  
+    Déterminons la loi de $X_n$ :
+        \[ 
+            X_{n+1} = X_n + \varepsilon_{n+1} 
+            = X_{n-1} + \varepsilon_n + + \varepsilon_{n+1} 
+            = \dots 
+            = \sum_{i=1}^{n} \varepsilon_i 
+        \] 
+    Montrons que c'est bien une chaîne de Markov : 
+        \begin{align*}
+            X_{n+1} &= X_n + \varepsilon_{n+1} \\ 
+            &= \left( \sum_{i=1}^{n} \varepsilon_i \right) + \varepsilon_{n+1} \\ 
+            &= \sum_{i=1}^{n+1} \varepsilon_i 
+        \end{align*}
+    où tous les $ \varepsilon_i, i \in \llbracket 1, n+1 \rrbracket $ sont indépendants. 
+    On a donc : 
+        \begin{align*}
+            \myP(X_{n+1} = j \; | \; X_n = i, \dots, X_0 = i_0) &= \myP(X_n + \varepsilon_{n+1} = j \; | \; X_n = i, \dots, X_0 = i_0) \\ 
+            &= \myP(i + \varepsilon_{n+1} = j \; | \; X_n = i, \dots, X_0 = i_0) \\ 
+            &= \myP( \varepsilon_{n+1} = j - i) 
+        \end{align*}
+
+    On pourra alors s'intéresser au nombre de fois où une trajectoire passe par un point $n \in \N$. 
+    La théorie des chaînes de Markov permet de répondre à ce genre de questions. 
+\end{example}
+
+Plus généralement, on peut construire récursivement des chaînes de Markov en déinissant un $X_0$ fixé ou tiré par une 
+loi $ \pi_0$ puis en posant : 
+    \[ X_{n+1} = f(X_n, \varepsilon_{n+1}) \]
+où $( \varepsilon_i)$ est une suite de variables aléatoires iid et $f$ une fonction mesurable. 
+
+\begin{definition}[Matrice de Transition]
+    Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov. On définit la \emph{matrice de transition} $P$ 
+    de la chaîne comme la matrice, potentiellement infinie, telle que : 
+        \[ P(i,j) = \myP(X_1 = j | X_0 = i) \] 
+    Ainsi le coefficient de la i-ème ligne et de la j-ème colonne correspond à la probabilité de passer 
+    de l'état $i$ à l'état $j$ en une étape.   
+\end{definition}
+
+\begin{example}
+    Soit $P \in \mathcal{M}_3(\R)$ la matrice de transition suivante : 
+        \[ P = 
+            \begin{pmatrix}
+                1/4 & 3/4 & 0 \\ 
+                0 & 1/2 & 1/2 \\ 
+                1/2 & 0 & 1/2 
+            \end{pmatrix}  \]
+    On peut alors la représenter par un graphe pondéré orienté dont les noeuds représentent les 
+    états au temps $i$ de la chaîne de Markov et les poids les probabilités de passer d'un état à l'autre en une étape. 
+    
+    \begin{figure}[h!]
+        \centering
+        \begin{tikzpicture}[->,>=stealth',auto,node distance=4cm, thick,
+                            every loop/.style={min distance=10mm,in=45,out=135,looseness=10}]
+            
+            % Nodes placés avec des positions relatives
+            \node[draw, circle] (1) {1};
+            \node[draw, circle, right of=1] (2) {2};
+            \node[draw, circle, below of=2] (3) {3};
+            
+            % Boucles avec labels
+            \path (1) edge[loop above] node {$1/4$} (1);
+            \path (2) edge[loop right] node {$1/2$} (2);
+            \path (3) edge[loop below] node {$1/2$} (3);
+            
+            % Arêtes avec labels automatiques
+            \path (1) edge node {$3/4$} (2);
+            \path (2) edge node {$1/2$} (3);
+            \path (3) edge node {$1/2$} (1);
+
+        \end{tikzpicture}
+        \caption{Graphe Orienté Pondéré de la matrice de transition $P$}
+    \end{figure}
+\end{example}
+
+\begin{definition}[Matrice Stochastique]
+    La matrice de transition $P$ est dite \emph{stochastique} si 
+        \[ \forall i \in  E, \quad \sum_{j \in E} P(i,j) = 1 \] 
+    (i.e si la somme des poids des arrêtes de tout noeud du graphe associé est égale à 1)
+\end{definition}
+
+
+
+
+
+
+
+
+
+
+
+
+
