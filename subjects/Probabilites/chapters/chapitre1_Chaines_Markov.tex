@@ -140,10 +140,121 @@ où $( \varepsilon_i)$ est une suite de variables aléatoires iid et $f$ une fon
     (i.e si la somme des poids des arrêtes de tout noeud du graphe associé est égale à 1)
 \end{definition}
 
+\begin{proposition}
+    La loi d'une chaîne de Markov homogène $(X_n)_{n \geqslant 0}$ est complètement déterminée par la loi de $ \pi_0$ 
+    de la condition initiale $X_0$ et par la matrice de transition $P$. On a : 
+        \[ \forall i_0, i, \dots, i_n \in E, \quad \myP(X_0 = i_0, X_1 = i_1, \dots, X_n = i_n) = \pi_0(i_0)P(i_0, i_1)P(i_1, i_2) \dots P(i_{n-1}, i_n) \] 
+\end{proposition}
 
+\begin{proof}
+    Démontrons ce résultat par récurrence sur $\N$. 
+    \begin{itemize}
+        \item \underline{Initialisation : } Pour $n = 0$, par définition, on a : 
+            \[ \myP(X_0 = i_0) = \pi_0(i_0) \] 
+        \item \underline{Hérédité : } Soient $i_0, \dots, i_n \in E$, supposons que : 
+            \[ \myP(X_0 = i_0, X_1 = i_1, \dots, X_n = i_n) = \pi_0(i_0)P(i_0, i_1)P(i_1, i_2) \dots P(i_{n-1}, i_n) \] 
+        Soit $i_{n+1} \in  E$ alors : 
+            \begin{align*}
+                & \myP(X_0 = i_0, X_1 = i_1, \dots, X_n = i_n, X_{n+1} = i_{n+1}) \\
+                =& \myP(X_0 = i_0, X_1 = i_1, \dots, X_n = i_n) \times \myP(X_{n+1} = i_{n+1} | X_0 = i_0, \dots, X_n = i_n ) \\ 
+                =& \myP(X_0 = i_0, X_1 = i_1, \dots, X_n = i_n) \times \myP(X_{n+1} = i_{n+1} | X_n = i_n) \\ 
+                =& \pi_0(i_0)P(i_0, i_1)P(i_1, i_2) \dots P(i_{n-1}, i_n) P(i_n, i_{n+1})
+            \end{align*}
+    \end{itemize}
+\end{proof}
 
+On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$. 
 
+\begin{prop}[Relation de Chapman-Kolmogorov]
+    Soit $(X_n)_{n \geqslant 0}$ une chaîne de markov homogène de matrice $P$ et de loi initiale $ \pi_0$. 
+    Pour tout $i,j \in E$, on a : 
+        \[ \myP(X_{n +m} = j | X_0 = i_0) = \sum_{k \in E} \myP(X_{n+m} = j | X_n = k) \times \myP(X_n = k | X_0 = i_0) \]
+    En particulier : 
+        \[ \myP(X_n = j | X_0 = i_0) = P^n (i_0, j) \]   
+\end{prop}
 
+\begin{proof}
+    Prouvons les résultats précédents. 
+    \begin{quote}
+        \emph{
+            Rappelons tout d'abord la formule des probabilités totales. 
+            Soit $(B_k)_{k \in  \N}$ une partition de $E$, alors pour tout $A \in E$, on a :
+                \[ \myP(A) = \sum_{k \in \N} \myP(A \cap B_k) \] 
+            ou en conditionnel sur $C$ :
+                \[ \myP(A|C) = \sum_{k \in \N} \myP(A \cap B_k | C) \]   
+        }
+    \end{quote}
+    Or ici, $\{X_k | k \geqslant 0\}$ forme bien une partition de $E$ puisque à chaque instant $k$, 
+    le processus est dans un unique état $X_k$. D'après la formule des probabilités totales, on a donc :
+    \begin{align*}
+        \myP(X_{n +m} = j | X_0 = i_0) &= \sum_{k \in E} \myP(X_{n+m} = j, X_n = k | X_0 = i_0) \\ 
+        &= \sum_{k \in E} \myP(X_{n+m} = j | X_n = k, X_0 = i_0) \times \myP(X_n = k | X_0 = i_0) \\ 
+        &=  \sum_{k \in E} \myP(X_{n+m} = j | X_n = k) \myP(X_n = k | X_0 = i_0)  
+    \end{align*}
+    On remarque de $\myP(X_{n+m} = j | X_n = k)$ est la probabilité de passer de l'état $k$ à $j$ en $m$ pas d'où :
+        \[ \myP(X_{n+n} = j | X_n = k) = \myP(X_m = j | X_0 = k) \]   
+    Déduisons maintetant la seconde formule de la première : 
+        \begin{align*}
+            \myP(X_2 = j | X_0 = i_0) &= \sum_{k \in E} \myP(X_2 = j | X_1 = k) \myP(X_1 = k | X_0 = i_0) \\ 
+            &= \sum_{k \in E} P(i,k)P(k,i) \\ 
+            &= P^2(i,j) \quad \text{etc } \dots    
+        \end{align*}
+\end{proof}
+
+% \begin{tikzpicture}[
+%         state/.style={circle, draw, minimum size=1cm, font=\small, align=center},
+%         every edge/.style={draw, -{Latex[length=3mm,width=2mm]}}
+%     ]
+
+%     % Nœud de départ au temps 0
+%     \node[state] (i0) {$i_0$};
+%     \node[below=2mm of i0] {$X_0 = i_0$};
+
+%     % États intermédiaires au temps n
+%     \node[state, right=3cm of i0, yshift=1.5cm] (k1) {$k_1$};
+%     \node[state, right=3cm of i0] (k2) {$k_2$};
+%     \node[state, right=3cm of i0, yshift=-1.5cm] (k3) {$k_3$};
+
+%     \node[below=2mm of k2] {temps $n$};
+
+%     % État final au temps n+m
+%     \node[state, right=4cm of k2] (j) {$j$};
+%     \node[below=2mm of j] {temps $n+m$};
+
+%     % Flèches de i0 vers k
+%     \draw (i0) edge[bend left=15] node[above] {$\mathbb{P}(X_n = k_1 \mid X_0 = i_0)$} (k1);
+%     \draw (i0) edge node[above] {$\mathbb{P}(X_n = k_2 \mid X_0 = i_0)$} (k2);
+%     \draw (i0) edge[bend right=15] node[below] {$\mathbb{P}(X_n = k_3 \mid X_0 = i_0)$} (k3);
+
+%     % Flèches de k vers j
+%     \draw (k1) edge[bend left=10] node[above] {$\mathbb{P}(X_{n+m}=j \mid X_n=k_1)$} (j);
+%     \draw (k2) edge node[above] {$\mathbb{P}(X_{n+m}=j \mid X_n=k_2)$} (j);
+%     \draw (k3) edge[bend right=10] node[below] {$\mathbb{P}(X_{n+m}=j \mid X_n=k_3)$} (j);
+% \end{tikzpicture}
+
+\begin{remark}[Notation]
+    Si $X_0$ est distribué selon la loi $ \pi_0$, on notera : 
+        \begin{align*}
+            \myP_{ \pi_0} (X_n = j) &= \sum_{i_0 \in E} \myP(X_n = j | X_0 = i_0) \pi_0(i_0) \\ 
+            &= \sum_{i_0 \in E} \myP(X_n = j | X_0 = i_0) \myP(X_0 = i_0) \\ 
+            &= \sum_{i_0 \in  E} P(i_0, j) \pi_0(i_0) \\ 
+            &= \pi_0 P^n(j) 
+        \end{align*}
+    où  $P^n(j) $ est la ième colonne de $P^n$ et $ \pi_0$ un vecteur ligne. 
+\end{remark}
+
+\begin{example}
+    \begin{enumerate}
+        \item Soit $(X_n)_{n \geqslant 0}$ une suite de variables aléatoires réelles iid de loi $ \pi$. 
+            \[ \text{i.e} \quad \forall i \in E, \myP(X_n = i) = \pi(i) \] 
+        On a donc : 
+            \[ P(i,j) = \myP(X_1 = j | X_0 = i ) = \myP(X_1 = j) = \pi(j) \] 
+        C'est un cas très simple et peu intéressant. 
+        % \item \underline{Marche Aléatoire } sur un ensemble fini. On aura une matrice $P$ 
+        % de la forme : 
+        \item 
+    \end{enumerate}
+\end{example}
 
 
 
