@@ -1,0 +1,125 @@
+% ========================================================================================================
+% Introduction 
+
+\minitoc 
+
+En informatique et en mathématiques, l'optimisation est la recherche d'un optimum pour un problème posé. 
+On s'intéresse ici à optimisation dite \emph{continue}. On peut alors formuler un tel problème sous la forme suivante : 
+
+\begin{center}    
+    \begin{minipage}{0.45\textwidth}
+        \begin{mini*}|l|
+            {}{f(x)}{}{}
+            % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
+            \addConstraint{        x }{\in \mathcal{C}}
+        \end{mini*}
+    \end{minipage}
+    \hfill 
+    \begin{minipage}{0.45\textwidth}
+        \begin{mini*}|s|
+            {}{f(x)}{}{}
+            % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
+            \addConstraint{        x }{\in \mathcal{C}}
+        \end{mini*}
+    \end{minipage}
+\end{center}
+
+On appelle $x$ la \emph{variable de décision} ou \emph{variable de contrôle}. La fonction $f : \R^n \longrightarrow R$ 
+est appelée \emph{fonction objectif} ou le \emph{critère}. 
+L'ensemble $C \subset \R$ est appelée \emph{ensemble des contraintes}. 
+
+Résoudre un tel problème signifie trouver $ \overline{x} \in C \subset \R^n$ tel que :
+    \[ \forall x \in C, \quad f(x) \geqslant \overline{x} \] 
+
+\begin{remark}
+    On peut remarque que maximiser $f$ revient à minimiser $-f$. On peut donc toujours se ramener 
+    à un problème de minisation. De plus, lorsque $C = \R^n$ on dit que le problème est \emph{non contraint}. 
+\end{remark}
+
+
+% ========================================================================================================
+% CNS d'optimalité dans contraintes
+
+\section{CNS d'optimalité dans contraintes}
+
+Dans cette section, nous nous intéressons aux problèmes de la forme suivante : 
+
+\begin{mini*}|s|
+    {}{f(x)}{}{}
+    % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
+    \addConstraint{        x }{\in \R^n}
+\end{mini*}
+où $f : \R^n \longrightarrow \R$. Nous commencerons par aborder l'optimalité locale puis nous passerons, grâce 
+à la convexité, à l'optimalité globale. 
+
+\subsection{Conditions Nécessaires}
+
+Évoquons tout d'abord quelques conditoons nécessaires d'optimalité globale. 
+
+\begin{theorem}[CN1 - Principe de Fermat]
+    Soit $f : \R^n \longrightarrow \R$ et $ \overline{x} \in \R^n$ un minimum local de $f$. 
+    Si $f$ \emph{est différentiable} alors : 
+        \[ \nabla f( \overline{x} ) = 0 \]  
+\end{theorem}
+
+\begin{definition}[Matrice définie positive]
+    Soit $A \in \mathcal{M}_{n,m}(\R)$ une matrice, on dit que $A$ est \emph{définie positive} si 
+        \[ \forall x \in \R^n, x \not = 0, \quad ^t x A x > 0  \]
+        \[ \iff Sp(A) \subset R_+^* \] 
+    On note alors $ A \succ 0$ 
+\end{definition}
+
+\begin{definition}[Matrice semi-définie positive]
+    Soit $A \in \mathcal{M}_{n,m}(\R)$ une matrice, on dit que $A$ est \emph{semi-définie positive} si 
+        \[ \forall x \in \R^n, x \not = 0, \quad ^t x A x \geqslant 0  \]
+        \[ \iff Sp(A) \subset R_+ \] 
+    On note alors $ A \succeq 0$ 
+\end{definition}
+
+\begin{theorem}[CN2]
+    Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et soit $ \overline{x} \in \R^n$ un minimum 
+    local de $f$. Si $f$ est \emph{deux fois différentiable en} $ \overline{x}$ alors : 
+        \[ \nabla^2 f( \overline{x}) \succeq 0 \] 
+    On appelle cette condition la \emph{condition doptimalité du second ordre}. 
+\end{theorem}
+
+Passons maintenant aux conditions suffisantes d'optimalités... 
+
+\begin{theorem}[CS1]
+    Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et $ \overline{x} \in \R^n$. On suppose qu'il existe 
+    $r > 0 $ tel que : 
+    \begin{itemize}
+        \item $f$ est différentiable en tout point de $B(\overline{x}, r)$ 
+        \item $ \forall x \in B( \overline{x}, r) / \{\overline{x}\}, \; \langle \nabla f(x), x - \overline{x} \rangle \geqslant 0 $
+    \end{itemize}
+    Alors $ \overline{x}$ est un \emph{minimum local de $f$}. 
+\end{theorem}
+
+\begin{theorem}[CS2]
+    Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et $ \overline{x} \in \R^n$. Alors si :
+    \begin{itemize}
+        \item $f$ est deux fois différentiable en $ \overline{x}$ 
+        \item $ \nabla f( \overline{x}) = 0$ 
+        \item $ \nabla^2 f( \overline{x}) \succeq 0 $
+    \end{itemize}
+    Alors $ \overline{x}$ est un \emph{minimum local strict de $f$}. 
+\end{theorem}
+
+\begin{theorem}[Convexité et Minimum]
+    Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et $ \overline{x} \in \R^n $ un minimum 
+    local de $f$. Alors : 
+    \begin{enumerate}
+        \item Si $f$ est \emph{convexe} alors $ \overline{x}$ est un minimum \emph{global} de $f$. 
+        \item Si $f$ est \emph{strictement convexe} alors $ \overline{x}$ est \emph{l'unique minimum global} de $f$. 
+    \end{enumerate}
+\end{theorem}
+
+% ========================================================================================================
+% Algorithmes d'optimisation
+
+% \section{CNS d'optimalité dans contraintes}
+
+
+
+
+

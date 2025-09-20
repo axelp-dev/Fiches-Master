@@ -243,23 +243,204 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
     où  $P^n(j) $ est la ième colonne de $P^n$ et $ \pi_0$ un vecteur ligne. 
 \end{remark}
 
-\begin{example}
-    \begin{enumerate}
-        \item Soit $(X_n)_{n \geqslant 0}$ une suite de variables aléatoires réelles iid de loi $ \pi$. 
-            \[ \text{i.e} \quad \forall i \in E, \myP(X_n = i) = \pi(i) \] 
-        On a donc : 
-            \[ P(i,j) = \myP(X_1 = j | X_0 = i ) = \myP(X_1 = j) = \pi(j) \] 
-        C'est un cas très simple et peu intéressant. 
-        % \item \underline{Marche Aléatoire } sur un ensemble fini. On aura une matrice $P$ 
-        % de la forme : 
-        \item 
-    \end{enumerate}
+\begin{example}[Simple]
+    Soit $(X_n)_{n \geqslant 0}$ une suite de variables aléatoires réelles iid de loi $ \pi$. 
+        \[ \text{i.e} \quad \forall i \in E, \myP(X_n = i) = \pi(i) \] 
+    On a donc : 
+        \[ P(i,j) = \myP(X_1 = j | X_0 = i ) = \myP(X_1 = j) = \pi(j) \] 
+    C'est un cas très simple et peu intéressant.
+\end{example} 
+
+\begin{example}[Ruine du joueur]
+    Soit $n \geqslant 1$ et $p \in [0,1]$ et une suite de variables aléatoires $(X_n)_{n \in \N}$ 
+    à valeurs dans $ \llbracket 1, n \rrbracket$. 
+    On définit $X_m$ comme le montant gagné par le joueur après $m$ parties. 
+    On considère que le joueur ne peut pas joueur avec un montant supérieur à $n$.
+    On peut donc représenter son évolution dans le jeu par le graphe ci-dessous :
+
+        \begin{figure}[h!]
+            \centering
+            \makebox[\textwidth][c]{ % Centre le tikz dans la largeur du texte
+                \begin{tikzpicture}[
+                    baseline=(current bounding box.center),
+                    shorten >=1pt,
+                    node distance=3cm,
+                    on grid,auto
+                ]
+                    \node[state] (0) {$0$};
+                    \node[state, right of=0] (1) {$1$};
+                    \node[state, right of=1] (d) {$\dots$};
+                    \node[state, right of=d] (n1) {$n-1$};
+                    \node[state, right of=n1] (n) {$n$};
+                    \path[->]
+                        (0) edge[loop left] node{$1-p$} (0)
+                        (0) edge[above, bend left] node{$p$} (1)
+                        (1) edge[above, bend left] node{$p$} (d)
+                        (n1) edge[above, bend left] node{$p$} (n)
+                        (n) edge[loop right] node{$p$} (n)
+                        (n) edge[below, bend left] node{$1-p$} (n1)
+                        (1) edge[below, bend left] node{$1-p$} (0);
+                \end{tikzpicture}
+            }
+            \caption{Ruine du Joueur}
+        \end{figure}
+
+    où :
+        \[
+            \begin{cases}
+                P(k, k+1) = p \quad \text{si } k \in \{0,\dots, n-1\} \\ 
+                P(k,k+1) = 1-p \quad \text{si } k \in \{1, \dots, n\} 
+            \end{cases}
+        \]
+
+    En pratique, on s'intéressera souvent à : 
+        \[ \myP(X_n \text{ atteigne 0 avant m } | X_0 = i) \] 
+\end{example}
+
+\begin{example}[File d'attente]
+    On s'intéresse au nombre de personnes dans une file d'attente où, à chaque itération, une personne 
+    rentre ou sort de la file. Soit $(X_n)_{n \in \N}$ une suite à valeur dans $ \N$. 
+    \begin{figure}[h!]
+        \centering
+        \makebox[\textwidth][c]{ % Centre le tikz dans la largeur du texte
+            \begin{tikzpicture}[
+                baseline=(current bounding box.center),
+                shorten >=1pt,
+                node distance=3cm,
+                on grid,auto
+            ]
+                \node[state] (0) {$0$};
+                \node[state, right of=0] (1) {$1$};
+                \node[state, right of=1] (2) {$2$};
+                \node[state, right of=2] (3) {$3$};
+                \node[state, right of=3] (d) {$\dots$};
+
+                \path[->]
+                    (0) edge[above, bend left] node{$p$} (1)
+                    (1) edge[above, bend left] node{$p$} (2)
+                    (2) edge[above, bend left] node{$p$} (3)
+
+                    (3) edge[below, bend left] node{$1-p$} (2)
+                    (2) edge[below, bend left] node{$1-p$} (1)
+                    (1) edge[below, bend left] node{$1-p$} (0); 
+            \end{tikzpicture}
+        }
+        \caption{File d'attente}
+    \end{figure}
+    Ici, un pas de temps $n$ représente un évènement qui se passe. On va s'intéresser 
+    au fait que la chaîne tende vers $0$ ou $ + \infty$ en fonction de $i_0 \in \llbracket 1, n \rrbracket $. 
+\end{example}
+
+
+\begin{example}[Processus de Galton-Watson]
+    Ici $(X_n)_{n \geqslant 1}$ compte le nombre d'individus d'une population dans la génération $n$. 
+    On suppose que chaque individu vivant a des descendants indépendament des autres. 
+    On a appelle $ (\zeta_{n,k})_{n \leqslant 1, k \leqslant 1}$ la suite donnant le nombre de descendants 
+    de l'individu $k$ vivant à la génération $n$. 
+
+    On peut alors en déduire que  $ (\zeta_{n,k})_{n \leqslant 1, k \leqslant 1}$ est une suite de var iid et que : 
+        \[ X_{n+1} = \sum_{k=1}^{X_n} \zeta_{n,k} \] 
 \end{example}
 
 
 
+% ========================================================================================================
+% Propriétés de Markov 
 
+\section{Propriétés de Markov}
 
+\begin{theorem}[Version Faible]
+    Soit $(X_n)$ une chaîne de Markov homogène de matrice de transition $P$ et de loi initiale $ \pi_0$. 
+    Soit $n \in \N$ fixé. Conditionnellement à l'évènement $\{X_n = i\}$ pour tout $i \in E$, 
+    la suite de varibales aléatoires $(X_{n+m})_{n \geqslant 0}$ est une chaîne de Markov homogène 
+    de même matrice de transition $P$ et de loi initiale $ \delta_i$. 
+
+    De plus, elle est indépendante du passé de $ (X_0, \dots, X_n)$ conditionnnellement à $\{X_n = i\}$. 
+    Soient $A$ un évènement indépendant de $X_{n+1}, \dots, X_{n+m}$ et $B$ un évènement 
+    indépendant de $X_1, \dots, X_{n-1}$, on a alors : 
+        \[ \text{i.e } \quad  \myP(A \cap B | X_m = i ) = \myP(A | X_m = i) \myP(B | X_m = i) \]  
+\end{theorem}
+
+\begin{proof}
+    Démontrons ce théorème en deux parties : 
+    \begin{enumerate}
+        \item \underline{Égalité des lois :} Montrons que : 
+            \[ \myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n | X_n = i, \dots, X_0 = i_0) = \myP(X_1 = y_1, \dots, X_n = y_0 | X_0 = i)  \]  
+        On a : 
+            \begin{align*}
+                & \myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n | X_n = i, \dots, X_0 = i_0) \\[1em]
+                &= \frac{\myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n, X_n = i, \dots, X_0 = x_0)}{ \myP(X_m = i, X_{m-1} = x_{m-1}, \dots, X_0 = x_0) } \\[1em] 
+                &= \frac{ \pi_0(x_0) P(x_0, x_1) \dots P(X_{n-1}, i) P(i, y_1) \dots P(y_{n-1}, y_n) }{ \pi_0(x_0) P(x_0, x_1) \dots P(x_{m-1}, i)}  \\[1em] 
+                &= P(i,y_1) P(y_1, y_2) \dots P(y_{n-1}, y_n) \\[1em] 
+                &= \myP(X_1 = y_1, \dots, X_n = y_n | X_0 = i)  
+            \end{align*}
+        \item \underline{Indépendance conditonnelle :}  Soient $A$ un évènement indépendant de 
+        $X_{n+1}, \dots, X_{n+m}$ et $B$ un évènement indépendant de $X_1, \dots, X_{n-1}$. 
+        Montrons que : 
+            \[ \myP(A \cap B | X_m = i ) = \myP(A | X_m = i) \myP(B | X_m = i) \] 
+        On a : 
+            \[ \myP(A \cap B | X_m = i) = \frac{ \myP(A \cap B, X_m = i) }{ \myP(X_m = i) } \] 
+            
+            \begin{align*}
+                & \myP(A \cap B, X_m = i) \\[1em]
+                &= \sum_{\substack{x_0, \dots, x_{n-1} \in B \\ y_1, \dots, y_n \in A}}
+                    \myP(X_0 = x_0, \dots, X_{m-1} = x_{m-1}, X_m = i,  X_{m+1} = y_1, \dots, X_{m+n} = y_n) \\[1em]
+                &= \sum_{\substack{x_0, \dots, x_{n-1} \in B \\ y_1, \dots, y_n \in A}} 
+                    \myP(X_{n+1} = y_1, \dots, X_{n+m} = y_n | X_0 = i) \myP(X_m = i, \dots, X_0 = x_0) \\[1em]
+                &= \left( \sum_{y_i \in A}  \myP(X_{n+1} = y_1, \dots, X_{n+m} = y_n | X_0 = i) \right)
+                    \left( \sum_{x_i \in B} \myP(X_n = i, \dots, X_0 = x_0) \right) \\[1em] 
+                &= \left(  \sum_{y_i \in A} \myP(A | X_n = i) \right) \left(  \sum_{x_i \in B} \myP(B, X_m = i) \right) 
+            \end{align*}
+        D'où : 
+            \begin{align*}
+                \myP(A \cap B | X_m = i) &= \myP(A | X_n = i) \myP(B, X_n = i) \times \frac{1}{ \myP(X_m = i) } \\[1em]
+                &= \myP(A | X_m = i) \myP(B | X_m = i)     
+            \end{align*}
+    \end{enumerate}
+\end{proof}
+
+\begin{remark}
+    Cette propriété de Markov est aussi vraie de façon plus générale quand on conditionne par l'état de la chaîne en un 
+    temps aléatoire appelé temps d'arrêt. C'est ce que nous verrons par la suite. 
+\end{remark}
+
+\begin{definition}[Tribu $ \mathcal{F}_n$]
+    On définit $ \mathcal{F}_n$ la tribu engendrée par les variables aléatoires $(X_1, \dots, X_n)$ la tribu : 
+        \begin{align*}
+            \mathcal{F}_n &= \sigma \left(X_0, \dots, X_n\right) \\ 
+            &= \sigma \left( \{X_0 = x_0, \dots, X_n = x_n\}, x_0, \dots, x_n \in E\right) 
+        \end{align*} 
+\end{definition}
+
+\begin{definition}[Temps d'arrêt]
+    Un temps d'arrêt $ \tau$ d'une chaîne de Markpv $(X_n)_{n \geqslant 0}$ est une \emph{variable aléatoire}
+    à valeurs dans $\N$ mesurable par rapport à la tribu $ \mathcal{F}_n$. 
+        \[ \text{i.e} \quad \forall n \in \N, \{ \tau \leqslant n\} \in \mathcal{F}_n \] 
+    Cela signifie que $ \{ \tau \leqslant n\}$ ne dépend que des variables $X_0, \dots, X_n$.   
+\end{definition}
+
+\begin{example}
+    Soit $(X_n)$ une chaîne de Markov sur $\Z$. On définit le temps d'attente du dépassement de $ j \in \Z$ comme 
+    la variable aléatoire : 
+        \[ \tau_i = \min \{i \geqslant 0 | X_i > j\} \] 
+    $ \tau_j$ est bien un temps d'arrêt pour la CMH car : 
+        $$ \{ \tau_j \leqslant n\} = \{ \exists k \in \N, X_k \geqslant j\} $$
+    donc $ \tau_j$ ne dépend que de $X_0, \dots, X_n$. 
+    De façon générale, soit $A \subset E$, le temps d'attente de $A$ défini par : 
+        \[ \tau_A = \min \{i \geqslant 0, X_i \in A\} \]
+    est un temps d'arrêt. Si cet ensemble est vide (i.e la chaîne de Markov n'atteint jamais $A$), alors $ \tau_A = + \infty$. 
+    Par contre, $ S_j = \max \{i \geqslant 0, X_i > j\}$ n'est pas un temps d'arrêt car 
+    $ \{S_j \leqslant n\} = {X_{n+1} < j, X_{n+2} < j, \dots}$ dépend de ce qui s'est passé "après". 
+\end{example}
+
+\begin{theorem}[Propriété de Markov forte]
+    Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov homogène et $T$ un temps d'arrêt. 
+    Alors conditionnellement à $\{T < \infty\}$ et $\{X_T = x\}$ la chaîné décalée $(X_{T+n})_{n \geqslant 0}$ 
+    est encore une chaîne de Markov de condition initiale $x$. 
+
+    De plus, conditionnellement à $\{T < \infty\} \cap \{X_T = x\}$ on a : 
+        \[ (X_{T+n})_{n \geqslant 0} \text{ est indépendante de } (X_0, \dots, X_{T-1}) \]  
+\end{theorem}
 
 
 

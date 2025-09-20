@@ -1,0 +1,224 @@
+
+\minitoc 
+
+% ========================================================================================================
+% Introduction 
+
+La simulation peut se définir comme la prédiction de l'évolution d'un système en résolvant des équations 
+venues de domaines appliqués. 
+La notion d'aléatoire vient du fait que l'on simule des phénomènes dont nous n'aurons que des informations imparfaites 
+tels que des phénomènes de désintégration nucléaire ou de prévention des risques. Les utilisations 
+possibles de la simulation sont : 
+\begin{itemize}
+    \item Étude d'un phénomène (ex : la trajectoire d'un avion dans des turbulences)
+    \item L'estimation de caractéristiques d'un système (ex : déterminer les caractéristiques d'une simulation météo)
+    \item Tester des hypothèses (ex : en médecine, on peut utiliser la simulation aléatoire pour déterminer à l'avance 
+    les effets d'un médicament sur un patient.)
+    \item La prise de décision dans un environement incertain. 
+    \item Réaliser des expériences coûteuses voire impossibles (ex : effectuer des essais nucléaires informatiquement 
+    en fonction des essais passés ou simuler une propagation virale dans une population). 
+\end{itemize}
+La simulation aléatoire est donc un outil rapide économique et contrôlé. 
+
+\begin{definition}[Simuler une variable aléatoire]
+    Simuler une variable aléatoire de loi $\mu$ consiste à produire un algorithme dont les réalisations donnent 
+    des copies indépendantes d'une variable de loi $ \mu$. 
+\end{definition}
+
+La simulation aléatoire est impossible sans l'accès à des \emph{données aléatoires}. En pratique, on se contentera 
+de données \emph{pseudo-aléatoires} tel que le nombre de secondes écoulées depuis le 01/01/1070, la température 
+d'un processeur ou les dernières touches entrées avant l'exécution du programme. 
+Ceci est obtenu en \texttt{Python} avec la fonction \texttt{rand()}.  Dans ce cours, on considère que chaque appel 
+à cette fonction nous renvoie une variable iid de loi Uniforme sur $[0,1]$. 
+
+Simuler une variable aléatoire consiste donc à construire un algorithme qui transforme un nombre fini de variables 
+aléatoires idd de loi $ \mathcal{U}([0,1])$ en une variable aléatoire de loi $ \mu$ : 
+    \[ \mathcal{U}([0,1]) \overset{\text{simulation}}{\longrightarrow} \mu \] 
+
+% ========================================================================================================
+% Simulation de variables aléatoires discrètes
+
+\section{Simulation de variables aléatoires discrètes}
+
+\begin{example}[Simuler une variable aléatoire de loi $ \mathcal{B}(p)$]
+    Soit $X \sim \mathcal{U}([0,1])$ avec $p \in [0,1]$. Alors la variable $Y = \mathds{1}_{X \leqslant p}$  
+    suit un loi de Bernouilli de paramètre $p$. 
+        \[ \myP(Y = 1) = \myP(\mathds{1}_{X \leqslant p} = 1) = \myP(X \leqslant p) = p \]  
+        \[ \myP(Y = 0) = 1 - p \] 
+    On peut donc développer l'algorithme suivant :
+    \begin{lstlisting}[language=Python]
+def bernouilli(p): 
+    x = rand()
+    if u <= p: 
+        return 1 
+    return 0
+    \end{lstlisting}
+\end{example}
+
+\begin{example}[Simuler une loi binomiale $ \mathcal{B}(n,p)$]
+    Soient $(X_1, \dots, X_n)$ une suite de variables aléatoires iid de loi $ \mathcal{B}(n,p)$. 
+    La variable $ Y := \sum_{n=1}^{n} X_i \sim \mathcal{B}(n,p)$ telle que : 
+        \[ \myP(Y = k) = \binom{n}{k} p^k (1-p)^{n-k} \] 
+    Il nous faut donc seulement générer la somme de $n$ variables aléatoires suivant une loi de Bernouilli. On a donc : 
+        \begin{lstlisting}[language=Python]
+def binom(n,p):
+    s = 0 
+    for i in range(n):
+        s += 1 * (rand() <= p) 
+    return s
+    \end{lstlisting} 
+\end{example}
+
+On cherchera à développer des programmes qui terminent en temps fini. On préferera deux qui terminent 
+en temps borné (comme \texttt{binom(n,p)}). 
+
+\begin{proposition}
+    Soit $(p_n)_{n \geqslant 1}$ une suite réelle positive telle que : 
+        \[ \sum_{k=1}^{\infty} p_k = 1 \] 
+    et $(x_n)$ une suite d'éléments d'un ensemble $E$. On définit la loi $ \mu$ par : 
+        \[ \mu = \sum_{k=1}^{\infty} p_k \delta_{x_k} \] 
+    si une variable aléatoire $X$ est de loi $ \mu$ on aura alors $ \myP(X = x_k) = p_k$. 
+    On pose $f_0 = 0$ et $s_k = p_1 + \dots + p_k$. Soit $U$ une variable aléatoire de loi $ \mathcal{U}([0,1])$. 
+    Alors la variable : 
+        \[ Y = \sum_{k=1}^{\infty} x_n \times \mathds{1}_{s_{n-1} \leqslant U \leqslant s_k} \] 
+    suit la loi $ \mu$. L'algorithme suivant simule une variable aléatoire de loi $ \mu$. 
+    \begin{lstlisting}[language=Python]
+def simulation_mu([p1, ..., pk],[x1, .., xk]): 
+    u = rand() 
+    s = p1 
+    while u > s :
+        i++ 
+        s += pi 
+    return xi 
+    \end{lstlisting}  
+\end{proposition}
+
+\begin{proof}
+    Pour tout $n \in \N$, on a :
+        \[ \myP(s_{n-1} \leqslant U \leqslant s_n) = s_n - s_{n-1} = p_n \] 
+    donc $ \myP(Y = x_n) = \myP(s_{n-1} \leqslant U \leqslant s_n) = p_n $.   
+\end{proof}
+
+\begin{example}[Simuler une loi de Poisson $ \mathcal{P}(\lambda)$ ]
+    Pour rappel, si $X \sim \mathcal{P}(\lambda)$ alors : 
+        \[ \forall k \in \N, \quad \myP(X = k) = e^{-\lambda} \frac{\lambda^k}{k !} \]  
+    Posons $ p_k := e^{- \lambda} \frac{ \lambda^k}{k!}$. On remarque que : 
+        \[ p_{k+1} = e^{- \lambda} \frac{ \lambda^{k+1}}{(k+1)!} = p_k \frac{ \lambda}{k+1} \] 
+    On en déduis donc l'algorithme suivant : 
+
+    \begin{lstlisting}[language=Python]
+def poisson(lambda): 
+    x = 0 
+    p = exp(-\lamdba) 
+    s = p 
+    u = rand() 
+    while u > s : 
+        x += 1
+        p = p * lambda / x 
+        s += p 
+    return x  
+    \end{lstlisting}
+\end{example}
+
+\begin{example}[Loi uniforme]
+    Simulons une loi uniforme sur $\{1, \dots, n\}$. 
+    On a donc l'algorithme suivant : 
+
+    \begin{lstlisting}[language=Python]
+def uniforme(n):
+    x = 1 
+    s = x/n 
+    u = rand() 
+    while u > s : 
+        x += 1
+        s += 1/n 
+    return x 
+
+def uniforme(n):
+    return ceil(n * rand(u))
+    \end{lstlisting}
+\end{example}
+
+\begin{proposition}[Algorithme du Rejet]
+    Soit $(E, \mathcal{E}, \mu)$ un espace probabilisé et $A \subset E$ un évènement tel que $\mu(A) > 0$. 
+    La loi $\mu$ conditionnellement à $A$, notée $\mu_A$, est définie par :
+    \[
+        \mu_A(B) = \frac{\mu(A \cap B)}{\mu(A)}, \qquad B \in \mathcal{E}.
+    \]
+    Soit $(X_n)_{n \geqslant 1}$ une suite de variables aléatoires i.i.d. de loi $\mu$. 
+    On pose :
+    \[
+        T := \inf \{ n \geqslant 1 \mid X_n \in A \},
+    \]
+    c'est-à-dire le rang du premier tirage appartenant à $A$.
+    Alors :
+    \begin{enumerate}
+        \item $T \sim \mathcal{G}(\mu(A))$, c'est-à-dire
+        \[
+            \mathbb{P}(T = k) = (1 - \mu(A))^{k-1} \mu(A), \qquad k = 1,2,\dots
+        \]
+        \item $X_T \sim \mu_A$ (loi conditionnelle sur $A$)
+        \item $X_T$ et $T$ sont indépendantes.
+    \end{enumerate}
+\end{proposition}
+
+\begin{proof}
+    Soit $B \in \mathcal{E}$ et $k \geqslant 1$. On calcule :
+    \begin{align*}
+        \mathbb{P}(X_T \in B, T = k) 
+        &= \mathbb{P}(X_k \in B, T = k) \\
+        &= \mathbb{P}(X_1 \notin A, \dots, X_{k-1} \notin A, X_k \in A, X_k \in B) \\
+        &= \mathbb{P}(X_1 \notin A)^{k-1} \times \mathbb{P}(X_1 \in A \cap B) \\
+        &= (1 - \mu(A))^{k-1} \mu(A) \frac{\mu(A \cap B)}{\mu(A)} \\
+        &= \underbrace{(1 - \mu(A))^{k-1} \mu(A)}_{\mathbb{P}(T = k)}
+           \underbrace{\frac{\mu(A \cap B)}{\mu(A)}}_{\mu_A(B)}.
+    \end{align*}
+    On en déduit :
+    \begin{itemize}
+        \item $\mathbb{P}(T = k) = (1 - \mu(A))^{k-1} \mu(A)$ (loi géométrique)
+        \item $\mathbb{P}(X_T \in B) = \mu_A(B)$
+        \item $\mathbb{P}(X_T \in B, T = k) = \mathbb{P}(T = k) \mathbb{P}(X_T \in B)$, donc $T$ et $X_T$ sont indépendantes.
+    \end{itemize}
+\end{proof}
+
+
+\paragraph{Interprétation.}
+L'algorithme du rejet décrit la procédure suivante :
+\begin{enumerate}
+    \item Tirer $X_1, X_2, \dots$ de manière indépendante selon la loi $\mu$.
+    \item Rejeter tout tirage $X_n \notin A$ et recommencer.
+    \item Accepter le premier $X_T \in A$ : sa loi est exactement $\mu_A$.
+\end{enumerate}
+
+Ainsi :
+\begin{itemize}
+    \item $T$ représente le nombre de tirages nécessaires avant d'obtenir un succès.
+    \item $X_T$ est la valeur de ce premier succès, distribuée comme $\mu$ conditionnellement à $A$.
+    \item $T$ et $X_T$ sont indépendants : le temps d'attente n'influence pas la valeur obtenue.
+\end{itemize}
+
+\begin{example}
+    Si $E$ est l'ensemble des notes d'étudiants, $\mu$ la distribution des notes et $A = \{\text{note} > 15\}$, 
+    alors :
+    \begin{itemize}
+        \item $T$ = nombre d'étudiants observés avant d'en trouver un avec une note $> 15$,
+        \item $X_T$ = note de ce premier étudiant (loi conditionnelle sur $A$).
+    \end{itemize}
+    La loi de $T$ est géométrique et la loi de $X_T$ est la loi des notes sachant qu'elles sont $ > 15$.
+\end{example}
+
+\begin{example}
+    On veut simuler une variable aléatoire $U$ de loi uniforme sur les nombres premiers inférieurs à $n$. 
+    D'après la proposition précédente, on peut donc utiliser l'algorithme suivant : 
+    \begin{lstlisting}[language=Python]
+def unif_prem(n):
+    x = uniforme(n)
+    while not premier(x): 
+        x = uniforme(n) 
+    return x
+    \end{lstlisting}
+    Ainsi le premier nombre premier sur lequel on tombe est uniformément distribué sur l'ensemble des nombres premiers 
+    inférieurs ou égaux à $n$. 
+\end{example}
+
+
