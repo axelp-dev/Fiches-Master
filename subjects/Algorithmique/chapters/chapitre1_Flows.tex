@@ -146,7 +146,7 @@ Ce cours fait donc suite à celui sur la théorie des graphes enseigné en licen
 
 \section{Cycle et flot}
 
-Définissons maintetant la notion de flot dans un cas général. 
+Définissons maintenant la notion de flot dans un cas général. 
 
 % \begin{definition}[Graphe Pondéré]
 %     On appelle \emph{graphe pondéré} tout graphe $G = (X,E)$ auquel on a ajouté une \emph{fonction de poids} : 
@@ -191,7 +191,7 @@ Définissons maintetant la notion de flot dans un cas général.
 \begin{definition}[Vecteur de chaîne]
     Soit $c = (u_1, \dots, u_n)$ une \emph{chaîne élémentaire} dans 
     un graphe orienté $ G = (X, E)$ tel que $ |E| = n $ et d'arcs $ u_i$. 
-    On appelle \emph{vecteur de chaîne} l'application $ \varphi$ associée à $c$ telle que : 
+    On appelle \emph{vecteur de chaîne} associé à $c$ l'application $ \varphi$ associée à $c$ telle que : 
         $$ 
             \varphi : 
                 \begin{cases}
@@ -207,12 +207,12 @@ Définissons maintetant la notion de flot dans un cas général.
     On la note en général $ \varphi = ( \varphi(u_1), \varphi(u_2), \dots, \varphi(u_n)) \in \Z^n$. 
 \end{definition}
 
-Venons en maintetant à la définition phare de ce chapitre : 
+Venons en maintenant à la définition phare de ce chapitre : 
 
-\begin{definition}[flot]
+\begin{definition}[Flot]
     Soit $G = (X, E, c)$ un graphe orienté. On appelle \emph{flot} dans $G$ tout vecteur de 
     cycle $ \varphi$ de $G$ qui vérifie la loi de Kirchoff : 
-        $$ \forall x \in X, \quad \sum_{ u_i \in \omega^-(\{X\})} \varphi(u_i) = \sum_{u_i \in \omega^+(\{X\})} \varphi(u_i) $$
+        $$ \boxed{\forall x \in X, \quad \sum_{ u_i \in \omega^-(\{X\})} \varphi(u_i) = \sum_{u_i \in \omega^+(\{X\})} \varphi(u_i)} $$
     Et on note $ \varphi^i = \varphi(u_i)$ le \emph{flot} de l'arrête $u_i$. 
 \end{definition}
 
@@ -220,6 +220,16 @@ Venons en maintetant à la définition phare de ce chapitre :
     Un flot est donc un chaîne élémentaire d'un graphe orienté dont, pour chaque noeud, la somme des flots 
     sortants est égale à la somme des flots entrants. 
 \end{remark}
+
+\begin{prop}[Flots]
+    Soit $G = (X,E, c)$ un graphe tel que $|E| = n$, alors : 
+    \begin{itemize}
+        \item Le vecteur null de $\Z^n$ est un flot de $G$. 
+        \item Toute combinaison linéaire de flots de $G$ est aussi un flot de $G$. 
+        \item Tout vecteur cyclique de $G$ est un flot de $G$. 
+    \end{itemize}
+\end{prop}
+
 
 \begin{example}
     Soit $G$ le graphe suivant :
@@ -254,15 +264,6 @@ Venons en maintetant à la définition phare de ce chapitre :
     Soit $ v = 2 \varphi_1 + 3 \varphi_2$, c'est aussi un flot de $G$. 
 \end{example}
 
-\begin{prop}[flots]
-    Soit $G = (X,E, c)$ un graphe tel que $|E| = n$, alors : 
-    \begin{itemize}
-        \item Le vecteur null de $\Z^n$ est un flot de $G$. 
-        \item Toute combinaison linéaire de flots de $G$ est aussi un flot de $G$. 
-        \item Tout vecteur cyclique de $G$ est un flot de $G$. 
-    \end{itemize}
-\end{prop}
-
 \begin{proposition}[Loi de Kirchoff généralisée]
     Soit $G = (X, E, c)$ et $A \subset E$ non vide. Un chaîne $ \varphi$ est un flot de $G$ ssi : 
         $$ \sum_{u \in \omega^-(A)} \varphi(u) = \sum_{u \in \omega^+(A)} \varphi(u) $$
@@ -283,7 +284,7 @@ Graphes dans lesquels nous chercherons à construire des flots maximaux.
     \begin{itemize} 
         \item un sommet {sans prédécesseur} appelé \emph{source} (noté $s$). 
         \item  un sommet {sans fils} appelé \emph{puit} (noté $t$). 
-        \item $ c$ est une fonction qui, à chaque arc, lui associe sa capacité, notée $c$ : 
+        \item $ c$, une application, qui à chaque arc, lui associe sa capacité notée $c$ : 
             \[ 
                 c : 
                     \begin{cases}
@@ -293,6 +294,23 @@ Graphes dans lesquels nous chercherons à construire des flots maximaux.
             \] 
         \item un arc fictif de $t$ à $s$ doté d'une capacité infinie, appelé \emph{arc retour}. 
     \end{itemize}
+\end{definition}
+
+\begin{definition}[Flot compatible]
+    Un \emph{flot compatible} sur un réseau $ R = (X,E, c)$ tel que $ |E| = n$ 
+    est un vecteur $ \varphi \in \mathbb{Z}^n$ qui vérifie :
+    \begin{itemize}
+        \item (\textbf{Conservation de Kirchhoff}) pour tout $x \in X \setminus \{s, t\}$ 
+        (hors source $s$ et puits $t$), on a :
+        $$ \sum_{u \in \omega^+(x)} \varphi(u) = \sum_{u \in \omega^-(x)} \varphi(u) $$
+        où $\omega^+(x)$ (resp. $\omega^-(x)$) est l'ensemble des arcs sortants (resp. entrants) de $x$.
+        \item (\textbf{Compatibilité avec les capacités}) :
+        $$ \forall u \in E, \quad 0 \leqslant \varphi(u) \leqslant c(u). $$
+    \end{itemize}
+    La \emph{valeur} du flot, notée $v(\varphi)$, est définie par :
+    $$ v(\varphi) := \sum_{u \in \omega^+(s)} \varphi(u) - \sum_{u \in \omega^-(s)} \varphi(u), $$
+    c'est-à-dire le flux net sortant de la source (équivalent au flux net entrant dans le puits).
+    Enfin, on dit qu'un arc $u$ est \emph{saturé} si $\varphi(u)=c(u)$.
 \end{definition}
 
 \begin{example}
@@ -321,24 +339,6 @@ Graphes dans lesquels nous chercherons à construire des flots maximaux.
     \end{figure}
 \end{example}
 
-\begin{definition}[Flot compatible]
-    Un \emph{flot compatible} sur un réseau $ R = (X,E, c)$ tel que $ |E| = n$ 
-    est un vecteur $ \varphi \in \mathbb{Z}^n$ qui vérifie :
-    \begin{itemize}
-        \item (\textbf{Conservation de Kirchhoff}) pour tout $x \in X \setminus \{s, t\}$ 
-        (hors source $s$ et puits $t$), on a :
-        $$ \sum_{u \in \omega^+(x)} \varphi(u) = \sum_{u \in \omega^-(x)} \varphi(u) $$
-        où $\omega^+(x)$ (resp. $\omega^-(x)$) est l'ensemble des arcs sortants (resp. entrants) de $x$.
-        \item (\textbf{Compatibilité avec les capacités}) :
-        $$ \forall u \in E, \quad 0 \leqslant \varphi(u) \leqslant c(u). $$
-    \end{itemize}
-    La \emph{valeur} du flot, notée $v(\varphi)$, est définie par :
-    $$ v(\varphi) := \sum_{u \in \omega^+(s)} \varphi(u) - \sum_{u \in \omega^-(s)} \varphi(u), $$
-    c'est-à-dire le flux net sortant de la source (équivalent au flux net entrant dans le puits).
-    Enfin, on dit qu'un arc $u$ est \emph{saturé} si $\varphi(u)=c(u)$.
-\end{definition}
-
-
 \begin{definition}[Flot maximal]
     Un \emph{flot maximal} d'un réseau est un flot compatible qui maximise la valeur 
     $v(\varphi)$ parmi tous les flots compatibles du réseau.
@@ -349,34 +349,83 @@ Graphes dans lesquels nous chercherons à construire des flots maximaux.
 Pour construire un flot maximal dans un réseau, nous avons besoin d'un peu de théorie. 
 
 \begin{definition}[Coupure et cocycle]
-    Soit $R = (X, E, c)$ un réseau de flot, où $X$ est l'ensemble des sommets, $E$ l'ensemble des arêtes
+    Soit $R = (X, E, c)$ un réseau, où $X$ est l'ensemble des sommets, $E$ l'ensemble des arêtes
     et $c : E \to \mathbb{R}^+$ la fonction de capacité. 
     
     Une \emph{coupure} $ct$ séparant $s$ de $t$ est un couple $(A, X \setminus A)$ tel que :
     \[
-        s \in A, \qquad t \notin A.
+        A \subset E, \quad s \in A, \quad t \notin A.
     \]
     
-    L'ensemble des arêtes de la coupure, noté $\mathrm{arcs}(ct)$, est le \emph{cocycle sortant} de $A$ :
+    L'ensemble des arcs de la coupure, noté $\mathrm{arcs}(ct)$ est l'ensemble :
     \[
         \mathrm{arcs}(ct) = \omega^+(A) := \{ u = (i,j) \in E \mid i \in A, j \in X \setminus A \}.
     \]
+    Qui correspond à l'ensemble des arcs qui, si on les enlève, coupe tout les chemins entre $s$ et $t$. 
 \end{definition}
 
 \begin{definition}[Capacité d'une coupure]
     La \emph{capacité} d'une coupure $ct$ est la somme des capacités de ses arêtes :
     \[
-        \mathrm{capa}(ct) := \sum_{u \in \omega^+(A)} c(u).
+        \mathrm{capa}(ct) := \sum_{u \in \mathrm{arcs}(ct)} c(u).
     \]
 \end{definition}
-
-\begin{remark}
-    Retrirer tout les arcs du cocycle d'une coupure revient à couper tous les chemins de $s$ vers $t$. 
-    Donc les arrêtes sortantes d'une coupure sont exactement celles qu'il faut couper pour déconnecter 
-    $s$ de $t$. 
-\end{remark}
 
 \begin{theorem}[Flot et coupure minimale]
     Pour tout flot compatible $ \varphi$ et pour toute coupure $ct$ d'un réseau $R$, on a : 
         $$ v( \varphi) \leqslant \mathrm{capa}(ct) $$ 
 \end{theorem}
+
+
+% =======================================================================================================
+% Recherche d'un flot maximal : principe de Ford-Fulkerson
+
+\section{Flot maximal : principe de Ford-Fulkerson}
+
+L'objectif de l'algorithme de Ford-Fulkerson est de construire de manière itérative un flot maximal. 
+Pour cela, on part du flot nul dans le réseau. Et petit-à petit, on cherche des chemins non saturés de la source 
+$s$ vers le puit $t$ pour lequels on peut augmenter leur flot. Une fois que l'on n'est plus capable de trouver 
+de chemin, alors l'algorithme se termine. 
+La définition ci-dessous détaille le processus de constructiond d'un tel chemin. 
+
+\begin{definition}[Principe de Ford-Fulkerson]
+    Soit $R = (X, E, c)$ un réseau et $ \varphi$ un flow sur $R$. 
+    L'algorithme de construction d'un chemin non saturé est : 
+    \begin{enumerate}
+        \item \textbf{Initialisation : } On marque $s$ 
+        \item \textbf{Itération : } Pour tout sommet marqué $x$, $y \in X$ peut peut être marqué si : 
+            \begin{itemize}
+                \item $y$ n'est pas encore marqué 
+                \item $ 
+                    \begin{cases}
+                        \exists u = (x,y) \in E, \varphi(u) < c (u) \quad \text{(marquage direct)} \\  
+                        \exists u = (y,x) \in E, \varphi(u) < c(u) \quad \text{(marquage indirect)}
+                    \end{cases}
+                    $ 
+            \end{itemize}
+    \end{enumerate}
+    L'algorithme se termine si on arrive à marquer le puit $t$. Dans ce cas, la chaîne produite est alors appelée 
+    \emph{chaîne augmentante}, notée $ch$. 
+    On note $ch^+$ les sommets de $ch$ marqués directement et $ch^-$ les sommets marqués 
+    indirectement. 
+\end{definition}
+
+\begin{prop}[Calcul d'un nouveau flot]
+    Soit $R = (X, E, c)$ un réseau et $ \varphi$ un flow sur $R$. Soit $ch$ une chaîne augmentante de $R$. 
+    Il est alors possible d'augmenter la valeur du flot $ \varphi$ de $k \in \R$ en ajoutant à 
+    chaque arcs le flot définit par : 
+        $$ \boxed{k = \min \left( \min_{u \in ch^+} \left\{c(u) - \varphi(u)\right\}, \min_{u \in ch^-} \left\{ \varphi (u)\right\}\right)} $$
+    Le nouveau flot est obtenu en aumgmentant de $k$ le flow des arsc de $ch^+$ et en diminuant le flot de $k$ 
+    des arcs de $ch^-$. 
+\end{prop}
+
+\begin{theorem}[Coupure Minimale - Flot Maximal]
+    Soit $R = (X, E, c)$ un réseau. Soit $F$ l'ensemble des flots possibles sur $R$ et 
+    $K$ l'ensemble des coupures possibles de $R$. 
+    Alors la valeur du flot maximal est égale à la capacité de la coupure minimale. 
+        $$ \boxed{\text{i.e} \quad \max_{ \varphi \in F} \{v( \varphi)\} = \min_{ct \in K} \{\text{capa}(ct)\}} $$   
+\end{theorem}
+
+Ce théorème nous permet donc de trouver dicrectement la valeur du flot maximal que l'on peut faire passer dans 
+notre réseau sans avoir à en construire un. 
+

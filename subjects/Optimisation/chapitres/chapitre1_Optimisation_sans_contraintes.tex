@@ -80,8 +80,11 @@ où $f : \R^n \longrightarrow \R$. Nous commencerons par aborder l'optimalité l
     Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et soit $ \overline{x} \in \R^n$ un minimum 
     local de $f$. Si $f$ est \emph{deux fois différentiable en} $ \overline{x}$ alors : 
         \[ \nabla^2 f( \overline{x}) \succeq 0 \] 
-    On appelle cette condition la \emph{condition doptimalité du second ordre}. 
+    (i.e ssi la hessienne de $f$ est semi-définie positive). 
+    On appelle cette condition la \emph{condition d'optimalité du second ordre}. 
 \end{theorem}
+
+\subsection{Conditions Suffisantes}
 
 Passons maintenant aux conditions suffisantes d'optimalités... 
 
@@ -105,6 +108,10 @@ Passons maintenant aux conditions suffisantes d'optimalités...
     Alors $ \overline{x}$ est un \emph{minimum local strict de $f$}. 
 \end{theorem}
 
+Le théorème suivant nous permet de généraliser ce minimum local en minimum global. Pour cela, 
+il faut que la fonction ne décroit plus (i.e que $ \overline{x}$ soit en bas de la parabole). 
+Pour cela, on utilisera la notion de convexité. 
+
 \begin{theorem}[Convexité et Minimum]
     Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et $ \overline{x} \in \R^n $ un minimum 
     local de $f$. Alors : 
@@ -115,9 +122,161 @@ Passons maintenant aux conditions suffisantes d'optimalités...
 \end{theorem}
 
 % ========================================================================================================
-% Algorithmes d'optimisation
+% Algorithmes de descente
 
-% \section{CNS d'optimalité dans contraintes}
+\section{Algorithmes de Descente}
+
+\subsection{Principe}
+
+Nous allons ici nous intéresser à des algorithmes permettant d'approximer un minimum d'un champ de scalaires. 
+Ces algorithmes seront itératifs, autrement dit, à chaque pas de temps, nous approcherons de plus en plus 
+notre solution. On les appelle des \emph{algorithmes de descente}. 
+La notion de "descente" se formalise par la construction d'une suite $(u_n)_{n \in \N}$ tel que : 
+    $$ \forall n \in \N, \quad f(u_{n+1}) \leqslant f(u_n) $$ 
+
+\begin{definition}[Direction de descente]
+    Soit $f : \R^n \longrightarrow \R$ une application différentiable et $x,d \in \R^n$. 
+    Le vecteur $d$ est \emph{la direction de descente de $f$ en $x$} si : 
+        $$ \langle \nabla f(x), d \rangle < 0 $$ 
+\end{definition}
+
+Pour l'algorithme de descente, ce vecteur $d$ nous donnera le "sens" dans lequel il faut descendre 
+pour s'approcher du minimum. Or maintetant, que l'on sait de quel "coté" descendre, essayons de 
+savoir "de combien" faut-il descendre. 
+
+\begin{theorem}[Existence du pas]
+    Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x,d \in \R^n$ tels que 
+    $ \nabla f(x) \not = 0$. Si $d$ est un direction de descente de $f$ en $x$, alors il existe $ \mu > 0$ 
+    tel que : 
+        $$ \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x)} $$ 
+    De plus, pour tout $ \beta < 1$, il existe $ \mu > 0$ tel que : 
+        $$ \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x) \alpha \beta \langle \nabla f(x), d \rangle} $$ 
+    On appelera $ \alpha$ le \emph{pas} de l'itération. 
+\end{theorem}
+
+\begin{proposition}
+    Chaque itération du processus de descente se fait donc en 3 étapes : 
+    \begin{enumerate}
+        \item Trouver une direction $d_k$ telle que $ \langle \nabla f(x_k) , d_k \rangle < 0$ 
+        \item Trouver un pas $ \alpha_k$ tel que $f(x_k + \alpha_k d_k) < f(x_k)$
+        \item Calculer $x_{k+1} = x_k + \alpha_k d_k $
+    \end{enumerate}
+\end{proposition}
+
+\subsection{Plus profonde descente}
+
+Nous allons maintetant nous intéresser à différents types de descente. En effet, en fonction de l'application 
+à minimiser nous utiliserons différents pas et directions lors de la descente. 
+La méthode naturelle serait de prendre la direction dans laquelle les valeurs de l'application descendent le plus. 
+Nous choissirons donc au début la direction $ d = - \nabla f(x)$. 
+
+\begin{theorem}[Gradient comme direction]
+    Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x \in \R^n$ alors 
+    pour tout $d \in \R^n$ tel que $ ||d|| = || - \nabla f(x) ||$ on a : 
+        $$ \langle \nabla f(x), - \nabla f(x) \rangle \leqslant \langle \nabla f(x), d \rangle $$ 
+    On diras alors que $d^* = - \nabla f(x)$ est \emph{la direction de plus profonde descente}. 
+\end{theorem}
+
+\begin{proposition}
+    Pour mettre en oeuvre notre plus profonde descente, à chaque itération, nous calculons donc : 
+        $$ x_{k+1} = x_k - \alpha_k \nabla f(x_k) $$ 
+    Un théorème précédent nous assure de pouvoir trouver un $ \alpha_k$ qui convient 
+    à chaque itération. Pour une valeur de $ \alpha_k$ optimale, on pourrait résoudre le problème suivant à chaque itération : 
+        \begin{mini*}|s|
+            {}{f(x_k + \alpha d_k )}{}{}
+            % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
+            \addConstraint{        \alpha }{> 0}
+        \end{mini*}
+    Mais nous ne sommes pas sûr de toujours pouvoir le résoudre. 
+\end{proposition}
+
+\subsection{Recherche Linéaire : Conditions}
+
+On remarque assez vite que choisir un pas constant très petit (comme $0.0001$) rallonge considérablement 
+la descente. D'autre part, nous savons que l'existence d'un minimum pour un champ de scalaire est une notion 
+locale. Prendre un pas trop grand risquerai de nous faire rater le minimum et de faire augmenter la fonction 
+objectif. 
+
+Or, résoudre un problème d'optimisation pour $ \alpha_k$ à chaque itération 
+n'est pas non plus une bonne solution car elle augmente la complexité de la méthode. 
+Nous allons donc essayer de développer une méthode qui permet de résoudre approximativement la recherche 
+d'un $ \alpha_k$ à moindre coût. Pour cela, nous choisirons $ \alpha_k$ en fonction de la rapidité ou non de 
+la décroissance de notre fonction objectif. 
+
+\begin{proposition}
+    Pour trouver un pas raisonnable à chaque itération, nous utiliserons l'information contenue dans le gradient 
+    de la fonction objectif. En effet, celui-ci nous permet de savoir comment celle-ci diminue et à quelle vitesse. 
+    On regardera, pour chaque pas possible, la \emph{diminution} qu'il produit dans notre algorithme : 
+        $$ f(x_k) - f(x_k + \alpha_k d_k) > \gamma \alpha_k, \quad \text{pour } \gamma > 0  $$ 
+    Diminution qui sera proportionnelle au pas. 
+    Ainsi, plus la pente $ \langle \nabla f(x_k), d \rangle $ de la fonction objectif dans la direction de $d$ 
+    sera importante, plus le pas sera grand.   
+\end{proposition}
+
+\begin{definition}[Première condition de Wolfe - Condition d'Arjimo]
+    Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x_k \in \R^n$ 
+    et $d_k \in \R^n$ une direction de descente de $f$ en $x_k$ et $ \alpha_k > 0$. 
+    On dit que la fonction $f$ \emph{diminue suffisament} en $x_k + \alpha_k d_k$ par rapport à $x_k$ si : 
+        $$ {f(x_k + \alpha_k d_k) < f(x_k) + \alpha_k \beta \langle \nabla f(x_k), d_k \rangle} $$
+\end{definition}
+
+Il peut arriver que les pas $ \alpha_k$ deviennent très proches de 0 et empêchent la méthode de progresser. 
+On va donc chercher à avancer dans notre descente mais sans dépasser le minimum (première condition de Wolfe), mais 
+en avançant suffisament pour arriver sur un point où la pente de la fonction objectif est moins raide (seconde condition 
+de Wolfe). 
+
+\begin{definition}[Seconde Condition de Wolfe]
+    Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soit $x_k \in \R^n$, 
+    $d_k \in \R^n$ une direction de descente de $f$ en $x_k$ et $ \alpha_k > 0$. 
+    On dira que le point $x_k + \alpha_k d_k$ \emph{apporte une progression suffisante} par rapport 
+    à $x_k$ si : 
+        $$ \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle \geqslant \beta \langle \nabla f(x_k), d_k \rangle $$ 
+        $$ \iff \frac{ \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle}{\langle \nabla f(x_k), d_k \rangle} \geqslant \beta $$ 
+\end{definition}
+
+La \emph{recherche linéaire} permet donc d'identifier un pas qui satisfait les deux conditions de Wolfe. 
+
+\subsection{Algorithme de Recherche Linéaire}
+
+L'idée de l'algorithme de recherche linéaire est de construire un intervalle $[ \alpha_g, \alpha_d]$ 
+contetant des valeurs qui satisfassent les deux conditions de Wolfe. On choisis ensuite un $ \alpha \in [ \alpha_g, \alpha_d]$
+et s'il viole l'une des deux conditions de Wolfe, on réduit l'intervalle précédente et on recommence. 
+
+\begin{proposition}
+    Soient $f : \R^n \longrightarrow \R$ une application différentiable, $x_k \in \R^n$, une direction de 
+    descente $d_k \in \R^n$ de $f$ par rapport à $x_k$ et $ \alpha_0 > 0$. Soient 
+    $ \beta_1$ et $ \beta_2$ deux paramètres tels que $ 0 < \beta_1 < \beta_2 < 1$ et $ \lambda > 1$. 
+    On a l'algorithme suivant : 
+    \begin{enumerate}
+        \item \textbf{Initialisation} : $ i = 0, \alpha_g = 0, \alpha_d = \infty$ 
+        \item \textbf{Itération} : Tant que l'un des conditions de Wolfe est violée avec $ \alpha_k = \alpha_i$ faire : 
+            \begin{enumerate}
+                \item si $ \alpha_i$ viole la première condition de Wolfe, alors le pas est trop long donc : 
+                    $$ \alpha_d = \alpha_i $$ 
+                    $$ \alpha_{i+1} = \frac{ \alpha_g + \alpha_d}{2} $$ 
+                \item si $ \alpha_i$ viole la seconde condition de Wolfe, alors le pas est trop court donc : 
+                    $$ \alpha_g = \alpha_i $$ 
+                    $$ \alpha_{i+1} = 
+                        \begin{cases}
+                            \frac{ \alpha_g + \alpha_d}{2} \quad \text{si } \alpha_d < \infty \\ 
+                            \lambda \alpha_i \quad \text{sinon}  
+                        \end{cases}
+                    $$ 
+                \item $ i++$ 
+            \end{enumerate}
+    \end{enumerate}
+\end{proposition}
+
+\begin{theorem}[Finitude de la recherche linéaire]
+    Soit $f$ une application différentiable bornée inférieurement dans une direction $d_k$ 
+    par rapport à $x_k \in \R^n$. Alors la recherche linéaire d'un pas se termine après un nombre 
+    fini d'itérations. 
+\end{theorem}
+
+\subsection{Méthode de Newton}
+
+
+
 
 
 
