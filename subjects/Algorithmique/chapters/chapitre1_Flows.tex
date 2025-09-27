@@ -388,6 +388,8 @@ $s$ vers le puit $t$ pour lequels on peut augmenter leur flot. Une fois que l'on
 de chemin, alors l'algorithme se termine. 
 La définition ci-dessous détaille le processus de constructiond d'un tel chemin. 
 
+\subsection{Recherche de Flot Maximal}
+
 \begin{definition}[Principe de Ford-Fulkerson]
     Soit $R = (X, E, c)$ un réseau et $ \varphi$ un flow sur $R$. 
     L'algorithme de construction d'un chemin non saturé est : 
@@ -428,4 +430,74 @@ La définition ci-dessous détaille le processus de constructiond d'un tel chemi
 
 Ce théorème nous permet donc de trouver dicrectement la valeur du flot maximal que l'on peut faire passer dans 
 notre réseau sans avoir à en construire un. 
+
+\begin{remark}
+    La derniète itération de l'algorithme de Ford-Fulkerson nous donne une coupure minimale. 
+    Les sommets marqués correspondent aux sommets de l'ensemble $A$ de la coupure $ct = (A X/A)$.
+\end{remark}
+
+\subsection{Recherche de flot maximal de coût minimal}
+
+Rajoutons maintetant une contrainte dans le recherche de notre flot maximal. On souhiate trouver un flot maximal 
+dans un réseau pour lequel le coût du flot sera le plus faible. 
+On cherche dont à faire passser le plus de marchandise dans notre réseau par les routes qui "coûtent le moins cher". 
+
+Nous devons donc définir un nouveau type de réseau intégrant cette notion de coût. 
+
+\begin{definition}[Réseau à coût]
+    Soit $R = (X, E, c)$ un réseau de noeuds $E$, d'arcs $E$ et de fonction de capacité $c$. 
+    On appelle \emph{réseau à coût} le réseau $R$ auquel on a rajouté une fonction de coût $ \gamma$, qui à chaque arrête 
+    lui associe un coût : 
+        $$ \gamma : 
+            \begin{cases}
+                E \longrightarrow \R \\ 
+                (x,y) \longmapsto \gamma(x,y) 
+            \end{cases}
+        $$
+\end{definition}
+
+\begin{example}
+    On représentera donc un réseau à coût comme un réseau normal mais en rajoutant une valeur numérique 
+    sur chaque arrête correspondant à son coût : 
+
+    \begin{figure}[h]
+        \centering 
+        \begin{tikzpicture}[->,>=stealth',shorten >=1pt,auto,node distance=3.5cm,thick,scale=1]
+            % Déclaration des sommets avec des cercles
+            \node[draw, circle] (1) {s};
+            \node[draw, circle, right of=1, above of=1] (2) {1}; 
+            \node[draw, circle, below of=2] (3) {2}; 
+            \node[draw, circle, right of=2, below of=2] (4) {t}; 
+
+            % Ajout des arêtes orientées avec poids
+            % \draw[->] (1) -- (2) node[midway, above] {$(5)$}; 
+            \draw[->] (1) -- (2) node[midway] {$u_1 \; (10, 20)$};    
+            \draw[->] (1) -- (3) node[midway] {$u_2 \; (90, 10)$};
+            \draw[->] (2) -- (3) node[midway] {$u_3 \; (40, 10)$};        
+            \draw[->] (2) -- (4) node[midway] {$u_5 \; (20, 100)$};    
+            \draw[->] (3) -- (4) node[midway] {$u_4 \; (50, 30)$};    
+            \draw[dashed, bend left] (4) edge (1);  
+        \end{tikzpicture}
+        \caption{Réseau de transport à coût}
+    \end{figure}
+\end{example}
+
+\begin{remark}
+    Chercher un flot maximal de coût minimal dans $R$ revient donc à construire un flot via l'algorithme de Ford-Fulkerson 
+    en choisissant une chaîne augmentante de coût minimal à chaque itération. 
+\end{remark}
+
+Pour trouver cette chaîne augmentante de coût minimal, nous devons définir le graphe résiduel d'un réseau. 
+
+\begin{definition}[Graphe Résiduel]
+    Soit $R = (X, E, c, \gamma)$ un réseau et $ \varphi$ un flot sur $R$, on définit 
+    le \emph{graphe résiduel} $ G_R( \varphi) = (X, U_{ \varphi}, r_{ \varphi}) $ associé à $R$ et $ \varphi$ 
+    comme le graphe tel que pour tout arc $(x,y) \in E$, on ait :
+    \begin{itemize}
+        \item un \emph{arc direct} $(x,y) \in U_{ \varphi}$ si $ \varphi(x,y) < c(x,y)$ avec $r_{ \varphi} = c(x,y) - \varphi(x,y)$ 
+        \item un \emph{arc indirect} $(y,x) \in U_{ \varphi}$ si $ \varphi(y,x) > 0$ avec $ r_\varphi = \varphi(y,x)$. 
+    \end{itemize}
+\end{definition}
+
+
 

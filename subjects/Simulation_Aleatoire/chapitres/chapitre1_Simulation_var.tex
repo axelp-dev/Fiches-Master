@@ -221,4 +221,139 @@ def unif_prem(n):
     inférieurs ou égaux à $n$. 
 \end{example}
 
+% ========================================================================================================
+% Simulation de variables aléatoires à densité
 
+\section{Simulation de variables aléatoires à densité}
+
+Dans cette section, nous allons voir comment simuler des variables aléatoires continues. 
+Nous décrouvrirons la méthode d'inversion de la fonction de répartition, une autre version de la méthode 
+du rejet et nous finirons par un ensemble de méthode ad-hoc. 
+
+\begin{definition}[(Rappel) Fonction de répartition]
+    Soit $ \mu$ une mesure de probabilité sur $\R$. La fonction de répartition de $ \mu$ est la fonction :  
+        $$ F : 
+            \begin{cases}
+                \R \longrightarrow \R \\ 
+                x \longmapsto \mu (]-\infty, \infty[ )
+            \end{cases}
+        $$
+\end{definition}
+
+\begin{proposition}
+    La fonction de répartition $F$ d'une loi admet plusieurs propriétés : 
+    \begin{itemize} 
+        \item $F$ est croissante 
+        \item $F$ est continue à droite, elle tend vers 1 en $ + \infty$ et vers $0$ en $ - \infty$. 
+    \end{itemize}
+    De plus, si $ \mu$ admet une densité $f$ par rapport à la mesure de Lebesgue, alors $F$ et dérivable
+    presque partout et $ \forall x \in \R, F'(x) = f(x)$. 
+\end{proposition}
+
+\subsection{Méthode de l'inverse généralisée}
+
+La fonction de répartition $F$ d'une variable aléatoire $X$ nous donne la probabilité 
+que $X$ soit inférieure à $x \in \R$ notée $ \myP(X < x) \in [0,1]$. 
+Puisque l'on sait facilement générer un nombre aléatoire entre 0 et 1 avec la fonction \texttt{rand()}, 
+il serait intéressant de voir si on ne peut pas, à partir de celui-ci, déterminer une 
+valeur aléatoire de la variable $X$. C'est ce que fait la méthode de l'inverse généralisée. 
+
+\begin{definition}[Inverse Généralisée]
+    Soit $F : U \longrightarrow V $ une fonction croissante définie à droite. L'inverse généralisée 
+    de $F$ est la fonction : 
+        $$ F^{-1} : 
+            \begin{cases}
+                V \longrightarrow U \\ 
+                y \longmapsto \inf \left\{x \in U | F(x) > y\right\} 
+            \end{cases}
+        $$ 
+\end{definition}
+
+\begin{proposition}
+    Si $F : U \longrightarrow V$ est inversible sur $I \subset U$ alors : 
+        $$ \forall y \in F(I), \quad F^{-1}(y) = (F_{|I})^{-1}(y) $$ 
+\end{proposition}
+
+\begin{example}
+    Soit $F$ la fonction de répartition de la loi uniforme $ \mathcal{U}([a,b])$. On sait que 
+    $F$ est une bijection de $[a,b]$ sur $[0,1]$ comme fonction continue strictement croissante.
+        $$ F_{|[a,b]} = \varphi : x \longmapsto \frac{x-a}{b-a} $$ 
+    d'inverse $ \varphi^{-1}$ telle que $ \forall y \in [0,1]$, on ait : 
+        \begin{align*}
+            \varphi^{-1}(y) = x &\iff \varphi(x) = y \\ 
+            & \iff y = \frac{x-a}{b-a} \\ 
+            & \iff x = (b-a)y + a 
+        \end{align*}
+    D'où $ \forall y \in [0,1]$, $ \varphi^{-1}(y) = (b-a)y + a$. 
+\end{example}
+
+\begin{theorem}[Inverse de la fonction de répartition]
+    Soit $ \mu$ une mesure de probabilité sur $\R$. On note $F$ sa fonction de répartition et $U$ une variable 
+    aléatoire de loi Uniforme sur $[0,1]$. On a alors : 
+        $$ F^{-1}(U) \sim \mu $$ 
+\end{theorem}
+
+\begin{proof}
+    Soit $F$ la fonction de répartition d'un loi $ \mu$ et $ U \sum \mathcal{U}([0,1])$. 
+    Montrons que $F^{-1}(U) \sim \mu$. Soit $x \in \R$, on a : 
+        $$ \myP(F^{-1}(U) < y) = \myP(U < F(y)) = F(y) $$  
+\end{proof}
+
+\begin{remark}
+    Ce théorème nous assoure que la méthode de l'inverse de la fonction de répartition nous permet de 
+    générer des valeurs de la même loi. 
+    Pour les variables aléatoires discrètes, cette méthode revient au même que le premier algorithme vu dans 
+    ce cours. 
+\end{remark}
+
+\begin{proposition}
+    Soit $X$ une variable aléatoire de densité $f$. 
+    \begin{enumerate}
+        \item \underline{Calculer} $F(x) = \int_{- \infty}^x f(t) \; dt$ la fonction de répartition de $X$. 
+        \item \underline{Calculer} $F^{-1}$ l'inverse généralisée de $F$ sur un invervalle bien choisi. 
+        \item \underline{Écrire l'algorithme} : 
+            \begin{lstlisting}[language=Python]
+def simulerX(): 
+    return invF(rand())
+            \end{lstlisting}
+    \end{enumerate}
+\end{proposition}
+
+\begin{example}
+    Simulons une variable aléatoire $X$ dont la densité est : 
+        $$ f_X(x) = \frac{1}{\pi} \frac{1}{\sqrt{1 - x^2}}, \quad \forall x \in ]-1, 1[ $$ 
+    Calculons sa fonction de répartition : 
+        \begin{align*}
+            F_X(x) &= \int_{-\infty}^x \frac{1}{\pi} \frac{1}{\sqrt{1 - t^2}} \; dt \\ 
+            &= \int_{-1}^{x} \frac{1}{\pi} \frac{1}{\sqrt{1 - t^2}} \; dt \\ 
+            &= \frac{1}{\pi} \left[ \arcsin t \right]_{-1}^x \\ 
+            &= \frac{1}{\pi} arcsin x - \frac{1}{2}   
+        \end{align*}
+    or $F$ est strictement croissante et continue sur $]-1, 1[$ donc elle réalise une bijection 
+    de $[-1, 1]$ dans $[0,1]$. Soient $x \in [-1,1]$ et $ y \in [0,1]$ tels que : 
+        \begin{align*}
+            & F(x) = y \iff \frac{1}{\pi} arcsin x + \frac{1}{2}  = y \\ 
+            & \iff x = \sin \left( \pi \left(y + \frac{1}{2} \right) \right)   
+        \end{align*}
+    Donc $F$ est bijective d'inverse : 
+        $$ F^{-1} = x \longmapsto \sin \left( \pi \left(y + \frac{1}{2} \right) \right)  $$
+\end{example}
+
+
+\subsection{Méthode du rejet}
+
+On souhaite simuler une variable aléatoire $X$ de fonction de densité $f$ que l'on ne sait pas bien simuler. 
+On va donc utiliser une autre fonction auxiliaire $g$ que l'on sait bien simuler. 
+
+\begin{theorem}
+    Soient $f,g$ deux fonctions de densité telles qu'il existe $c > 0$ vérifiant : 
+        $$ f \leqslant cg $$ 
+    Soient $(Y_i)_{i \geqslant1}$ des variables iid de densité $g$ et $ (X_i)_(i \geqslant 1)$ des variables iid 
+    de loi $ \mathcal{U}([0,1])$. 
+    Posons $ T = \inf \left\{n \geqslant 1 | U_n \leqslant \frac{f(Y_n)}{g(Y_n)}\right\} $. Alors : 
+    \begin{enumerate}
+        \item $Y_T$ a pour densité $f$ 
+        \item $T$ est de loi géométrique $ \mathcal{G}(1/c)$ 
+        \item T et $Y_T$ sont indépendantes.  
+    \end{enumerate} 
+\end{theorem}

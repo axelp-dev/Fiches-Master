@@ -343,7 +343,6 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
 \end{example}
 
 
-
 % ========================================================================================================
 % Propriétés de Markov 
 
@@ -352,7 +351,7 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
 \begin{theorem}[Version Faible]
     Soit $(X_n)$ une chaîne de Markov homogène de matrice de transition $P$ et de loi initiale $ \pi_0$. 
     Soit $n \in \N$ fixé. Conditionnellement à l'évènement $\{X_n = i\}$ pour tout $i \in E$, 
-    la suite de varibales aléatoires $(X_{n+m})_{n \geqslant 0}$ est une chaîne de Markov homogène 
+    la suite de variables aléatoires $(X_{n+m})_{n \geqslant 0}$ est une chaîne de Markov homogène 
     de même matrice de transition $P$ et de loi initiale $ \delta_i$. 
 
     De plus, elle est indépendante du passé de $ (X_0, \dots, X_n)$ conditionnnellement à $\{X_n = i\}$. 
@@ -435,12 +434,275 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
 
 \begin{theorem}[Propriété de Markov forte]
     Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov homogène et $T$ un temps d'arrêt. 
-    Alors conditionnellement à $\{T < \infty\}$ et $\{X_T = x\}$ la chaîné décalée $(X_{T+n})_{n \geqslant 0}$ 
+    Alors conditionnellement à $\{T < \infty\}$ et $\{X_T = x\}$ la chaîne décalée $(X_{T+n})_{n \geqslant 0}$ 
     est encore une chaîne de Markov de condition initiale $x$. 
 
     De plus, conditionnellement à $\{T < \infty\} \cap \{X_T = x\}$ on a : 
         \[ (X_{T+n})_{n \geqslant 0} \text{ est indépendante de } (X_0, \dots, X_{T-1}) \]  
 \end{theorem}
+
+\begin{remark}
+    Ici, la chaîne de Markov est décalée conditionnellement à une variable aléatoire, c'est beaucoup plus fort 
+    que le propriété précédente. 
+\end{remark}
+
+\begin{example}[Application - Ruine du Joueur]
+    Soit l'espace d'état $E = \{ 0, \dots, m \}$ et $(X_n)_{n \in \N}$ une chaîne de Markov sur $E$ 
+    telle que $X_0 = k \in \{ 1, \dots, m \}$. On s'intéresse à deux temps d'arrêts : 
+    \begin{itemize}
+        \item $ \tau_0 = \inf \{ n \geqslant 0 \; | \; X_n = 0 \} $ 
+        \item $  \tau_m = \inf \{ n \geqslant 0 \; | \; X_n = m \}$ 
+    \end{itemize} 
+    On souhaite estimer le temps de jeu moyen d'un joueur. Pour cela, on considère le temps d'arrêt : 
+        $$ \tau = \min ( \tau_0, \tau_m) $$ 
+    On veut savoir quand $t < t_0$ (i.e quand le joueur gagne avant de perdre). 
+    Soit $ m> 1$, alors $ \tau_0$ est distinct de $ \tau_m$ si l'un des deux est fini. En conséquence 
+    si $ \tau < \infty$, on a : 
+    \begin{itemize}
+        \item soit $ \tau = \tau_0 < \tau_m$ 
+        \item soit $ \tau = \tau_m < \tau_0$. 
+    \end{itemize}
+    On cherche la "probabilité de ruine" : 
+        $$ f(k) = \myP( \tau < \infty, \tau = \tau_0 \; | \; X_0 = k) $$ 
+    Pour cela, nous devons donc déterminer toutes les valeurs de $f$. On utilise donc les propriétés de Markov pour en déduire 
+    des relations de récurrence entre $f(k), f(k+1)$ et $f(k-1)$. On remarque ainsi que : 
+        $$ \text{si } X_0 = 0 \text{ alors } \tau = \tau_0 = 0 \text{ donc } f(0) = 1 $$ 
+        $$ \text{si } X_0 = m \text{ alors } \tau = \tau_m = 0 \text{ donc } f(m) = 0 $$
+    Si $X_0 \not \in \{ 0, m \} $, on doit au moins faire un pas pour atteindre $ \tau_0$ ou $ \tau_m$. On en déduis donc que : 
+        $$ \tau_0((X_n)_{n \in \N}) = 1 + \tau_0((X_{n+1})_{n \in \N}) $$ 
+        $$ \tau_m((X_n)_{n \in \N}) = 1 + \tau_m((X_{n+1})_{n \in \N}) $$ 
+    On a donc, via l'analyse à un pas : 
+        \begin{align*}
+            f(k) &= \myP( \tau((X_n)_{n \in \N}) = \tau_0((X_n)_{n \in \N}) < \infty \; | \; X_0 = k) \\
+            &= \myP( \tau((X_{n+1})_{n \in \N}) = \tau_0((X_{n+1})_{n \in \N}) < \infty \; | \; X_0 = k)
+        \end{align*}
+    En appliquant la formule des probabilités totales à $X_1$, on a donc : 
+        \begin{align*}
+            f(k) &= \myP(X_1 = k+1 \; | \; X_0 = k) \times \myP( \tau((X_{n+1})_{n \in \N}) = \tau_0((X_{n+1})_{n \in \N}) < \infty \; | \; X_1 = k+1, X_0 = k) \\ 
+            & \quad + \myP(X_1 = k-1 \; | \; X_0 = k) \times \myP( \tau((X_{n+1})_{n \in \N}) = \tau_0((X_{n+1})_{n \in \N}) < \infty \; | \; X_1 = k-1, X_0 = k) 
+        \end{align*}
+    Or, conditionnellement à $ \{ X_1 = k+1 \}$, la chaîne $ (X_{n+1})_{n \in \N}$ est une chaîne de Markov 
+    partant de $k+1$. On a donc : 
+        \begin{align*}
+            f(k) &= p \myP( \tau_0((X_n)_{n \in \N}) = \tau((X_n)_{n \in \N}) \; | \; X_0 = k+1) \\ 
+            & \quad + (1-p) \myP( \tau_0((X_n)_{n \in \N}) = \tau((X_n)_{n \in \N}) \; | \; X_0 = k-1) \\ 
+            &= pf(k+1) + (1-p)f(k-1)
+        \end{align*}
+    Résolvons cette relation de récurrence pour $p = 1/2$. On a donc $ \forall k \in \llbracket 1, m \rrbracket, 
+    k \not \in \{ 0,m \} $ : 
+        $$ f(k) = \frac{f(k+1) + f(k-1)}{2} $$ 
+        $$ \iff f(k+1) - f(k) = f(k) - f(k-1) = \Delta$$ 
+    On peut donc poser : 
+        \begin{align*}
+            & f(m) - f(0) = \sum_{k=0}^{m-1} f(k+1) - f(k) = (m-1) \Delta \\ 
+            & \iff \Delta = - \frac{1}{m}
+        \end{align*}
+    D'où : 
+        $$ f(k) = 1 + k \Delta = 1 - \frac{k}{m} $$
+\end{example}
+
+% ========================================================================================================
+% Mesures Invariantes
+
+\section{Mesures Invariantes}
+
+\subsection{Définition et propriétés}
+
+Dans cette section, nous supposons tout d'abord que l'espace d'états $E$ est fini. 
+Au début du cours on a vu que, pour une chaîne de Markov $(X_n)_{n \in \N}$ de matrice $P$
+et de loi initiale $ \pi_0$, la relation de Chapman-Kolmogorov nous donne : 
+    $$ \myP(X_n = j \; | \; X_0 = i_0) = P^n(i_0, j) $$ 
+Nous allons ici chercher des mesures de probabilités telles que : 
+    $$ \pi P = \pi $$. 
+Nous appellerons de tells mesures, des mesures de probabilités invariantes. 
+
+\begin{definition}[Mesures Invariantes]
+    Soit une mesure positive $ \pi$ sur $E$. On dit que $ \pi$ est \emph{invariante} pour une matrice de transition 
+    $P$ si : 
+        $$ \boxed{\forall x \in E, \quad \pi(x) = \pi P(x) = \sum_{y \in E} \pi(y)P(y,x)} $$
+    On dit alors que $ \pi$ est un \emph{vecteur propre à gauche} de $P$ pour la valeur propre 1. 
+    Par convention, les mesures sont écrites comme des vecteurs ligne. 
+\end{definition}
+
+\begin{remark}
+    Attention, une mesure invariante n'est pas forcément un mesure de propabilité. Pour que ce 
+    soit le cas, il faut que : 
+        $$ \sum_{x \in E} \pi(x) = 1 $$
+    Quand $E$ est fini, on peut facilement obtenir une mesure invariante de probabilité à partir 
+    d'une mesure invariante en la normalisant par $\sum_{x \in E} \pi(x)$. 
+\end{remark}
+
+\begin{lemma}
+    Soit $ \pi$ une mesure invariante pour une matrice de transition $P$. Alors : 
+        $$ \forall n \in \N^*, \quad \pi = \pi P^n $$ 
+    De plus si $X_0$ est distribué selon la loi $ \pi$ alors la loi de $X_n$ l'est également 
+    pour tout $ n > 0$. En conséquence : 
+        $$ \forall n,m \in N, \quad (X_0, X_1, \dots, X_m) \overset{ \text{loi} }{=} (X_n, X_{n+1}, \dots, X_{n+m}) $$
+\end{lemma}
+
+\begin{prop}[Mesure Invariante et Loi]
+    Soit $ \pi$ une mesure de probabilité invariante. Soit $(X_n)_{n \in \N}$ une chaîne de Markov homogène de 
+    matrice $P$ et de loi initiale $ \pi$ alors, pour tout $n \in \N, X_n \sim \pi$. 
+\end{prop}
+
+\subsection{Existence des mesures invariantes}
+
+\begin{theorem}[Mesure invariance, existence]
+    Toute chaîne de Markov homogène sur un espace d'état fini admet une mesure de probabilité invariante. 
+\end{theorem}
+
+\begin{proof}
+    Soit $ \psi$ une mesure de probabilité quelconque sur $E$ où $ |E| = d$. Posons : 
+        $$ \forall n \in \N, \quad \psi = \frac{1}{n} \sum_{k=0}^{n} \psi P^k $$ 
+    On sait que pour tout $k \in \N, \psi P^k$ est une mesure de probabilité sur $E$. Donc $ \psi_n$ l'est aussi 
+    une par construction. 
+    
+    De plus, pout tout $x \in E, ( \psi_n(x)_{n \in \N})$ est une suite à valeurs dans $[0,1]^d$. Par compacité,
+    il existe une sous-suite convergente $( \psi_{ \varphi(n)}(x))_{n \in \N}$. Comme $E$ est fini, il existe une 
+    extraction telle que : 
+        $$ \forall x \in E, \quad \psi_{ \varphi(n)}(x) \underset{n \to \infty}{\longrightarrow} \pi(x) $$
+    Montrons maintenant que $ \pi$ est une mesure de probabilités invariante pour $P$. 
+    On a : 
+        $$ \forall n \in \N, \quad \sum_{x \in E} \psi_n(x) = 1 \quad \text{et} \quad \forall x \in E, \quad \psi_n(x) \geqslant 0 $$
+    Donc lorsque $ n \to \infty$, on a :
+        $$ \sum_{x \in E} \pi(x) = 1 \quad \text{ et } \quad \forall x \in E, \pi(x) \geqslant 0 $$
+    Donc $ \pi$ est une mesure de probabilités sur $E$. De plus, pour tout $n \in \N$, on a : 
+        \begin{align*}
+            \psi_n P &= \frac{1}{n} \sum_{k=1}^{n} \psi P^k P =  \frac{1}{n} \sum_{k=1}^{n} \psi P^{k+1} = \frac{1}{n} \sum_{k=2}^{n+1} \psi P^k \\ 
+            &= \frac{1}{n} \frac{n+1}{n+1} \left( \sum_{k=1}^{n+1} \psi P^k - \psi P \right) \\ 
+            &= \frac{n+1}{n} \psi_{n+1} - \frac{1}{n} \psi P     
+        \end{align*} 
+    Donc lorsque $ n \to \infty$, on obtient : 
+        $$ \pi P = \pi $$
+\end{proof}
+
+\begin{remark}
+    Il existe pleins de méthodes numériques pour approcher une mesure invariante d'une chaîne de Markov homogène. 
+    Ce n'est pas un problème facile à résoudre car il faut résoudre un système de $d$ équations à $d$ inconnues. 
+\end{remark}
+
+\begin{example}
+    Soit le graphe suivant et $ p,q \in ]0,1[$. 
+    \begin{figure}[h!]
+        \centering
+        \makebox[\textwidth][c]{ % Centre le tikz dans la largeur du texte
+            \begin{tikzpicture}[
+                baseline=(current bounding box.center),
+                shorten >=1pt,
+                node distance=3cm,
+                on grid,auto
+            ]
+                \node[state] (1) {$1$}; 
+                \node[state, right of=1] (2) {$2$}; 
+
+                \path[->]
+                    (1) edge[above, bend left] node{$p$} (2)
+                    (2) edge[loop right] node{$1-q$} (2)
+                    (2) edge[above, bend left] node{$q$} (1)
+                    (1) edge[loop left] node{$1-p$} (1); 
+            \end{tikzpicture}
+        }
+        \caption{Mesure Invariante - 1}
+    \end{figure}
+    Soit $ \pi = ( \pi_1, \pi_2)$ une mesure invariante. On a alors $ \pi P = \pi$. 
+        \begin{align*}
+            \iff & ( \pi_1, \pi_2) 
+                \begin{pmatrix}
+                    1-p & p \\ 
+                    q & 1-q 
+                \end{pmatrix} 
+                = ( \pi_1, \pi_2) \\ 
+            \iff & 
+                \begin{cases}
+                    \pi_1 (1-p) + q \pi_2 = \pi_1 \\ 
+                    \pi_1 p + \pi_2(1-q) = \pi_2 
+                \end{cases}\\ 
+            \iff & 
+                \pi_1 = \frac{q}{p} \pi_2 
+        \end{align*}
+        Or $ \pi$ est une mesure de probabilité ssi : 
+            $$ pi_1 + \pi_2 = 1 \iff \pi_1 = \frac{q}{p+q} \text{ et } \pi_2 = \frac{p}{p+q} $$  
+\end{example}
+
+\subsection{Unicité des mesures de probabilité invariantes et irréductibilité}
+
+\begin{definition}[Communication]
+    Soient $x,y \in E$. On dit que \emph{$x$ communique avec $y$} s'il existe un chemin de probabilité positive 
+    de $x$ à $y$ dans $E$. On le note alors $ x \leadsto x$. Plus formellement :
+        \begin{align*}
+            x \leadsto y & \iff \exists x, x_1, \dots, x_{n-1}, y \in E, P(x, x_1), P(x_1, x_2), \dots, P(x_{n-1}, y) > 0 \\ 
+            & \iff \forall n \geqslant 1, \quad P^n(x,y) > 0 
+        \end{align*}
+\end{definition}
+
+\begin{prop}[Transitivité]
+    La relation communique $ \leadsto$ est transitive. 
+\end{prop}
+
+\begin{definition}[Classe fermée]
+    Soit $E_0 \subset E$ un sous-ensemble de $E$ que l'on appellera \emph{classe de $E$}. 
+    On dit que la classe $E_0$ est \emph{fermée} si : 
+        $$ \forall x \in E_0, \quad x \leadsto y \Longrightarrow y \in E_0 $$ 
+\end{definition}
+
+\begin{definition}[Classe irréductible]
+    Une classe $E_0$ de $E$ est dite \emph{irréductible} si elle est fermée et si : 
+        $$ \forall x,y \in E_0, \quad x \leadsto y \text{ et } y \leadsto x $$ 
+    Par extension, on dira qu'une chaîne de Markov homogène est irréuctible si son espace d'état l'est aussi. 
+\end{definition}
+
+\begin{theorem}[Unicité des mesures invariantes]
+    Toute chaîne de Markov homogène sur un espace d'état fini admet une unique mesure de probabilité 
+    invariante $ \pi$ et : 
+        $$ \forall x \in E, \quad \pi(x) > 0 $$
+\end{theorem}
+
+\begin{proof}
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov homogène d'espace d'état $E$. 
+    Supposons que $E$ est irréductible et soit $ \pi$ une mesure invariante de $(X_n)_{n \in \N}$. 
+    \begin{enumerate}
+        \item \underline{Positivité : }Montrons que $ \pi$ est positive. On sait que $ \pi$ est une 
+        mesure de probabilités donc : 
+            $$ \sum_{x \in E} \pi(x) = 1 $$ 
+        donc il existe nécessairement $x_0 \in E$ tel que $ \pi(x_0) > 0$. Comme $E$ st irréductible, 
+        alors pour tout $x \in E, x_0 \leadsto y$. Donc il existe $ n \in \N$ tel que : 
+            $$ P^n(x_0, y) > 0$$ 
+        De plus, on sait que $ \pi$ vérifie : 
+            \begin{align*}
+                \pi(x) &= \sum_{x \in E} \pi(x) P(x,y) = \pi P \\ 
+                \Longrightarrow \pi(y) &= \sum_{x \in E} \pi(x) P^n(x,y) \\ 
+                &= \underbrace{\pi(x_0) P^n(x_0, y)}_{>0}
+                + \underbrace{\sum_{x \in E, \, x \not= x_0} \pi(x) P^n(x,y)}_{\geqslant 0}
+            \end{align*}
+        Donc $ \forall y \in E, \pi(y) > 0$. 
+        \item \underline{Unicité : } voir TD
+    \end{enumerate}
+\end{proof}
+
+\subsection{Construction de mesures de probabilités invariantes}
+
+Soit $E$ un espace d'états fini et $(X_n)_(n \in \N)$ une chaîne de Markov homogène irréductible sur $E$. 
+Pour construire une telle mesure, on va essayer de faire tendre la loi de $(X_n)_(n \in \N)$ vers une 
+mesure de probabilités invariante. 
+
+\begin{definition}[Temps de retour]
+    Soit $x \in E$, on définit le temps de retour en $x$ comme : 
+        $$ \tau_x^+ := \inf \{ n \geqslant 1 \; | \; X_n = x \} \in \overline{\N} $$ 
+    remarquons que c'est un \emph{temps d'arrêt}.  
+\end{definition}
+
+\begin{remark}
+    Précédement, nous avions définit les temps d'arrêts de la façon suivante : 
+        $$ \tau_x = \inf \{ n \geqslant 0 \; | \; X_n = x \} $$ 
+    La différence avec un temps de retour est que si $ \{ X_0 = x \}$ alors : 
+        $$ \tau_x = 0 \quad \text{et} \quad \tau_X^+ \geqslant 1 $$  
+\end{remark}
+
+\begin{lemma}
+    Pour tout $x,y \in E$, on a :   
+        $$ \mathbb{E}( \tau_y^+ \; | \; X_0 = x) < \infty $$ 
+        % $$ \iff \sum_{k=1}^{ \infty} k \myP( \tau_y^+ = k \; | \; X_0 = x) + \infty   
+\end{lemma}
 
 
 
