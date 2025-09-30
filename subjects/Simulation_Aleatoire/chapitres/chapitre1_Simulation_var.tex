@@ -345,7 +345,7 @@ def simulerX():
 On souhaite simuler une variable aléatoire $X$ de fonction de densité $f$ que l'on ne sait pas bien simuler. 
 On va donc utiliser une autre fonction auxiliaire $g$ que l'on sait bien simuler. 
 
-\begin{theorem}
+\begin{theorem}[Méthode du rejet]
     Soient $f,g$ deux fonctions de densité telles qu'il existe $c > 0$ vérifiant : 
         $$ f \leqslant cg $$ 
     Soient $(Y_i)_{i \geqslant1}$ des variables iid de densité $g$ et $ (X_i)_(i \geqslant 1)$ des variables iid 
@@ -357,3 +357,341 @@ On va donc utiliser une autre fonction auxiliaire $g$ que l'on sait bien simuler
         \item T et $Y_T$ sont indépendantes.  
     \end{enumerate} 
 \end{theorem}
+
+\begin{proposition}
+    On peut donc ensuite simuler la variable aléatoire de densité $f$ grâce à la densité de $g$ avec 
+    l'algorithme suivant :
+    \begin{lstlisting}[language=Python]
+def simul_f(): 
+    y = simul_g()
+    u = rand()
+    while u > f(y) / (c * g(y)):
+        y = simul_g()
+        u = rand() 
+    return y
+    \end{lstlisting}
+\end{proposition}
+
+\begin{proof}
+    Soient $ \varphi, f$ deux fonctions continues et bornées sur $\R$. Montrons que $Y_T$ est une variable aléatoire 
+    de densité $f$ : 
+        \begin{align*}
+            \mathbb{E}( \varphi(Y_T)) &= \mathbb{E} \left( \sum_{n =1}^{\infty} \mathbbm{1}_{T = n} \varphi(Y_T)  \right) \\ 
+            &= \sum_{n=1}^{\infty} \mathbb{E} \left( \varphi(Y_T) \times \mathbbm{1}_{T = n}  \right) \\ 
+            &= \sum_{n=1}^{\infty} \mathbb{E} \left( \varphi(Y_n) \times \mathbbm{1}_{T = n}  \right)  \\ 
+            &= \sum_{n=1}^{\infty} \mathbb{E} \left( \varphi(Y_n) \times \mathbbm{1}_{U_n \leqslant \frac{f(Y_n)}{cg(Y_n)}} 
+                \times \mathbbm{1}_{U_{n-1} \leqslant \frac{f(Y_{n-1})}{cg(Y_{n-1})}} \times \dots \times  
+                \mathbbm{1}_{U_1 > \frac{f(Y_1)}{cg(Y_1)}}   \right)  \\
+            &= \sum_{n=1}^{\infty} \left( \mathbb{E} \left( \varphi(Y_n) \mathbbm{1}_{U_n \leqslant \frac{f(Y_n)}{cg(Y_n)}} \right)
+                 \myP \left( U_{n-1} > \frac{f(Y_{n-1})}{cg(Y_{n-1})} \right) \dots \myP \left(U_1 > \frac{f(U_1)}{cg(U_1)} \right) \right)
+        \end{align*}
+    or on a : 
+        \begin{align*}
+            \myP( U_1 > \frac{f(Y_1)}{cg(Y_1)} ) &= \mathbb{E} \left( \myP \left( U_1 > \frac{f(Y_1)}{cg(Y_1)}  \; | \; Y_1\right) \right) \\ 
+            &= \mathbb{E} \left( 1 - \frac{f(Y_1)}{cg(Y_1)} \right) = 1 - \mathbb{E} \left( \frac{f(Y_1)}{cg(Y_1)} \right) \\ 
+            &= 1 - \int_\R \frac{f(y)}{cg(y)} \times g(y) \; dy = 1 - \frac{1}{c} 
+        \end{align*}
+    de plus : 
+        \begin{align*}
+            & \mathbb{E} \left( \varphi(Y_n) \times \mathbbm{1}_{U_n \leqslant \frac{f(Y_n)}{cg(Y_n)} }  \right) \\ 
+            = & \mathbb{E} \left( \varphi(Y_n) \frac{f(Y_n)}{cg(Y_n)} \right) = \int_\R g(y) \varphi(y) \frac{f(y)}{cg(y)} \; dy \\ 
+            = & \frac{1}{c} \int_\R \varphi(y) f(y) \; dy     
+        \end{align*}
+    enfin : 
+        \begin{align*}
+            \mathbb{E}( \varphi(y)) &= \sum_{n=1}^{\infty} \mathbb{E} \left( \varphi(Y_n) \times \mathbbm{1}_{U_n \leqslant \frac{f(Y_n)}{cg(Y_n)} }  \right) 
+                \times \left( 1 - \frac{1}{c} \right)^{n-1} \\ 
+                &= \left(\int_\R \varphi(y) f(y) \; dy\right) \times \frac{1}{c} \times \left( \sum_{n=1}^{\infty} \left(1 - \frac{1}{c} \right)^{n-1}\right)  
+                = \int_\R \varphi(y) f(y) \; dy 
+        \end{align*}
+    Donc $Y_n$ est une variable aléatoire de densité $f$. Calculons la loi de $T$ : 
+        \begin{align*}
+            \myP(T > n) &= \myP \left( U_1 > \frac{f(Y_1)}{cg(Y_1)}, \dots, U_n > \frac{f(Y_n)}{cg(Y_n)}  \right) \\ 
+            &= \myP \left(U_1 > \frac{f(Y_1)}{cg(Y_1)} \right)^n = \left(1 - \frac{1}{c} \right)^n  
+        \end{align*}
+    d'où $T \sim \mathcal{G}(1/c)$. Pour finir, montrons que $T$ et $Y_T$ sont indépendantes : 
+        \begin{align*}
+            \mathbb{E} \left( \varphi(Y_T) \times \mathbbm{1}_{T=n}  \right) &= \mathbb{E} \left( \varphi(Y_T)\right) \times \frac{1}{c} \times \left(1 - \frac{1}{c} \right)^{n-1} \\ 
+            &= \mathbb{E}( \varphi(Y_T)) \times \myP(T = n)   
+        \end{align*}
+\end{proof}
+
+\begin{remark}[Méthode du rejet : Principe]
+    Comme dit précédement, la méthode du rejet nous permet de simuler une densité $f$ à partir d'une autre densité $g$ que l'on
+    sait simuler. Pour cela, on supposera qu'il existe $c > 0$ tel que $ f \leqslant cg$. 
+        \begin{center}
+            \begin{tikzpicture}
+                \begin{axis}[
+                    axis lines = middle,
+                    xlabel = $x$,
+                    ylabel = {$y$},
+                    grid = both,
+                    legend style={at={(0.97,0.97)},anchor=north east},
+                    domain=0:4,
+                    samples=200,
+                    ymin=0, ymax=1.3
+                ]
+                    % Zone sous f(x)
+                    \addplot [
+                    domain=0:4,
+                    samples=200,
+                    pattern=north east lines,
+                    pattern color=blue,
+                    ] {0.8*exp(-(x-2)^2)} \closedcycle;
+
+                    % Zone sous c g(x)
+                    \addplot [
+                    domain=0:4,
+                    samples=200,
+                    pattern=north west lines,
+                    pattern color=red,
+                    ] {8*exp(-x)} \closedcycle;
+
+                    % f(x) cible
+                    \addplot[blue, thick] {0.8*exp(-(x-2)^2)}; 
+                    \addlegendentry{$f(x)$}
+
+                    % g(x) proposition
+                    \addplot[red, dashed, thick] {exp(-x)}; 
+                    \addlegendentry{$g(x)$}
+
+                    % c g(x) enveloppe
+                    \addplot[red, thick] {8*exp(-x)};
+                    \addlegendentry{$c g(x)$}        
+                \end{axis}
+            \end{tikzpicture}
+        \end{center}
+
+    Soit $X \sim g$ et $U \sim \mathcal{U}([0,1])$.  
+    L'idée est donc de tirer un point aléatoirement selon la densité $cg$, $(X, U \times cg(X))$ dans la zone rouge. 
+    Si la valeur $ U \times cg(X)$ est sous la courbe de $f$ (i.e dans la zone bleu), on accepte le point, 
+    sinon on recommence. La probabilité d'acceptation est donc de $ 1/c$.  
+\end{remark}
+
+\begin{example}
+    Soit $f$ la fonction suivante : 
+        $$ 
+            f : 
+                \begin{cases}
+                    \R_+^* \longrightarrow \R \\ 
+                    x \longmapsto \frac{\sqrt{2}}{\pi} e^{x^2/2}
+                \end{cases}
+        $$ 
+    et $g$ la fonction $ g : x \longmapsto -e^x$ définie sur $ \R_+^*$. Pour tout $x \in \R_+^*$, on a : 
+            $$ f(x) \leqslant cg(x) \quad \text{où} \quad c = \frac{\sqrt{2}}{\pi} e$$
+    On peut donc simuler $f$ via l'algorithme suivant : 
+    \begin{lstlisting}[language=Python]
+def simul_f(): 
+    u = rand() 
+    y = - log(1 - rand())
+    while u > exp(-y**2/2) / exp(1 - y): 
+        u = rand() 
+        y = - log(1 - rand())
+    return y
+    \end{lstlisting}
+\end{example}
+
+
+% ========================================================================================================
+% Méthodes ad-hoc
+
+\section{Méthodes ad-hoc}
+
+Dans cette section, nous allons détailler un ensemble de méthodes destinées à des usages précis. 
+Nous verrons comment simuler efficacement une loi normale une loi de poisson ainsi qu'un mélange de lois. 
+
+\subsection{Loi Normale - Méthode de Box-Muller}
+
+\begin{rappel}[Loi Normale]
+    Une variable aléatoire $X$ suit une \emph{loi normale} de moyenne $ \mu$ et de variance $ \sigma^2$ si 
+    la densité de la loi sur $\R$ est : 
+        $$ x \longmapsto \frac{1}{\sqrt{2 \pi \sigma^2}} e^{\left( - \frac{(x - \mu)^2}{2 \sigma^2} \right)} $$ 
+    On note alors $X \sim \mathcal{N}( \mu, \sigma^2)$ et on a : 
+        $$ \mathbb{E}(X) = \mu \quad \text{et} \quad \mathbb{V}(X) = \sigma^2 $$    
+\end{rappel}
+
+\begin{prop}[Loi centrée réduite. ]
+    Si $Y \sim \mathcal{N}(0,1)$, alors : 
+        $$ X = \mu + \sigma Y \sim \mathcal{N}( \mu, \sigma^2) $$  
+    On dit alors que $Y$ suit un \emph{loi normale centrée réduite}.  
+\end{prop}
+
+\begin{theorem}[Méthode de Box-Muller]
+    Soit $(X,Y)$ un couple de variables aléatoires iid de loi $ \mathcal{N}(0,1)$. 
+    Alors $X^2+Y^2$ est une variable aléatoire de loi $ \mathcal{E}(1/2)$ indépendante de 
+    $ \arctan(Y/X) \sim \mathcal{U} \left( \left[ - \frac{\pi}{2} ; \frac{\pi}{2}  \right]\right) $. 
+    
+    \begin{center}
+    \begin{minipage}{0.60\textwidth}
+        \begin{tikzpicture}[scale=1.5]
+            % Axes
+            \draw[->] (-2,0) -- (2,0) node[right] {$\R$};
+            \draw[->] (0,-2) -- (0,2) node[above] {$\R$};
+
+            % Cercle pour repère polaire
+            \draw[dashed, gray] (0,0) circle(1.5);
+
+            % Rayon r
+            \draw[->, thick, red] (0,0) -- ({1.2*cos(60)},{1.2*sin(60)}) node[above right] {$r$};
+
+            % Angle theta
+            \draw[->, red] (0.3,0) arc (0:60:0.3);
+            \node at ({0.3*cos(30)},{0.3*sin(30)}) {$\theta$};
+
+            % Projections sur axes
+            \draw[dashed] ({1.2*cos(60)},0) -- ({1.2*cos(60)},{1.2*sin(60)});
+            \draw[dashed] (0,{1.2*sin(60)}) -- ({1.2*cos(60)},{1.2*sin(60)});
+
+            % Coordonnées x et y sur axes
+            \node[below] at ({1.2*cos(60)},0) {$x$};
+            \node[left] at (0,{1.2*sin(60)}) {$y$};
+        \end{tikzpicture}
+    \end{minipage}
+    \hfill 
+    \begin{minipage}{0.25\textwidth}
+        \centering 
+        Le théorème nous dit que $ \theta$ est indépendant de $r$. 
+    \end{minipage}
+    \end{center}
+\end{theorem}
+
+\begin{proof}
+    Soient $(X,Y)$ deux variables aléatoires iid de loi $ \mathcal{N}(0,1)$. On note $ (r, \theta) \in \R_+^* \times [0, 2\pi[$ 
+    telles que : 
+        $$ 
+            \begin{cases}
+                x = r \cos \theta \\ 
+                y = r \sin \theta 
+            \end{cases} 
+        $$ 
+    Déterminons la loi jointe de $(r, \theta)$ : 
+        \begin{align*}
+            \mathbb{E}(g(r^2, \theta)) &= \frac{1}{2 \pi} \int_{\R^2} g(r^2, \theta) \times e^{ - \frac{x^2}{2} - \frac{y^2}{2}} \; dx dy \\
+            &= \frac{1}{2 \pi} \int_{0}^{ \infty} \int_{0}^{2 \pi } r g(r^2, \theta) e^{ - \frac{r^2}{2}} \; dr d \theta 
+        \end{align*}
+    On pose alors $z = r^2$ et $dy = 2r \; dr$. On a donc : 
+        $$ \mathbb{E}(g(r^2, \theta)) = \frac{1}{2 \pi} \frac{1}{2} \int_{0}^{\infty} \int_{0}^{2 \pi} g(z, \theta) e^{-z/2} \; dz d \theta $$  
+    autrement dit, la densité jointe de $(r^2, \theta)$ par rapport à la mesure de Lebesgue sur $\R$ est : 
+        $$ \underbrace{\mathbbm{1}_{z > e^{-z/2}}}_{ \mathcal{E}(1/2) } \times \underbrace{\mathbbm{1}_{[0, 2 \pi] \times 1/2 \pi}}_{ \mathcal{U}([0, 2 \pi]) } $$     
+    Par conséquent si $E \sim \mathcal{E}(1/2)$ et $U \sim \mathcal{U}([0, 2 \pi])$ et si $E \perp U$, on a : 
+        $$ X = \sqrt{E} \cos U \quad \text{et} \quad Y = \sqrt{E} \sin U $$ 
+    sont deux variables aléatoires de loi $ \mathcal{N}(0,1)$ indépendantes. 
+\end{proof}
+
+\begin{proposition}
+    On peut donc simuler deux lois normales à partir d'une loi exponentielle et d'une loi uniforme via l'algorithme suivant :
+    \begin{lstlisting}
+def simuler_N(): 
+    u = 2 * pi * rand() 
+    e = -2 * log(rand())
+    return sqrt(e) * cos(u)
+    \end{lstlisting}
+    Ou plus généralement : 
+    \begin{lstlisting}
+def simuler_N(mu,sigma): 
+    u = 2 * pi * rand() 
+    e = -2 * log(rand())
+    return sqrt(sigma**2 * e) * cos(u + mu)
+    \end{lstlisting}
+\end{proposition}
+
+\subsection{Lois de Poisson}
+
+\begin{rappel}[Loi de Poisson]
+    Une variable aléatoire $X$ suit une loi de Poisson de paramètre $ \lambda$ si $ \forall k \in \N$ : 
+        $$ \myP(X = k) = e^{- \lambda} \frac{ \lambda^k}{k !} $$  
+\end{rappel}
+
+\begin{prop}[Loi de Poisson et loi Exponentielle]
+    Soit $(E_n)_{n \geqslant 1}$ une suite de variables aléatoires iid de loi $ \mathcal{E}(1)$. 
+    On note $ S_n = \sum_{k=1}^{n} E_k$. Posons : 
+        $$ N = \max \left\{k \in \N \; | \; S_k < \lambda \right\} $$ 
+    Alors $N$ suit une loi de Poisson de paramètre $ \lambda$.  
+\end{prop}
+
+\begin{proof}
+    Démontrons ce résultat par réccurence sur $\N$ : 
+    \begin{itemize}
+        \item \underline{Initialisation :} On observe que : 
+            $$ \myP(N = 0) = \myP(E_1 > \lambda) = e^{- \lambda} $$ 
+        \item \underline{Hérédité :} Soit $ k \geqslant 1 $, on suppose que : 
+            $$ \myP(N = k-1) = \frac{ \lambda ^{k-1}}{(k-1)!} e^{- \lambda} \quad \forall \lambda \in \R_+ $$ 
+        En utilisant le fait que pour tout évènement $A$ et pour toute partie mesurable $ \mathcal{F}$, on a : 
+            $$ \myP(A) = \mathbb{E}(\mathbbm{1}_{A}) = \mathbb{E}(\mathbb{E}(\mathbbm{1}_{A} | \mathcal{F})) = \mathbb{E}(\myP(A | \mathcal{F})) $$ 
+        alors : 
+            $$ \myP(N = k) = \myP(S_k < k < S_{k+1}) = \mathbb{E}( \myP(S_k < \lambda < S_{k+1} | E_1) ) $$ 
+        or : 
+            \begin{align*}
+                \myP(S_k < \lambda < S_{k+1}) &= \myP(E_1 + \dots + E_k < \lambda < E_1 + \dots + E_{k+1} | E_1) \\
+                &= \myP(E_2 + \dots + E_k < \lambda  - E_1 < E_2 + \dots + E_{k+1} | E_1) \\ 
+                &= \myP(S'_{k-1} < \lambda - E_1 < S4_k | E_1) \\
+                &= \myP(N' = k-1) 
+            \end{align*} 
+        où $S'$ est une copie indépendante de $S$ et indépendante de $E_1$, d'où : 
+            $$ \myP(N' = {k-1}) = \frac{( \lambda - E_1)^{k-1}}{(k-1)!} e^{-( \lambda - E_1)} $$  
+        On a donc : 
+            \begin{align*}
+                \myP(N = k) &= \mathbb{E} \left( \frac{( \lambda - E_1)^{k-1}}{(k-1)!} e^{-( \lambda - E_1)} \times \mathbbm{1}_{E_1 \leqslant \lambda}    \right) \\ 
+                &= \int_{0}^{ \lambda} \frac{( \lambda - e)^{k-1}}{(k-1)!} \underbrace{e^{-( \lambda - e)} e^{-e}}_{e^{- \lambda}} \; de \\ 
+                &= \frac{e^{- \lambda}}{(k-1)!} \int_{0}^{ \lambda} ( \lambda - e)^{k-1} \; de \\ 
+                &= \frac{e^{- \lambda}}{(k-1)!} \times \frac{ \lambda^k}{k} = \frac{ \lambda^k}{k!}  e^{- \lambda}  
+            \end{align*}
+        D'où $N \sim \mathcal{P}( \lambda)$.  
+    \end{itemize}
+\end{proof}
+
+\begin{proposition}
+    Pour simuler une loi de poisson de pramètre $ \lambda$, on a donc l'algorithme suivant : 
+    \begin{lstlisting}
+def simuler_poisson(lambda):
+    s - 1 * log(rand())
+    k = 0 
+    while s <= lambda : 
+        k += 1
+        s = -log(rand())
+    return k 
+    \end{lstlisting}
+    Algorithme donc la complexité dépend linéairement de $ \lambda$. 
+\end{proposition}
+
+\begin{remark}
+    Quand $ \lambda$ revient très grand, on peut approcher une loi de Poisson  de paramètre $ \lambda$ par 
+    une loi normale $ \mathcal{N}( \lambda, \lambda)$.  
+\end{remark}
+
+
+\subsection{Mélange de lois}
+
+On chercher ici à déterminer la loi d'une combinaison linéaire de loi $ \mu_1$ et $ \mu_2$ de la forme : 
+    $$ \mu = t \mu_1 + (1-t) \mu_2 $$ 
+Pour simuler ce genre de variables aléatoires, on utilise le résultat suivant. 
+
+\begin{lemma}
+    Soit $X \sim \mu_1$ et $ Y \sim \mu_2$ et $ B \sim \mathcal{B}(t)$ avec $ B \perp (X,Y)$. 
+    On a alors : 
+        $$ BX + (1-B)Y \sim t \mu_1 + (1 - t) \mu_2 $$ 
+    Attention, ici $X$ et $Y$ ne sont pas forcément indépendantes. 
+\end{lemma}
+
+\begin{proof}
+    Calculons la loi de $ BX + (1-B)Y$. Soit $f \in \mathcal{M}_+(\R, \mathcal{B}_\R )$ on a : 
+    \begin{align*}
+        \mathbb{E}(f( BX + (1 - B)Y)) &= \mathbb{E}(\mathbb{E}(f(X \times 1 + Y \times 0)) \times \myP(B = 1) + f(X \times 0 + Y \times 1) \times \myP(B = 0))  \\ 
+        &= \mathbb{E}(f(X)) \times t + \mathbb{E}(f(Y)) \times (1 - t) \\ 
+        &= t \int f d_{ \mu_1} + (1-t) \int f \; d_{ \mu_2} \\ 
+        &= \int f d_{(t \mu_1 + (1-t \mu_2))}
+    \end{align*} 
+    Donc $ BX + (1-B)Y \sim t \mu_1 + (1 - t) \mu_2$. 
+\end{proof}
+
+\begin{proposition}
+    On a donc l'algorithme suivant :
+    \begin{lstlisting}
+def simuler_mu(t): 
+    if rand() < t :
+        return simuler_mu1()
+    else : 
+        return simuler_mu2()
+    \end{lstlisting}
+\end{proposition}
+
