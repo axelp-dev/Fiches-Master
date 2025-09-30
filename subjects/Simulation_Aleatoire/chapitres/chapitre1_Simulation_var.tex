@@ -4,13 +4,15 @@
 % ========================================================================================================
 % Introduction 
 
+\subsection{Introduction}
+
 La simulation peut se définir comme la prédiction de l'évolution d'un système en résolvant des équations 
 venues de domaines appliqués. 
 La notion d'aléatoire vient du fait que l'on simule des phénomènes dont nous n'aurons que des informations imparfaites 
 tels que des phénomènes de désintégration nucléaire ou de prévention des risques. Les utilisations 
 possibles de la simulation sont : 
 \begin{itemize}
-    \item Étude d'un phénomène (ex : la trajectoire d'un avion dans des turbulences)
+    \item L'étude d'un phénomène (ex : la trajectoire d'un avion dans des turbulences)
     \item L'estimation de caractéristiques d'un système (ex : déterminer les caractéristiques d'une simulation météo)
     \item Tester des hypothèses (ex : en médecine, on peut utiliser la simulation aléatoire pour déterminer à l'avance 
     les effets d'un médicament sur un patient.)
@@ -39,6 +41,8 @@ aléatoires idd de loi $ \mathcal{U}([0,1])$ en une variable aléatoire de loi $
 % Simulation de variables aléatoires discrètes
 
 \section{Simulation de variables aléatoires discrètes}
+
+\subsection{Exemples Introductifs}
 
 \begin{example}[Simuler une variable aléatoire de loi $ \mathcal{B}(p)$]
     Soit $X \sim \mathcal{U}([0,1])$ avec $p \in [0,1]$. Alors la variable $Y = \mathds{1}_{X \leqslant p}$  
@@ -71,6 +75,8 @@ def binom(n,p):
 
 On cherchera à développer des programmes qui terminent en temps fini. On préferera deux qui terminent 
 en temps borné (comme \texttt{binom(n,p)}). 
+
+\subsection{Méthode Générale - Inverse de la fonction de masse}
 
 \begin{proposition}
     Soit $(p_n)_{n \geqslant 1}$ une suite réelle positive telle que : 
@@ -138,6 +144,8 @@ def uniforme(n):
     return ceil(n * rand(u))
     \end{lstlisting}
 \end{example}
+
+\subsection{Méthode du rejet (Cas discret)}
 
 \begin{proposition}[Algorithme du Rejet]
     Soit $(E, \mathcal{E}, \mu)$ un espace probabilisé et $A \subset E$ un évènement tel que $\mu(A) > 0$. 
@@ -228,7 +236,7 @@ def unif_prem(n):
 
 Dans cette section, nous allons voir comment simuler des variables aléatoires continues. 
 Nous décrouvrirons la méthode d'inversion de la fonction de répartition, une autre version de la méthode 
-du rejet et nous finirons par un ensemble de méthode ad-hoc. 
+du rejet ainsi que d'autres exemples. 
 
 \begin{definition}[(Rappel) Fonction de répartition]
     Soit $ \mu$ une mesure de probabilité sur $\R$. La fonction de répartition de $ \mu$ est la fonction :  
@@ -340,7 +348,7 @@ def simulerX():
 \end{example}
 
 
-\subsection{Méthode du rejet}
+\subsection{Méthode du rejet (Cas continu)}
 
 On souhaite simuler une variable aléatoire $X$ de fonction de densité $f$ que l'on ne sait pas bien simuler. 
 On va donc utiliser une autre fonction auxiliaire $g$ que l'on sait bien simuler. 
@@ -499,6 +507,7 @@ def simul_f():
 
 Dans cette section, nous allons détailler un ensemble de méthodes destinées à des usages précis. 
 Nous verrons comment simuler efficacement une loi normale une loi de poisson ainsi qu'un mélange de lois. 
+Nous finirons par aborder la méthode de Monte-Carlo pour exprimer des quantités qui s'expriment à partir d'intégrales. 
 
 \subsection{Loi Normale - Méthode de Box-Muller}
 
@@ -669,7 +678,7 @@ Pour simuler ce genre de variables aléatoires, on utilise le résultat suivant.
 \begin{lemma}
     Soit $X \sim \mu_1$ et $ Y \sim \mu_2$ et $ B \sim \mathcal{B}(t)$ avec $ B \perp (X,Y)$. 
     On a alors : 
-        $$ BX + (1-B)Y \sim t \mu_1 + (1 - t) \mu_2 $$ 
+        $$ \boxed{BX + (1-B)Y \sim t \mu_1 + (1 - t) \mu_2} $$ 
     Attention, ici $X$ et $Y$ ne sont pas forcément indépendantes. 
 \end{lemma}
 
@@ -694,4 +703,75 @@ def simuler_mu(t):
         return simuler_mu2()
     \end{lstlisting}
 \end{proposition}
+
+\subsection{Méthode de Monte-Carlo}
+
+Pour la fin de ce chapitre, on souhaite simuler des variables aléatoires pour estimer des quantités déterministes 
+pouvant s'écrire sous forme d'intégrale. 
+
+\paragraph{Principe} Soit $I = \int_{a}^{b} f(x) \; dx$ une intégrale que l'on se sait pas calculer algébriquement 
+mais que l'on souhaite estimer. On peut alors réécrire : 
+    $$ I = \int_{a}^{b} \frac{f(x)}{g(x)} g(x) \; dx $$ 
+où $g$ est une densité de probabilité d'une variable que l'on sait simuler. On peut ainsi approcher $I$ par : 
+    $$ \frac{1}{n} \sum_{i=1}^{n} \frac{f(X_i)}{g(X_i)} $$ 
+où $(X_1, \dots, X_n)$ sont des variables aléatoires iid de densité $g$. Ainsi, on va pouvoir estimer toute intégrale de 
+la forme : 
+    $$ I \simeq \mathbb{E} \left( \frac{f(X_1)}{g(X_1)} \right) $$ 
+par un estimateur convergent. 
+
+\begin{theorem}[Rappel - Loi des grands nombres]
+    Soit $(X_n)$ une suite de variables aléatoires iid et intégrables. On a alors : 
+        $$ \boxed{\frac{1}{n} \sum_{i=1}^{n} X_i \underset{n \to \infty}{\longrightarrow} \mathbb{E}(X_1)} $$   
+\end{theorem}
+
+\begin{remark}
+    On peut aussi approcher $I$ par une méthode de Riemann : 
+        $$ I = \frac{1}{n} \sum_{i=1}^{n} f \left(a + \frac{ \tau}{n} \right) $$ 
+    or elle ne nous permet d'estimer l'intégrale que pous des fonctions Riemann-intégrables. Alors que la 
+    Loi des grands nombres (LGN) nous permet d'estimer des intégrables de fonctions mesurables. 
+    De plus, les méthodes déterministes sont très lentes en plusieurs dimension comparé aux méthodes stochastiques.  
+\end{remark}
+
+\begin{theorem}[Rappel - Théorème Central Limite]
+    Soit $(X_n)$ une suite de variables iid de carré intégrable. On a alors : 
+        $$ \boxed{ \sqrt{n} \left( \frac{1}{n} \sum_{i=1}^{n} X_i - \mathbb{E}(X_1) \right) \underset{n \to \infty}{\overset{\text{Loi}}{\longrightarrow}} \mathcal{N}(0, \mathbb{V}(X_1) ) } $$   
+    Autrement dit : 
+        $$ \lim_{n \to \infty} \myP \left( \left| \frac{1}{n} \sum_{i=1}^{n} X_i - \mathbb{E}(X_1) \right| > \frac{t}{\sqrt{n}} \right) 
+        = \int_{t}^{\infty} \frac{e^{\frac{z^2}{z \mathbb{V}(X_1) }}}{\sqrt{2 \pi \mathbb{V}(X_1) }} \; dy $$ 
+\end{theorem}
+
+\begin{rappel}
+    Soit $(X_n)$ une suite de variables iid de carré intégrable. On note $\overline{X_n} = \frac{1}{n} \sum_{i=1}^{n} X_i $ et on pose : 
+        $$ S^2_n := \frac{1}{n} \sum_{i=0}^{n} (X_i - \overline{X_n})^2 $$ 
+    D'après la loi des grands nombres, on a : 
+        $$ \overline{X_n} \underset{n \to \infty}{\longrightarrow} \mathbb{E}( X_1) $$ 
+    D'après le théorème central limite, on a :  
+        $$ \sqrt{n} \frac{\overline{X_n} - \mathbb{E}(X_1) }{\sqrt{S^2_n}} \underset{n \to \infty}{\longrightarrow} \mathcal{N}(0,1) $$ 
+    avec : $ \myP(I \in IC_n) \underset{n \to \infty}{\longrightarrow} \alpha $.  
+\end{rappel}
+
+\begin{proposition}
+    On peut donc utiliser le TCL pour proposer des intervalles de confiance asymptotiques pour la valeur de $I$. 
+    On a donc , pour $ I = \mathbb{E}(X_1)$, l'intervalle asymptotique de niveau $ \alpha$ : 
+        $$ \boxed{IC_n = \left[ \overline{X_n} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{S_n^2} \right]} $$
+\end{proposition}
+
+\begin{example}
+    On souhaite calculer : 
+        $$I = \int_{[0,1]^3} \mathbbm{1}_{\substack{x_1 \leqslant \cos x_2 \sin x_3 \\ x_2 \leqslant x_3^2}} \; dx_1 dx_2 dx_3 $$ 
+    D'après la méthode de Monte-Carlo, soit $f \in \mathcal{M}_+(\R, \mathcal{B}_\R )$ telle que : 
+        $$I = \mathbb{E}(f(Z)) $$ 
+    où $ f(Z) =  \mathbbm{1}_{\substack{z_1 \leqslant \cos z_2 \sin z_3 \\ z_2 \leqslant z_3^2}}$ et 
+    $Z = (z_1, z_2, z_3) \sim \mathcal{U}([0,1]^3) $. Autrement dit : 
+        $$I = \myP(z_1 \leqslant \cos z_2 \sin z_3, z_2 \leqslant z_3^2) $$ 
+    On peut donc approcher $I$ par : 
+        $$ \frac{1}{n} \sum_{i=1}^{n} \mathbbm{1}_{\substack{z_1 \leqslant \cos z_2 \sin z_3 \\ z_2 \leqslant z_3^2}} = \hat{I}_n $$ 
+    D'après le TCL, on a : 
+        $$ \lim_{n \to \infty} \sqrt{n} \frac{ \hat{I}_n - I}{\sqrt{I(1-I)}} = \mathcal{N}(0,1) $$ 
+        $$ \text{i.e} \quad \lim_{n \to \infty} \sqrt{n} \frac{ \hat{I}_n - I}{\sqrt{\hat{I}(1 - \hat{I})}} = \mathcal{N}(0,1) $$
+    On peut donc construire l'intervalle de confiance de niveau $ \alpha$ : 
+        $$ \left[ \hat{I}_n \pm \frac{\sqrt{\hat{I}_n (1 - \hat{I}_n)}}{\sqrt{n}} q_\alpha\right] \subseteq \left[ \hat{I}_n \pm \frac{q_\alpha}{2 \sqrt{n}}\right] $$
+\end{example}
+
+
 
