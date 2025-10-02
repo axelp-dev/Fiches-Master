@@ -1,0 +1,282 @@
+
+\minitoc 
+
+% ========================================================================================================
+% Introduction 
+
+\subsection{Introduction}
+
+Dans ce chapitre, nous nous intéresserons à la simulation de processus de Markov grâce 
+à l'étude de celles-ci. Pour rappel, une chaîne de Markov décrit l'évolution d'une quantité soumise à des 
+fluctuations aléatoires. C'est une notion plus générale que les variables iid. 
+
+% ========================================================================================================
+% Définition et propriétés 
+
+\section{Définition et propriétés}
+
+\begin{definition}[Chaîne de Markov]
+    Une chaîne de Markov est une processus aléatoire $(X_n)_{n \geqslant 1}$ défini sur un espace $E$ 
+    tel qu'il existe $ f \in \mathcal{M}(E \times [0,1], E)$ et $(u_n)_{n \geqslant 0}$ une suite idd de 
+    loi $ \mathcal{U}([0,1])$ telle que : 
+        $$ \boxed{\forall n \geqslant 1, \quad X_{n+1} = f(X_n, u_{n+1})} $$   
+    avec : 
+        $$ X_0 \perp (u_n)_{n \geqslant 0} $$
+\end{definition}
+
+\begin{example}
+    Soit $P \in \mathcal{M}_n(\R)$ une matrice stochastique. Soit une chaîne de Markov sur 
+    un espace $E = \llbracket 1, n \rrbracket $ de matrice de transition $P$. 
+    Alors c'est bien une chaîne de Markov au sens de la définition précédente. 
+    En effet, on pose : 
+        \[ \forall i, j \in E, \quad f(i,x) = j \quad \text{avec} \quad x \in \left[ \sum_{k=1}^{j-1} P(i,j); \sum_{k=1}^{j} P(i,k)\right]  \] 
+    On aura donc : 
+        \begin{align*}
+            & \myP(X_0 = x_0, \dots, X_n = x_n) \\
+            &= \myP(X_0 = x_0, f(x_0, u_1) = x_1, \dots, f(x_{n-1}, u_n) = x_n) \\
+            &= \myP(X_0 = x_0) \myP(f(x_0, u_1) = x_1) \dots \myP(f(x_{n-1}, u_n) = x_n) \\ 
+            &= \myP(X_0 = x_0) P(x_0, x_1) \times \dots \times P(x_{n-1}, x_n)       
+        \end{align*}
+\end{example}
+
+\begin{example}
+    Soit le processus $(X_n)_{n \in \N}$ décrivant l'évolution de la température locale au cours du temps défini par : 
+        $$ X_0 = 25 \quad X_{n+1} = \frac{X_n + 25}{2} + Z_{n+1} $$
+    où $(Z_n)_{n \in \N}$ est une suite de variables aléatoires iid de loi $ \mathcal{N}(0, 10)$. 
+    Alors ce processus est une chaîne de Markov avec : 
+        $$ f(x,u) = \frac{x + 25}{2} + \Phi^{-1}(u) $$  
+    avec $N \sim \mathcal{N}(0, 10)$ et : 
+        \begin{align*}
+            \Phi(u) = \myP(N \leqslant u) = \left( \int_{- \infty}^{u} e^{x^2 / 20} \; dx\right) \times \frac{1}{\sqrt{20 \pi}}   
+        \end{align*}
+\end{example}
+
+\begin{remark}
+    Cet exemple nous pose une problématique. En effet, nous avons définit notre chaîne de Markov avec seulement 
+    une suite de variables iid de loi uniforme et chaque terme de la chaîne ne dépend que d'une seule 
+    réalisation de cette loi uniforme. Pour nous permettre de faire dépendre un $X_n$ d'une loi normale, 
+    nous devrions pouvoir utiliser deux variables uniforme pour la simuler (par la méthode de Box-Muller). 
+\end{remark}
+
+Le lemme suivant nous l'assure donc en affirmant que l'on peut produire autant de loi uniformes à partir d'une 
+seule. 
+
+\begin{lemma}[Doublement de la loi uniforme]
+    Il existe $g : [0,1] \longrightarrow [0,1]^2$ mesurable telle que si $ U \sim \mathcal{U}([0,1])$ 
+    et en posant $(V, W) = g(U)$ alors : 
+        $$ V \perp W \quad \text{et} \quad W,V \sim \mathcal{U}([0,1]) $$  
+\end{lemma}
+
+\begin{corollary}[Génération de lois uniformes]
+    Il existe une fonction mesurable $h : [0,1] \longrightarrow [0,1]^\N$ telle que $h(U)$ 
+    est une suite de variables idd de loi $ \mathcal{U}([0,1])$.  
+\end{corollary}
+
+\begin{remark}
+    Ces deux derniers résultats nous permettent d'écrire : 
+        $$ X_{n+1} = f(X_n, Z_{n+1, 1}, \dots, Z_{n+1, k}) $$ 
+    avec $(Z_{n,k})_{\substack{k \geqslant 1 \\ n \geqslant 1}}$ une matrice de suites iid. 
+    On a alors que $(X_n)_{n \in \N}$ est une chaîne de Markov. 
+\end{remark}
+
+\begin{example}[Processus de Galton-Watson]
+    Soit $(X_{n, k})_{\substack{n \geqslant 1, k \geqslant 1}}$ un tableau de variables 
+    aléatoires iid à valeurs dans $\N$. Le processus défini par : 
+        $$ Z_0 = 1 \quad \text{et} \quad Z_{n+1} = \sum_{j=1}^{Z_n} X_{n+1, j}  $$
+    est une chaîne de Markov. C'est un exemple de processus représentant l'évolution d'une population 
+    au cours du temps. Ici, $Z_n$ représente le nombre d'individus à la génération $n$ et $X_{n+1, j}$ le nombre 
+    de descendants de $j$-ème individu de cette génération. 
+    $Z_{n+1}$ est donc le nombre d'individus créés à la génération $n+1$. 
+\end{example}
+
+\paragraph{Notation. } Soit $(X_n)_{n \geqslant 1}$ une chaîne de Markov. Pour tout $x \in E$, on pose $ \myP_x$ la loi de 
+$(X_n)_{n \geqslant 1}$ conditionnellement à $X_0 = x$. On a donc : 
+    $$ 
+        \begin{cases}
+            X_0 = x \\ 
+            X_{n+1} = f(X_n, u_{n+1})
+        \end{cases}
+    $$
+
+\begin{prop}[Propriété de Markov]
+    Soit  $(X_n)_{n \geqslant 1}$ une chaîne de Markov et $N \in \N$, alors : 
+        $$ \mathbb{E}(h(X_{n+1}, X_{n+1}, \dots, X_{n+k}) \; | \; X_0 = x_0, \dots, X_N = x_N) 
+        = \mathbb{E}_{X_n}(h(X_1, X_2, \dots, X_k)) $$   
+\end{prop}
+
+\begin{example}
+    On définit par récurrence : 
+        $$ F_0 = 1, F_1 = 1 \quad \text{et} \quad F_{n+1} = F_{n} + F_{n-1} + \varepsilon_{n+1} $$ 
+    avec $( \varepsilon_n)_{n \in \N}$ une suite de variables aléatoires idd de loi $ \mathcal{U}(\{-1,0, 1\})$. 
+    La suite $(F_n)_{n \in \N}$ représente la suite de Fibonacci pour laquelle on ferait des erreurs de calculs. 
+    Cette suite n'est pas une chaîne de Markov car : 
+        $$ \myP(F_4 = 2 \; | \; F_3 = 1) \not = \myP(F_4 = 2 \; | \; F_3 = 1, F_2 = 1) $$ 
+    elle ne satisfait pas la propriété de Markov. Par contre, le couple $(F_n, F_{n-1})_{n \geqslant 1}$ est une 
+    chaîne de Markov avec : 
+        $$
+            \begin{pmatrix}
+                F_{n+1} \\ 
+                F_n 
+            \end{pmatrix}
+            = 
+            f \left(
+                \begin{pmatrix}
+                    F_n \\ 
+                    F_{n_1}
+                \end{pmatrix}, 
+                \varepsilon_{n+1}
+            \right)
+        $$ 
+    avec : 
+        $$ f : 
+            \begin{cases}
+                \R^2 \times \R \longrightarrow \R^2 \\ 
+                (x,y, \varepsilon) \longmapsto (x+y+ \varepsilon, x)
+            \end{cases}
+        $$
+\end{example}
+
+\begin{remark}
+    Soit $(Z_n)_{n \geqslant 1}$ une suite de variables aléatoires idd et : 
+        $$ S_n = Z_1 + \dots + Z_n $$ 
+    alors : 
+        \begin{itemize}
+            \item $S_n$ est une chaîne de Markov 
+            \item $ \max \{S_k, k \leqslant n\}$ n'est pas une chaîne de Markov. 
+            \item $(S_n, \max \{S_k, k \leqslant n\})$ est une chaîne de Markov. 
+        \end{itemize}
+\end{remark}
+
+\begin{proposition}[Algorithme de simulation]
+    Comme dit précédement, une chaîne de Markov est définie telle que : 
+        $$ 
+            \begin{cases}
+                X_0 = x_0 \\ 
+                X_{n+1} = f(X_n, u_{n+1})
+            \end{cases}    
+        $$
+    On peut donc utiliser l'algorithme suivant pour les simuler : 
+\begin{lstlisting}
+def simul_chaine_Markov(n,x0,f): 
+    traj = [X0]
+    for i in range(n): 
+        traj.append(f(traj[-1],rand()))
+    return traj
+\end{lstlisting}
+    La principale difficulté est donc de définir la fonction $f$. 
+\end{proposition}
+
+% ========================================================================================================
+% Comportement asymptotique d'une chaîne de Markov 
+
+\section{Comportement asymptotique d'une chaîne de Markov}
+
+L'utilisation des chaînes de Markov en simulation est liée au théorème suivant. 
+
+\begin{theorem}[Ergodique de Birkhoff]
+    SOit $(X_n)_{n \geqslant 1}$ une chaîne de Markov. Si cette chaîne admet une mesure de probabilités $ \pi$ invariante 
+    et ergodique alors $ \forall f in \in L^1( \pi)$, on a : 
+        $$ \boxed{ \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^{n} f(X_i) = \int f \; d_{ \pi} \quad \text{p.s}  } $$
+\end{theorem}
+
+Par conséquent, pour calculer $ I = \int f \; d_\pi$ avec $ \pi$ une mesure coûteuse à simuler mais une mesure 
+invariante et ergodique d'une chaîne de Markov, on peut approcher $I$ par $ \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^{n} f(X_i)$. 
+Évidemment, puisque les variables $X_i$ ne sont pas iid, la convergence a lieu a un rythme plus lent. Sous certaines 
+conditions, on peut avoir : 
+    $$ \sqrt{n} \left( \frac{1}{n} \sum_{i=1}^{n} f(X_i) - \int f \; d_\pi  \right) \underset{n \to \infty}{\longrightarrow} \mathcal{N}(0,1) $$
+
+\begin{definition}[Mesure Invariante]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov et $u \sim \mathcal{U}([0,1])$. 
+    Soit $ \pi$ une mesure sur $(E, \mathcal{F}) $. On dit que $ \pi$ est \emph{invariante} si pour tout $A \in \mathcal{F}$ 
+    on a : 
+        $$ \int \myP_x(X_1 \in A) \; d_{ \pi(x)} = \pi(A) $$ 
+        $$ \iff \int \myP(f(x,u_1) \in A) \; d_{ \pi(x)} = \pi(A) $$  
+    Si $ \pi$ est une \emph{mesure de probabilité}, cette définition est équivalente à : 
+        $$ X_0 \sim \pi \quad \text{et} \quad U_1 \sim \mathcal{U}([0,1]) \Longrightarrow X_1 = f(X_0, U_1) \sim \pi $$  
+\end{definition}
+
+\begin{example}
+    Reprenons notre exemple de simulation de l'évolution de la température : 
+        $$ X_{n+1} = \frac{X_n + 25}{2} + Z_n \quad \text{avec} \quad Z_n \sim \mathcal{N}(0,1) $$ 
+    Si $X_0 \sim \mathcal{N}( \mu, \sigma^2)$ alors : 
+        $$ X_1 = \frac{X_0 + 25}{2} + Z_1 \sim \mathcal{N} $$
+    comme combinaison de gaussiennes indépendantes. De plus on a : 
+        $$ \mathbb{E}(X_1) = \frac{25 + \mu}{2} \quad \text{et} \quad \V(X_1) = \frac{ \sigma^2}{4} + 10 $$    
+    On a donc $ X_1 \sim \mathcal{N} \left(\frac{25 + \mu}{2}, \frac{ \sigma^2}{4} + 10\right)$. 
+    La loi $ \mathcal{N}( \mu, \sigma^2)$ est donc invariante si : 
+        $$ \mu = \frac{25 + \mu}{2} \quad \text{et} \quad \sigma^2 = \frac{ \sigma^2}{4} + 10 $$ 
+        $$ \iff \mu = 25, \; \sigma^2 = \frac{40}{3} $$   
+\end{example}
+
+\begin{remark}
+    Attention, si $X_0 \sim \pi$ avec $ \pi$ une mesure invariante, alors $ \forall n \in \N^*, X_n \sim \pi$ 
+    mais $ X_n \not \perp X_{n-1}$ en général. 
+\end{remark}
+
+\begin{definition}[Mesure Ergodique]
+    Une mesure $ \pi$ sur un espace mesurable $(E, \mathcal{F})$ est dite \emph{ergodique} pour une chaîne de Markov 
+    $(X_n)_(n \in \N)$ si pour tout $A \in \mathcal{F}$ on a : 
+        $$ \boxed{\forall x \in E, \quad \myP_x(X_1 \in A) = \mathbbm{1}_{x \in A} \Longrightarrow \pi(A) = 0 \; \text{ou} \; \pi(\overline{A}) = 0 }$$      
+\end{definition}
+
+Une mesure ergodique est une mesure sur $E$ qui ne peut pas "partager" sa masse entre différents sous-ensembles 
+invariants pour la chaîne. Autrement dit, pour tout $A \subset E$ tel que, partant de $A$, la chaîne reste dans 
+$A$ et partant de $\overline{A}$, la chaîne reste dans $\overline{A}$, la mesure ergodique charge soit 
+$A$, soit $\overline{A}$, mais pas les deux.
+
+Pour une chaîne de Markov dans $E$, cela implique que la chaîne ne peut pas rester bloquée entre plusieurs 
+sous-ensembles invariants : elle explore tous les états accessibles dans l’ensemble invariant où elle a démarré, 
+et finit par "oublier" son point de départ.
+
+\begin{remark}
+    Si une chaîne de Markov n'est pas ergodique, cela signifie qu'il existe 
+    au moins un sous-ensemble invariant non trivial $A \subset E$ tel que : 
+    \begin{itemize}
+        \item partant de $A$, la chaîne reste dans $A$ ;
+        \item partant de $A^c$, la chaîne reste dans $A^c$.
+    \end{itemize}
+
+    Une mesure invariante peut alors mettre du poids à la fois sur $A$ et sur $A^c$. 
+    En pratique, cela signifie que la chaîne peut rester confinée dans différents 
+    "blocs" selon l'état initial, et donc qu'elle ne se mélange pas complètement.  
+
+    Autrement dit, une chaîne non ergodique peut être décomposée en plusieurs 
+    sous-chaînes indépendantes (les ensembles invariants), et la dynamique globale 
+    dépend de l'état initial.
+\end{remark}
+
+\begin{prop}[Ergodicité et Irréductibilité]
+    Pour les chaînes de Markov sur des espaces d'états dicrets, être ergodique est équivalent à être irréductible. 
+\end{prop}
+
+\begin{corollary}[Sur les espaces d'états dicrets]
+    Si $E$ est un espace d'états dicret, alors toute chaîne de Markov irréductible est $ \mu$-ergodique pour toute 
+    mesure de probabilité $ \mu$. 
+\end{corollary}
+
+\begin{theorem}[Birkhoff (Variante)]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov de mesure invariante et ergodique $ \pi$. 
+    Soient $f,g \in L^1( \pi)$ on a alors : 
+        $$ \boxed{ \lim_{n \to \infty} \frac{\sum_{i=1}^{n} f(X_i)}{\sum_{i=1}^{n} g(X_i)} = \frac{\int f \; d \pi}{\int g \; d \pi} \quad \text{p.s} } $$
+\end{theorem}
+
+Intuitivement, puisque qu'une chaîne ergodique se "mélange bien" dans son espace d'état, alors 
+les fréquences empiriques (la moyenne des trajectoire) reflètent les fréquences théoriques (la mesure $ \pi$). 
+
+\begin{remark}
+    Ce théorème, en plus d'être une monstre ambulant de théorie des chaînes de Markov est très fort. 
+    En effet, on obtient un résultats similaire à la loi des grands nombres alors que les $X_i$ ne sont pas 
+    indépendants. Ici, même si $ \pi$ est difficile à calculer, on peut estimer $\int f \; d \pi$ 
+    juste en simulant une trajectoire de la chaîne et en en faisant la moyenne. 
+    Enfin, $f$ et $g$ peuvent être des fonctions assez quelconques tant qu'elles sont $L^1$. 
+\end{remark}
+
+\begin{example}
+    Soit $(S_n)_{n \geqslant 1}$ la marche aléatoire simple sur $\Z$. Cette chaîne de Markov n'admet pas de 
+    mesure de probabilité invariante. En revanche, la mesure de comptage sur $\Z$ est invariante et ergogique. Par conséquent : 
+        $$ \forall A, B \subset \Z, \quad \lim_{n \to \infty} \frac{\sum_{k=1}^{n} \mathbbm{1}_{S_k} \in A}{\sum_{k=1}^{n} \mathbbm{1}_{S_k} \in B  } = \frac{|A|}{|B|} $$
+    alors que : 
+        $$ \frac{1}{n} \sum \mathbbm{1}_{S_k} \in A = 0 $$   
+\end{example}
+
+
