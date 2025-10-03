@@ -465,15 +465,15 @@ def simul_f():
 
                     % c g(x) enveloppe
                     \addplot[red, thick] {8*exp(-x)};
-                    \addlegendentry{$c g(x)$}        
+                    \addlegendentry{$c g(x)$}
                 \end{axis}
             \end{tikzpicture}
         \end{center}
 
     Soit $X \sim g$ et $U \sim \mathcal{U}([0,1])$.  
-    L'idée est donc de tirer un point aléatoirement selon la densité $cg$, $(X, U \times cg(X))$ dans la zone rouge. 
+    L'idée est donc de tirer un point aléatoirement selon la densité $g$, $(X, U \times cg(X))$ dans la zone rouge. 
     Si la valeur $ U \times cg(X)$ est sous la courbe de $f$ (i.e dans la zone bleu), on accepte le point, 
-    sinon on recommence. La probabilité d'acceptation est donc de $ 1/c$.  
+    sinon on recommence. La probabilité d'acceptation d'un point est donc de $ 1/c$.  
 \end{remark}
 
 \begin{example}

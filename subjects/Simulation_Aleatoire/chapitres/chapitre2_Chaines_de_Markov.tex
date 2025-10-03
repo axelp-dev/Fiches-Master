@@ -8,7 +8,7 @@
 
 Dans ce chapitre, nous nous intéresserons à la simulation de processus de Markov grâce 
 à l'étude de celles-ci. Pour rappel, une chaîne de Markov décrit l'évolution d'une quantité soumise à des 
-fluctuations aléatoires. C'est une notion plus générale que les variables iid. 
+fluctuations aléatoires. C'est une notion plus générale que les variables i.i.d. 
 
 % ========================================================================================================
 % Définition et propriétés 
@@ -16,7 +16,7 @@ fluctuations aléatoires. C'est une notion plus générale que les variables iid
 \section{Définition et propriétés}
 
 \begin{definition}[Chaîne de Markov]
-    Une chaîne de Markov est une processus aléatoire $(X_n)_{n \geqslant 1}$ défini sur un espace $E$ 
+    Une chaîne de Markov est un processus aléatoire $(X_n)_{n \geqslant 1}$ défini sur un espace $E$ 
     tel qu'il existe $ f \in \mathcal{M}(E \times [0,1], E)$ et $(u_n)_{n \geqslant 0}$ une suite idd de 
     loi $ \mathcal{U}([0,1])$ telle que : 
         $$ \boxed{\forall n \geqslant 1, \quad X_{n+1} = f(X_n, u_{n+1})} $$   
@@ -42,18 +42,18 @@ fluctuations aléatoires. C'est une notion plus générale que les variables iid
 \begin{example}
     Soit le processus $(X_n)_{n \in \N}$ décrivant l'évolution de la température locale au cours du temps défini par : 
         $$ X_0 = 25 \quad X_{n+1} = \frac{X_n + 25}{2} + Z_{n+1} $$
-    où $(Z_n)_{n \in \N}$ est une suite de variables aléatoires iid de loi $ \mathcal{N}(0, 10)$. 
+    où $(Z_n)_{n \in \N}$ est une suite de variables aléatoires i.i.d de loi $ \mathcal{N}(0, 10)$. 
     Alors ce processus est une chaîne de Markov avec : 
         $$ f(x,u) = \frac{x + 25}{2} + \Phi^{-1}(u) $$  
     avec $N \sim \mathcal{N}(0, 10)$ et : 
         \begin{align*}
-            \Phi(u) = \myP(N \leqslant u) = \left( \int_{- \infty}^{u} e^{x^2 / 20} \; dx\right) \times \frac{1}{\sqrt{20 \pi}}   
+            \Phi(u) = \myP(N \leqslant u) = \left( \int_{- \infty}^{u} e^{- x^2 / 20} \; dx\right) \times \frac{1}{\sqrt{20 \pi}}   
         \end{align*}
 \end{example}
 
 \begin{remark}
-    Cet exemple nous pose une problématique. En effet, nous avons définit notre chaîne de Markov avec seulement 
-    une suite de variables iid de loi uniforme et chaque terme de la chaîne ne dépend que d'une seule 
+    Cet exemple nous pose une problématique. En effet, Nous avons défini notre chaîne de Markov avec seulement 
+    une suite de variables i.i.d de loi uniforme et chaque terme de la chaîne ne dépend que d'une seule 
     réalisation de cette loi uniforme. Pour nous permettre de faire dépendre un $X_n$ d'une loi normale, 
     nous devrions pouvoir utiliser deux variables uniforme pour la simuler (par la méthode de Box-Muller). 
 \end{remark}
@@ -75,13 +75,13 @@ seule.
 \begin{remark}
     Ces deux derniers résultats nous permettent d'écrire : 
         $$ X_{n+1} = f(X_n, Z_{n+1, 1}, \dots, Z_{n+1, k}) $$ 
-    avec $(Z_{n,k})_{\substack{k \geqslant 1 \\ n \geqslant 1}}$ une matrice de suites iid. 
+    avec $(Z_{n,k})_{\substack{k \geqslant 1 \\ n \geqslant 1}}$ une matrice de suites i.i.d. 
     On a alors que $(X_n)_{n \in \N}$ est une chaîne de Markov. 
 \end{remark}
 
 \begin{example}[Processus de Galton-Watson]
     Soit $(X_{n, k})_{\substack{n \geqslant 1, k \geqslant 1}}$ un tableau de variables 
-    aléatoires iid à valeurs dans $\N$. Le processus défini par : 
+    aléatoires i.i.d à valeurs dans $\N$. Le processus défini par : 
         $$ Z_0 = 1 \quad \text{et} \quad Z_{n+1} = \sum_{j=1}^{Z_n} X_{n+1, j}  $$
     est une chaîne de Markov. C'est un exemple de processus représentant l'évolution d'une population 
     au cours du temps. Ici, $Z_n$ représente le nombre d'individus à la génération $n$ et $X_{n+1, j}$ le nombre 
@@ -100,7 +100,7 @@ $(X_n)_{n \geqslant 1}$ conditionnellement à $X_0 = x$. On a donc :
 
 \begin{prop}[Propriété de Markov]
     Soit  $(X_n)_{n \geqslant 1}$ une chaîne de Markov et $N \in \N$, alors : 
-        $$ \mathbb{E}(h(X_{n+1}, X_{n+1}, \dots, X_{n+k}) \; | \; X_0 = x_0, \dots, X_N = x_N) 
+        $$ \mathbb{E}(h(X_{n+1}, X_{n+2}, \dots, X_{n+k}) \; | \; X_0 = x_0, \dots, X_N = x_N) 
         = \mathbb{E}_{X_n}(h(X_1, X_2, \dots, X_k)) $$   
 \end{prop}
 
@@ -122,7 +122,7 @@ $(X_n)_{n \geqslant 1}$ conditionnellement à $X_0 = x$. On a donc :
             f \left(
                 \begin{pmatrix}
                     F_n \\ 
-                    F_{n_1}
+                    F_{n-1}
                 \end{pmatrix}, 
                 \varepsilon_{n+1}
             \right)
@@ -148,7 +148,7 @@ $(X_n)_{n \geqslant 1}$ conditionnellement à $X_0 = x$. On a donc :
 \end{remark}
 
 \begin{proposition}[Algorithme de simulation]
-    Comme dit précédement, une chaîne de Markov est définie telle que : 
+    Comme dit précédemment, une chaîne de Markov est définie telle que : 
         $$ 
             \begin{cases}
                 X_0 = x_0 \\ 
@@ -174,14 +174,14 @@ def simul_chaine_Markov(n,x0,f):
 L'utilisation des chaînes de Markov en simulation est liée au théorème suivant. 
 
 \begin{theorem}[Ergodique de Birkhoff]
-    SOit $(X_n)_{n \geqslant 1}$ une chaîne de Markov. Si cette chaîne admet une mesure de probabilités $ \pi$ invariante 
-    et ergodique alors $ \forall f in \in L^1( \pi)$, on a : 
+    Soit $(X_n)_{n \geqslant 1}$ une chaîne de Markov. Si cette chaîne admet une mesure de probabilités $ \pi$ invariante 
+    et ergodique alors $ \forall f \in \in L^1( \pi)$, on a : 
         $$ \boxed{ \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^{n} f(X_i) = \int f \; d_{ \pi} \quad \text{p.s}  } $$
 \end{theorem}
 
 Par conséquent, pour calculer $ I = \int f \; d_\pi$ avec $ \pi$ une mesure coûteuse à simuler mais une mesure 
 invariante et ergodique d'une chaîne de Markov, on peut approcher $I$ par $ \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^{n} f(X_i)$. 
-Évidemment, puisque les variables $X_i$ ne sont pas iid, la convergence a lieu a un rythme plus lent. Sous certaines 
+Évidemment, puisque les variables $X_i$ ne sont pas i.i.d, la convergence a lieu a un rythme plus lent. Sous certaines 
 conditions, on peut avoir : 
     $$ \sqrt{n} \left( \frac{1}{n} \sum_{i=1}^{n} f(X_i) - \int f \; d_\pi  \right) \underset{n \to \infty}{\longrightarrow} \mathcal{N}(0,1) $$
 
@@ -215,7 +215,7 @@ conditions, on peut avoir :
 
 \begin{definition}[Mesure Ergodique]
     Une mesure $ \pi$ sur un espace mesurable $(E, \mathcal{F})$ est dite \emph{ergodique} pour une chaîne de Markov 
-    $(X_n)_(n \in \N)$ si pour tout $A \in \mathcal{F}$ on a : 
+    $(X_n)_{n \in \N}$ si pour tout $A \in \mathcal{F}$ on a : 
         $$ \boxed{\forall x \in E, \quad \myP_x(X_1 \in A) = \mathbbm{1}_{x \in A} \Longrightarrow \pi(A) = 0 \; \text{ou} \; \pi(\overline{A}) = 0 }$$      
 \end{definition}
 
@@ -246,10 +246,10 @@ et finit par "oublier" son point de départ.
 \end{remark}
 
 \begin{prop}[Ergodicité et Irréductibilité]
-    Pour les chaînes de Markov sur des espaces d'états dicrets, être ergodique est équivalent à être irréductible. 
+    Pour les chaînes de Markov sur des espaces d'états discrets, être ergodique est équivalent à être irréductible. 
 \end{prop}
 
-\begin{corollary}[Sur les espaces d'états dicrets]
+\begin{corollary}[Sur les espaces d'états discrets]
     Si $E$ est un espace d'états dicret, alors toute chaîne de Markov irréductible est $ \mu$-ergodique pour toute 
     mesure de probabilité $ \mu$. 
 \end{corollary}
@@ -265,7 +265,7 @@ les fréquences empiriques (la moyenne des trajectoire) reflètent les fréquenc
 
 \begin{remark}
     Ce théorème, en plus d'être une monstre ambulant de théorie des chaînes de Markov est très fort. 
-    En effet, on obtient un résultats similaire à la loi des grands nombres alors que les $X_i$ ne sont pas 
+    En effet, on obtient un résultat similaire à la loi des grands nombres alors que les $X_i$ ne sont pas 
     indépendants. Ici, même si $ \pi$ est difficile à calculer, on peut estimer $\int f \; d \pi$ 
     juste en simulant une trajectoire de la chaîne et en en faisant la moyenne. 
     Enfin, $f$ et $g$ peuvent être des fonctions assez quelconques tant qu'elles sont $L^1$. 
@@ -273,10 +273,107 @@ les fréquences empiriques (la moyenne des trajectoire) reflètent les fréquenc
 
 \begin{example}
     Soit $(S_n)_{n \geqslant 1}$ la marche aléatoire simple sur $\Z$. Cette chaîne de Markov n'admet pas de 
-    mesure de probabilité invariante. En revanche, la mesure de comptage sur $\Z$ est invariante et ergogique. Par conséquent : 
-        $$ \forall A, B \subset \Z, \quad \lim_{n \to \infty} \frac{\sum_{k=1}^{n} \mathbbm{1}_{S_k} \in A}{\sum_{k=1}^{n} \mathbbm{1}_{S_k} \in B  } = \frac{|A|}{|B|} $$
+    mesure de probabilité invariante. En revanche, la mesure de comptage sur $\Z$ est invariante et ergodique. Par conséquent : 
+        $$ \forall A, B \subset \Z, \quad \lim_{n \to \infty} \frac{\sum_{k=1}^{n} \mathbbm{1}_{S_k \in A}}{\sum_{k=1}^{n} \mathbbm{1}_{S_k \in B  }} = \frac{|A|}{|B|} $$
     alors que : 
         $$ \frac{1}{n} \sum \mathbbm{1}_{S_k} \in A = 0 $$   
 \end{example}
 
+% ========================================================================================================
+% Méthode MCMC
 
+\section{Méthode MCMC}
+
+\subsection{Principe général}
+
+La méthode \emph{Monte-Carlo Markov Chain} est une méthode qui généralise la méthode de Monte-Carlo classique 
+pour calculer des intégrales. Si on souhaite calculer $I = \int f \; d \pi$ avec $ \pi$ une mesure difficile à simuler 
+mais qui est mesure invariante et ergodique d'une chaîne de Markov, on peut alors estimer : 
+    $$ \hat{I}_n = \frac{1}{n} \sum_{i=1}^{n} f(X_i) $$ 
+
+\begin{example}[Sac à dos]
+    On souhaite charger un sac à dos avec des objets de poids  $w_i$. On définit : 
+        $$ C = \{u \in \{0,1\}^n \; | \; \langle u, w \rangle \leqslant 25  \} $$ 
+    l'ensemble des remplissages possibles du sac, et $\pi$ la loi uniforme sur $C$ : 
+        $$ \forall x \in C, \quad \pi(x) = \frac{1}{|C|} $$ 
+    Si $|C|$ est très grand, le dénombrement direct devient impossible, et la méthode du rejet est inefficace si $|C| \ll 2^n$.  
+    On peut alors définir une chaîne de Markov $(X_n)_{n\in \mathbb{N}}$ sur $C$ telle que : 
+    \begin{itemize}
+        \item Pour tout $x \in C$, on choisit uniformément un indice $i \in \{1, \dots, n\}$ et on propose de "flipper" $x_i$ pour obtenir $y$ : 
+            $$ y_j = 
+            \begin{cases}
+            x_j & j \neq i \\
+            1-x_i & j = i
+            \end{cases} $$
+        \item Si $y \in C$, alors on accepte la transition $X_{n+1} = y$, sinon on reste en $X_n$.
+    \end{itemize}
+    Cette chaîne de Markov est \emph{ergodique} (on peut atteindre tout état depuis n'importe quel autre) et $\pi$ est sa \emph{mesure invariante} :  
+    \[  \pi(x) = \sum_{y \in C} \pi(y) P(y \to x), \quad \forall x \in C \] 
+    où $ \myP(y \to x)$ est la probabilité de transition de $y$ vers $x$.  
+    Ainsi, pour $n$ grand, la loi de $X_n$ est approximativement $\pi$, et on peut estimer des quantités d'intérêt : 
+    \[  \mathbb{E}_{\pi}[f(X)] \approx \frac{1}{N} \sum_{n=1}^{N} f(X_n). \]
+    Ce procédé permet également d'estimer $|C|$ de façon approchée par des techniques de comptage MCMC.
+\end{example}
+
+\begin{theorem}[Vitesse de convergence du théorème ergodique]
+    Sous certaines hypothèses de régularité (que l'on ne détaillera pas ici), si $(X_n)_{n \geqslant 1}$ 
+    est une chaîne de Markov de mesure de probabilité $ \pi$ invariante et ergodique, on a : 
+        $$ \boxed{ \lim_{n \to \infty} \sqrt{n} \left( \frac{1}{n} \sum_{i=1}^{n} f(X_i) - \int f \; d \pi \right) = \mathcal{N}(0, \sigma_f^2) \quad \text{en loi} } $$
+    où : 
+    \begin{itemize}
+        \item $ \sigma_f^2 = \V_\pi \left( f(X_0) \right) + 2 \sum_{k \geqslant 1} \text{cov}_\pi(f(X_0), f(X_k))$ 
+        \item $f \in L^2( \pi)$. 
+    \end{itemize}
+\end{theorem}
+
+\begin{remark}
+    Supposons que $X_0 \sim \pi$, posons $ S_n = \frac{1}{n} \sum_{i=1}^{n} f(X_i)$, alors : 
+    \begin{align*}
+        \mathbb{E}(S_n) &= \mathbb{E} \left( \frac{1}{n} \sum_{i=0}^{n} f(X_i) \right) 
+        = \frac{1}{n} \sum_{i=0}^{n} \mathbb{E}(f(X_i)) \\
+        &= \frac{1}{n} \sum_{i=0}^{n} \left( \sum_{x \in E} f(x) \; d_\pi \right)
+        = \int f \; d_\pi 
+    \end{align*}
+
+    \begin{align*}
+        \V(S_n) &= \mathbb{E}(S_n^2) - \mathbb{E}(S_n)^2 \\ 
+        &= \mathbb{E} \left[ \left( \frac{1}{n} \sum_{i=0}^{n} f(X_i) \right)^2 \right] - \left( \mathbb{E} \left[ \frac{1}{n} \sum_{i=0}^{n} f(X_i) \right]  \right)^2 \\
+        &= \frac{1}{n^2} \left( \sum_{i=0}^{n} \sum_{j=0}^{n} \mathbb{E}(f(X_i)f(X_j)) -  \sum_{i=0}^{n} \sum_{j=0}^{n} \mathbb{E}(f(X_i)) \mathbb{E}(f(X_j))   \right) \\ 
+        &= \frac{1}{n^2}  \sum_{i=0}^{n} \sum_{j=0}^{n} \mathbb{E}(f(X_i)f(X_j)) - \mathbb{E}(f(X_i)) \mathbb{E}(f(X_j)) \\ 
+        &= \frac{1}{n^2}  \sum_{i=0}^{n} \sum_{j=0}^{n} \text{ Cov}(f(X_i), f(X_j))  \\
+        &= \frac{1}{n^2} \left( 2 \sum_{\substack{i,j=0 \\ i \not = j}}^{n} \text{ Cov}(f(X_i), f(X_j)) + \sum_{i=0}^{n} \V(f(X_i))\right) \\ 
+        &= \frac{1}{n^2} \sum_{i=0}^{n} \V(f(X_i)) + \frac{2}{n^2}\sum_{i=0}^{n-1} \text{ Cov}(f(X_i), f(X_{i+1})) \\ 
+        & \quad \frac{2}{n^2} \sum_{i=0}^{n-2} \text{ Cov}(f(X_i), f(X_{i+2})) + \dots + \frac{2}{n^2}\text{ Cov}(f(X_1), f(X_n)) \\
+        &= \frac{1}{n^2} \left( n \V(X_0) + 2(n-1) \text{Cov}(f(X_0), f(X_1)) + \dots + \text{ Cov}(f(X_0), f(X_n)) \right)
+    \end{align*}
+
+    Un obstacle à l'utilisation de méthodes MCMC est l'estimation de $ \sigma_f^2$ par construire des intervalles de 
+    confiance. Plusieurs méthodes existent pour s'en affranchir. 
+\end{remark}
+
+\subsection{Méthode par batchs (lots)}
+
+On souhaite toujours approcher l'intégrale $ I = \int f \; d_\pi$ par une chaîne de Markov $(X_n)_{n \in \N}$ de 
+mesure invariante et ergodique $ \pi$. Pour cela, on calculera : 
+    $$ \hat{I}_n = \frac{1}{n} \sum_{i=0}^{n} f(X_i) $$ 
+Pour construire un intervalle de confiance pour $I$, nous devons calculer $ \sigma_f^2 \simeq n \V(\hat{I}_n)$. 
+Or on ne connaît pas $\V(\hat{I}_n)$ et les valeurs de $X_i$ sont corrélées. L'idée est donc de "découper" notre chaîne de 
+Markov en $m$ batchs de longueur $b$ tels que $ n = b \times m$. On calculera alors la variance de chaque bloc en considérants 
+qu'ils sont indépendants. On aura donc la moyenne de chaque lot : 
+    $$ \forall i \in \llbracket 1, m \rrbracket \quad \hat{I}_{b,i} = \frac{1}{b} \sum_{j=0}^{b} f(X_{bj + 1}) $$ 
+puis on pose : 
+    $$ \hat{I}_n = \frac{1}{n} \sum_{i=1}^{n} \hat{I}_{b,i} = \frac{1}{n} \sum_{i=1}^{n} f(X_i) $$
+on propose ensuite : 
+    $$ \hat{ \sigma}_{f,n} = \frac{b}{m-1} \sum_{j=1}^{m} ( \hat{I}_{b,j} - \hat{I}_n)^2  $$ 
+On peut donc construire l'intervalle de confiance de $I$ suivant : 
+    $$ \left[ \hat{I}_n \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{ \hat{ \sigma}_{f,n}^2}  \right] $$
+
+\subsection{Méthode de Newley-West}
+
+Une autre façon d'estimer $ \sigma_f^2$ est d'estimer directement $ \gamma_k = \text{ Cov}(f(X_0), f(X_k))$ par 
+l'estimateur empirique : 
+    $$ \hat{ \gamma}_k = \frac{1}{n-k} \sum_{i=1}^{n-k} (f(X_i) - \hat{I}_n)(f(X_{i+k}) - \hat{I}_n) $$ 
+on estime alors $ \sigma_f^2$ par : 
+    $$ \hat{\sigma}_f^2 = \hat{ \gamma}_0 + 2 \sum_{k=1}^{L} \gamma_k \left( 1 - \frac{k}{L}  \right) $$ 
+où $L = n^{1/3}$ en général. On a donc l'intervalle de confiance suivant pour $I$ : 
+    $$ \left[ \hat{I}_n \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{ \hat{ \sigma}_{f}^2}  \right] $$
