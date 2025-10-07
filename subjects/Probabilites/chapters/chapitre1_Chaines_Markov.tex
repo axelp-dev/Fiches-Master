@@ -873,7 +873,96 @@ D'après la propriété de Markov forte, ces excursions auront la même loi et s
 \begin{proposition}
     On dit qu'un état $x \in E$ est \emph{récurrent} si : 
         \[ \sum_{n \geqslant 0} P^n(x,x) = \infty \] 
+    Or $ P^n(x,x) = \myP(X_n = x \; | \; X_0 = x) $ et $ V_x = \sum_{n \geqslant 1} \mathbbm{1}_{X_n = x}$ donc : 
+        \[ \mathbb{E}(V_x) = \sum_{n \geqslant 1} \mathbb{E}( \mathbbm{1}_{X_n = x} \; | \; X_0 = x ) = \sum_{n \geqslant 1} P^n(x,x)  \]   
+    Donc si $x$ est \emph{récurrent} alors $V_x = \infty$ presque sûrement. D'où : 
+        $$ \mathbb{E}(V_x)  = \infty \Longrightarrow \sum_{n \geqslant 1} P^n(x,x) = \infty $$ 
+    D'autre part, si $x$ est transiant, alors $ V_x \sim \mathcal{G}(p)$ où : 
+        \[ \mathbb{E}(V_x) < \infty \Longrightarrow  \sum_{n \geqslant 1} P^n(x,x) < \infty \]  
 \end{proposition}
+
+\begin{theorem}[Réccurence et Transitivité]
+    Soient $x,y \in E$. Alors, si $x$ est récurrent et que $ x \leadsto y$ alors $y$ est récurrent. 
+\end{theorem}
+
+\begin{proposition}
+    Donc $ \leadsto$ est une relation d'équivalence pour les points récurrents. On peut donc partitionner l'ensemble 
+    des points récurrents de $E$ en classes d'équivalences pour $ \leadsto$ (i.e en parties connexes dans le graphe de la chaîne). 
+        \[ E = \mathcal{R} \sqcup \mathcal{C} \]
+    où $ \mathcal{R}$ est l'ensemble des états récurrents de $E$ et $ \mathcal{C}$ l'ensemble des états transiants. 
+    On a donc : 
+        \[ \mathcal{R} = \bigsqcup_{x \in E} \mathcal{R}_x    \]
+    avec $ \mathcal{R}_x$ la classe de $x$ pour la relation $\leadsto$ 
+        \[ \text{i.e} \quad \forall x \in E, \quad \mathcal{R} _x = \{y \in E, x \leadsto y \}  \] 
+    Soit $(X_n)_(n \in E)$ une chaîne de Markov sur $E$. 
+        \begin{itemize}
+            \item Si $X_0 = x \in \mathcal{R}$ alors pour tout $n \in \N$, $X_n \in \mathcal{R}_x$ presque sûrement. 
+            Donc la chaîne visitera tout les états de cette classe un nombre infini de fois. 
+            \item En revanche si $x \in \mathcal{C}$ on peut ditinguer deux cas : 
+            \begin{itemize}
+                \item Si $ \mathcal{C}$ est infini, alors pour tout $n \in \N$, $X_n \in \mathcal{C}$ et chaque état 
+                de $ \mathcal{C}$ est visité un nombre fini de fois. 
+                \item Si $ \mathcal{C}$ est fini, alors il va exister $n \in \N$ tel que $ X_n \in \mathcal{ R}$ 
+                et on se retrouve dans le premier cas.   
+            \end{itemize}
+        \end{itemize}
+\end{proposition}
+
+\begin{example}
+    Soit $E$ un espace d'état fini et $(X_n)_{n \in \N}$ une chaîne de Markov sur $E$ définie par le 
+    graphe suivant : 
+    \begin{figure}[h!]
+        \centering
+        \makebox[\textwidth][c]{ % Centre le tikz dans la largeur du texte
+            \begin{tikzpicture}[
+                baseline=(current bounding box.center),
+                shorten >=1pt,
+                node distance=2cm,
+                on grid,auto
+            ]
+                \node[state] (1) {$1$}; 
+                \node[state, right of=1, above of=1] (2) {$2$};
+                \node[state, right of=1, below of=1] (3) {$3$}; 
+                \node[state, right of =2] (4) {$4$}; 
+                \node[state, right of=3] (6) {$6$}; 
+                \node[state, right of=6] (7) {$7$}; 
+                \node[state, below of=6] (8) {$8$}; 
+                \node[state, below of=7] (9) {$9$}; 
+                 
+
+                \path[->]
+                    (1) edge[above] (2)
+                    (2) edge[above] (4)
+                    (4) edge[above, loop right] (4)
+                    (1) edge[bend left] (3)
+                    (3) edge[bend left] (1)
+                    (3) edge[above] (6)
+                    (6) edge[bend left] (7) 
+                    (7) edge[bend left] (6)
+                    (7) edge[loop right] (7)
+                    (7) edge[] (8)
+                    (9) edge[] (7)
+                    (9) edge[loop right] (9)
+                    (8) edge[] (9)
+                    (8) edge[] (6);
+            \end{tikzpicture}
+        }
+        \caption{Espace d'état fini}
+    \end{figure}
+    
+    On a alors une partition de $E$ : 
+        \[ E = \underbrace{ \{1, 2, 3\}}_{ \text{états transiants} } 
+        \cup \quad 
+            \underbrace{ 
+                \{
+                        \underbrace{\{4\}}_{\mathcal{R}_4} 
+                    \cup 
+                    \underbrace{
+                        \{6, 7, 8, 9\}
+                    }_{ \mathcal{R}_2 } 
+                \} }_{ \text{états récurrents} } \] 
+\end{example}
+
 
 
 

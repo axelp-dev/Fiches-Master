@@ -83,11 +83,12 @@
     {\Huge\bfseries #2\par}
     \vspace{4em}  % Augmente l'écart à 2em
     \ifstrempty{#1}{}{%
-      \includegraphics[width=0.4\textwidth]{#1}\par
+      \includegraphics[]{#1}\par
     }
   \end{center}
   \vspace{2em}
 }
+
 
 
 
@@ -218,10 +219,10 @@
 %             Itemize env settings
 % - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-\setlist[itemize,1]{label=\textbullet}
-\setlist[itemize,2]{label=\textbullet}
-\setlist[itemize,3]{label=\textbullet}
-\setlist[itemize,4]{label=\textbullet}
+% \setlist[itemize,1]{label=\textbullet}
+% \setlist[itemize,2]{label=\textbullet}
+% \setlist[itemize,3]{label=\textbullet}
+% \setlist[itemize,4]{label=\textbullet}
 
 % - - - - - - - - - - - - - - - - - - - - - - - - - 
 %             lstlisting env settings
@@ -310,25 +311,25 @@
 % ==================================================================================================================================
 % Inclusion Parts (Courses)
 
-\part[]{Probabilités}
+\part[images/part_probabilites.pdf]{Probabilités}
 \setcounter{chapter}{0}
 \include{subjects/Probabilites/main_probabilites}
 
-\part[]{Simulation Aléatoire}
-\setcounter{chapter}{0}
-\include{subjects/Simulation_Aleatoire/main_simulation}
+% \part[]{Simulation Aléatoire}
+% \setcounter{chapter}{0}
+% \include{subjects/Simulation_Aleatoire/main_simulation}
 
-\part[]{Optimisation}
-\setcounter{chapter}{0}
-\include{subjects/Optimisation/main_optimisation}
+% \part[images/part_optimisation.pdf]{Optimisation}
+% \setcounter{chapter}{0}
+% \include{subjects/Optimisation/main_optimisation}
 
-\part[]{Algorithmique}
-\setcounter{chapter}{0}
-\include{subjects/Algorithmique/main_algo}
+% \part[]{Algorithmique}
+% \setcounter{chapter}{0}
+% \include{subjects/Algorithmique/main_algo}
 
-\part[]{Compilation}
-\setcounter{chapter}{0}
-\include{subjects/Compilation/main_compilation}
+% \part[]{Compilation}
+% \setcounter{chapter}{0}
+% \include{subjects/Compilation/main_compilation}
 
 
 

@@ -11,7 +11,12 @@ $(MAIN).pdf: $(MAIN).tex
 
 # Nettoyage des fichiers temporaires générés par la compilation
 clean:
-	rm -f $(MAIN).aux $(MAIN).log $(MAIN).out $(MAIN).toc $(MAIN).lof $(MAIN).lot $(MAIN).bbl $(MAIN).blg $(MAIN).maf $(MAIN).mtc* $(MAIN).thm $(MAIN).synctex.gz $(MAIN).ptc* $(MAIN).fls $(MAIN).fdb_latexmk
+	find . -type f \( \
+		-name "*.aux" -o -name "*.log" -o -name "*.out" -o -name "*.toc" \
+		-o -name "*.lof" -o -name "*.lot" -o -name "*.bbl" -o -name "*.blg" \
+		-o -name "*.maf" -o -name "*.mtc*" -o -name "*.thm" -o -name "*.synctex.gz" \
+		-o -name "*.ptc*" -o -name "*.fls" -o -name "*.fdb_latexmk" \
+	\) -delete
 
 # Nettoyage complet : enlève le PDF et les fichiers temporaires
 cleanall: clean
@@ -20,3 +25,15 @@ cleanall: clean
 # Si tu veux utiliser latexmk en mode "continu" (pour recompiler automatiquement en cas de modification)
 watch:
 	$(LATEXMK) -pdf -pvc $(MAIN).tex
+
+view: $(MAIN).pdf
+	open $(MAIN).pdf
+
+help:
+	@echo "Makefile commands:"
+	@echo "  compile      - Compile the main PDF"
+	@echo "  clean        - Remove auxiliary files"
+	@echo "  cleanall     - Remove auxiliary files and PDF"
+	@echo "  view         - Open the PDF"
+	@echo "  bib          - Run bibtex"
+

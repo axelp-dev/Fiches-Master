@@ -1,10 +1,8 @@
-
 \minitoc 
 
 % ========================================================================================================
 % Introduction 
 
-\subsection{Introduction}
 
 Dans ce chapitre, nous nous intéresserons à la simulation de processus de Markov grâce 
 à l'étude de celles-ci. Pour rappel, une chaîne de Markov décrit l'évolution d'une quantité soumise à des 
@@ -98,11 +96,32 @@ $(X_n)_{n \geqslant 1}$ conditionnellement à $X_0 = x$. On a donc :
         \end{cases}
     $$
 
-\begin{prop}[Propriété de Markov]
+\begin{prop}[Markov faible]
     Soit  $(X_n)_{n \geqslant 1}$ une chaîne de Markov et $N \in \N$, alors : 
-        $$ \mathbb{E}(h(X_{n+1}, X_{n+2}, \dots, X_{n+k}) \; | \; X_0 = x_0, \dots, X_N = x_N) 
-        = \mathbb{E}_{X_n}(h(X_1, X_2, \dots, X_k)) $$   
+        $$ \mathbb{E}(h(X_{N+k},\dots, X_{N+1}) \; | \; X_N, \dots, X_0) 
+        = \mathbb{E}_{X_N}(h(X_k, \dots, X_2, X_1)) $$ 
+    Autrement dit, à partir du moment où l'on connaît $X_N$, les évènements $X_{N + 1}, \dots, X_{N +k}$ ne dépendent 
+    plus du passé. 
 \end{prop}
+
+\begin{proof}
+    Cette propriété est juste une reformulation de la propriété de Markov vue en probabilités. 
+    En effet, d'après la propriété de Markov faible, on sait que, étudier la chaîne $X_{N+k+1}, \dots, X_{N+1}$ 
+    sachant que l'on est passé par $ X_n, \dots, X_0$ revient à étudier la chaîné décalée 
+    $ X_k, \dots, X_1$ sachant que l'on est parti de $X_n$. Plus formellement : 
+        \begin{align*}
+            & \myP(X_{N+k} = i_{N+k}, \dots, X_{N+1} = i_{N+1} \; | \; X_N = i_N, \dots, X_0 = i_0) \\
+            &=  \myP(X_k = i_k, \dots, X_1 = i_1 \; | \; X_N = i_N)
+        \end{align*} 
+    Donc en terme d'espérance : 
+        \begin{align*}
+            & \mathbb{E}(h(X_{N+k}, \dots, X_{N+1}) \; | \; X_N, \dots, X_0) \\ 
+            &= \sum_{i_1, \dots, i_k \in E} h(i_k, \dots, i_1) \times \myP(X_{N+k} = i_k, \dots, X_{N+1} = i_1 \; | \; X_N, \dots, X_0) \\
+            &= \sum_{i_1, \dots, i_k \in E} h(i_k, \dots, i_1) \times \myP(X_k = i_k, \dots, X_i = i_1 \; | \; X_N) \\ 
+            &= \mathbb{E}(h(X_k, \dots, X_1) \; | \; X_N) \\
+            &= \mathbb{E}_{X_N}(h(X_k, \dots, X_1)) 
+        \end{align*}
+\end{proof}
 
 \begin{example}
     On définit par récurrence : 
@@ -261,15 +280,15 @@ et finit par "oublier" son point de départ.
 \end{theorem}
 
 Intuitivement, puisque qu'une chaîne ergodique se "mélange bien" dans son espace d'état, alors 
-les fréquences empiriques (la moyenne des trajectoire) reflètent les fréquences théoriques (la mesure $ \pi$). 
+les fréquences empiriques (la moyenne des trajectoire) reflètent bien les fréquences théoriques (la mesure $ \pi$). 
 
-\begin{remark}
-    Ce théorème, en plus d'être une monstre ambulant de théorie des chaînes de Markov est très fort. 
-    En effet, on obtient un résultat similaire à la loi des grands nombres alors que les $X_i$ ne sont pas 
-    indépendants. Ici, même si $ \pi$ est difficile à calculer, on peut estimer $\int f \; d \pi$ 
-    juste en simulant une trajectoire de la chaîne et en en faisant la moyenne. 
-    Enfin, $f$ et $g$ peuvent être des fonctions assez quelconques tant qu'elles sont $L^1$. 
-\end{remark}
+% \begin{remark}
+%     Ce théorème, en plus d'être une monstre ambulant de théorie des chaînes de Markov est très fort. 
+%     En effet, on obtient un résultat similaire à la loi des grands nombres alors que les $X_i$ ne sont pas 
+%     indépendants. Ici, même si $ \pi$ est difficile à calculer, on peut estimer $\int f \; d \pi$ 
+%     juste en simulant une trajectoire de la chaîne et en en faisant la moyenne. 
+%     Enfin, $f$ et $g$ peuvent être des fonctions assez quelconques tant qu'elles sont $L^1$. 
+% \end{remark}
 
 \begin{example}
     Soit $(S_n)_{n \geqslant 1}$ la marche aléatoire simple sur $\Z$. Cette chaîne de Markov n'admet pas de 

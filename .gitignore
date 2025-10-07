@@ -1,4 +1,4 @@
-.export_pierre
+.export
 
 *.aux
 *.log
@@ -9,3 +9,4 @@
 *.synctex.gz
 
 **/*.aux
+**/*.DS_Store
