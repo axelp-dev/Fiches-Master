@@ -1,0 +1,608 @@
+\minitoc 
+
+% =======================================================================================================
+% Introduction 
+
+Intéressons nous maintetant aux problèmes de programmation linéaire. Même si le nom peut prêter à confusion, 
+il s'agit en réalité de problèmes d'optimisation d'une \emph{fonction objectif} en respectant 
+certaines \emph{contraintes}. Le caractère linéaire de tels problèmes vient du fait que 
+nous ne traiterons que des fonctions objectifs et des contraintes linéaires. 
+
+Ces problèmes de programmation linéaires peuvent être résolus en temps polynomial, notament grâce à l'algorithme 
+du simple. Les problème de flots maximaux, vus précédement, peuvent s'exprimer comme des problèmes de programmation 
+linéaire. 
+
+% =======================================================================================================
+% Généralités
+
+\section{Généralités}
+
+\subsection{Définition et exemples}
+
+\begin{definition}[Programme linéaire]
+    Un \emph{programme linéaire} ou \emph{problème de programmation linéaire} est un problème d'optimisation 
+    de $n \in \N$ variables et $ m \in \N$ contraintes de la forme : 
+        \begin{mini*}|l|
+            {}{z = \sum_{j=1}^{n} c_j x_j }{}{}
+            % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
+            \addConstraint{ \sum_{j=1}^{n} a_{ij} x_j}{\preceq b_i \quad \forall i \in \llbracket 1, m \rrbracket }
+            \addConstraint{        x }{ \succeq 0 \quad \forall j \in \llbracket 1, n \rrbracket }
+        \end{mini*}
+    où $ \preceq \in \{ \leqslant, \geqslant, =\}$. Un programme linéaire est donc un simple problème d'opmisation 
+    sur un polyèdre convexe. Dans le cas définit plus haut, on dit que le programme est sous forme générale. Différentes 
+    formes d'un même problème existent. 
+\end{definition}
+
+\begin{example}
+    Voyons dès à présent un exemple de programme linéaire. 
+    \begin{quote}
+        \emph{
+            Un barman possède 30 litres de jus d'orange, 24 litres de pamplemousse et 18 litres de jus de 
+            framboise. Il peut préparer 2 types de cocktails : 
+            \begin{itemize}
+                \item Le "sunrise", vendu 80 euros le baril de 10 litres composé de 5 litres de de jus d'orange, de 
+                2 litres de jus de pamplemouse, d'un litre de jus de framboise et de 2 litres d'eau. 
+                \item Le "swing", vendu 60 euros le baril et composé de 3 litres de jus de pamplemouse, 3 litres de jus d'orange, 
+                3 litres de jus de framboise et d'un libre d'eau. 
+            \end{itemize}
+            Il souhaite préparer la plus importante quantité des deux cocktails pour maximiser son profit. 
+        }
+    \end{quote}
+    Pour résoudre ce problème, nous pouvons construire un programme linéaire de deux variables $x$ et $y$ représentant chacunes 
+    le nombre de litres d'un des deux cocktails à produire. La fonction objectif, décrivant le prix de 
+    revente de la marchandise est donc : 
+        $$ z = 80 x + 60 y $$ 
+    Et nous avons les contraintes suivantes : 
+        \begin{align*}
+            5x + 3y \leqslant 30 & \quad \text{(stock de jus d'orange)} \\
+            2x + 3y \leqslant 24 & \quad \text{(stock de jus de pamplemouse)} \\
+            x + 3y \leqslant 18 & \quad \text{(stock de jus de framboise)} \\ 
+            x,z \geqslant 0 & 
+        \end{align*}
+    On peut donc formuler le problème suivant : 
+        \begin{maxi*}|l|
+            {}{z = 80 x + 60 y }{}{}
+            \addConstraint{ 5x + 3y }{ \leqslant 30 }
+            \addConstraint{ 2x + 3y }{ \leqslant 24 }
+            \addConstraint{ x + 3y }{ \leqslant 18 }
+            \addConstraint{ x,y }{ \geqslant 0 }
+        \end{maxi*}
+\end{example}
+
+\begin{proposition}
+    Comme dit dans la définition d'un programme linéaire, il peut exister différentes formes d'un même problème en 
+    fonction de la méthode de résolution utilisée. Le caractère linéaire de ces programmes nous permet de 
+    passer facilement d'une forme à une autre. Nous définissons la forme canonique d'un programme linéaire comme suit :
+
+        \begin{figure}[h!]
+            \centering
+            \begin{maxi*}|l|
+                {}{z = \sum_{j=1}^{n} c_j x_j }{}{}
+                \addConstraint{ \sum_{j=1}^{n} a_{ij} x_j }{ \preceq b_i, \quad \forall i \in \llbracket 1, m \rrbracket }
+                \addConstraint{ x_j }{ \succeq 0, \quad \forall j \in \llbracket 1, n \rrbracket }
+            \end{maxi*}
+            \caption{Formulation canonique d’un programme linéaire}
+        \end{figure}
+
+        \begin{center}
+            \begin{minipage}{0.60\textwidth}
+                \centering
+                \begin{maxi*}|l|
+                    {}{z = \sum_{j=1}^{n} c_j x_j }{}{}
+                    \addConstraint{ \sum_{j=1}^{n} a_{ij} x_j }{ = b_i, \quad \forall i \in \llbracket 1, m \rrbracket }
+                    \addConstraint{ x_j }{ \succeq 0, \quad \forall j \in \llbracket 1, n \rrbracket }
+                \end{maxi*}
+                \captionof{figure}{Formulation standard d’un programme linéaire de maximisation}
+            \end{minipage}
+            \hfill 
+            \begin{minipage}{0.35\textwidth}
+                Nous pouvons ensuite passer à la formulation dite « standard » où les contraintes d’ordre sont remplacées 
+                par des contraintes d’égalités. Il faut donc rajouter un certain nombre de variables à notre programme. 
+            \end{minipage}
+        \end{center}
+    
+    
+    Enfin, nous avons la forme matricielle, qui nous permettra d'utiliser des algorithmes itératifs pour résoudre ce genre de 
+    problèmes : 
+
+
+    \begin{figure}[h!]
+        \centering
+        \begin{maxi*}|l|
+            {}{z = CX }{}{}
+            \addConstraint{ AX }{ = B }
+            \addConstraint{ X }{ \geqslant 0_{\R^n} }
+        \end{maxi*}
+        \caption{Formulation matricielle d’un programme linéaire de maximisation}
+    \end{figure}
+
+    où $C \in \R^n, A \in \mathcal{M}_{m, n}(\R)$ et $B \in \R^m$.  
+\end{proposition}
+
+\begin{example}
+    Pour le problème de notre barman, nous pouvons ainsi représenter les différentes formes de notre problème : 
+
+        \begin{center}
+            \begin{minipage}{0.45\textwidth}
+                \begin{maxi*}|l|
+                    {}{z = 80 x + 60 y }{}{}
+                    \addConstraint{ 5x + 3y }{ \leqslant 30 }
+                    \addConstraint{ 2x + 3y }{ \leqslant 24 }
+                    \addConstraint{ x + 3y }{ \leqslant 18 }
+                    \addConstraint{ x,y }{ \geqslant 0 }
+                \end{maxi*}
+                \captionof{figure}{Forme canonique du problème du barman}
+            \end{minipage}
+            \hfill 
+            \begin{minipage}{0.45\textwidth}
+                \begin{maxi*}|l|
+                    {}{z = 80 x + 60 y }{}{}
+                    \addConstraint{ 5x + 3y + e_1 }{ = 30 }
+                    \addConstraint{ 2x + 3y + e_2 }{ = 24 }
+                    \addConstraint{ x + 3y + e_3 }{ = 18 }
+                    \addConstraint{ x,y, e_1, e_2, e_3}{ \geqslant 0 }
+                \end{maxi*}
+                \captionof{figure}{Forme standard du problème du barman}
+            \end{minipage}
+        \end{center}
+        Et enfin : 
+            \begin{maxi*}|l|
+                {}{
+                    z = \underbrace{(80, 60, 0, 0, 0)}_{C} \times 
+                    \overbrace{
+                        \begin{pmatrix}
+                            x \\ 
+                            y \\ 
+                            e_1 \\ 
+                            e_2 \\ 
+                            e_3 
+                        \end{pmatrix}
+                    }^{X}
+                }{}{}
+                \addConstraint{ 
+                    \underbrace{
+                    \begin{pmatrix}
+                        5 & 3 & 1 & 0 & 0 \\ 
+                        2 & 3 & 0 & 1 & 0 \\ 
+                        1 & 3 & 0 & 0 & 1 
+                    \end{pmatrix}
+                    }_{A}
+                    \times 
+                    \underbrace{
+                        \begin{pmatrix}
+                            x \\ 
+                            y \\ 
+                            e_1 \\ 
+                            e_2 \\ 
+                            e_3 
+                        \end{pmatrix}
+                    }_{X}
+                }{  =
+                    \underbrace{
+                        \begin{pmatrix}
+                            30 \\ 
+                            24 \\ 
+                            18 
+                        \end{pmatrix}
+                    }_{B}
+                }
+            \end{maxi*}
+\end{example}
+
+Maintenant que nous avons défini formellement un programme linéaire, passons à l'étude de ses solutions. 
+
+\begin{definition}[Solutions d'un programme linéaire]
+    Soit $P$ un programme linéaire sous forme matricielle standard. Le vecteur $X = (x_1, \dots, x_n)$ est : 
+    \begin{itemize}
+        \item \emph{une solution de $P$} si $A \; ^tX = B$ 
+        \item \emph{une solution possible de $P$} si $A \; ^tX = B$ et $X \geqslant 0_{\R^n}$
+        \item \emph{une solution optimale de $P$} si c'est une solution possible et qu'elle 
+        maximise $z$ parmi l'ensemble des solutions possibles. 
+    \end{itemize}
+\end{definition}
+
+\begin{proposition}
+    Comme énoncé en introduction, on peut représenter un problème de maximisation de flot dans un réseau par 
+    un programme linéaire. Soit $R = (X, E, c)$ un réseau tel que $|E| = n$, avec $s, t \in X$ la source et le puits. 
+    On note $c(x,y)$ la capacité de l’arête entre $x$ et $y$ dans le réseau. 
+    On cherche une application 
+        \[  \varphi : E \longrightarrow \mathbb{R}, \quad (x,y) \longmapsto f(x,y) \]
+    qui maximise le flot entre la source $s$ et le puits $t$. 
+
+    Plus formellement, si l’on ordonne les arêtes $E$ sous la forme $E = \{e_1, \dots, e_n\}$ et que l’on note 
+    $\varphi(E) = (f_1, \dots, f_n) \in \mathbb{R}^n$, alors on cherche à maximiser 
+        \[ z = \sum_{(x,y) \in v^-(s)} \varphi(x,y) \]
+    sous les contraintes :
+        \[ 0 \leqslant f(x,y) \leqslant c(x,y), \quad \forall (x,y) \in E \]
+    ainsi que les contraintes de conservation du flot pour tout sommet $v \in X \setminus \{s, t\}$ :
+        \[ \sum_{(u,v) \in v^-(v)} f(u,v) = \sum_{(v,w) \in v^+(v)} f(v,w).\]
+\end{proposition}
+
+\subsection{Solution Géométrique}
+
+La recherche d'une solution d'un programme linéaire revient à trouver une droite de la forme $ z = \sum_{i=1}^{n} x_i c_i $
+pour laquelle $z$ est maximal tout en respectant les contraintes du programme. 
+En petite dimension (2 variables ou moins) il est possible de tracer ce problème et de le résoudre géométriquement. 
+Détaillons cela autour d'un exemple. 
+
+
+\begin{example}[Solution Géométrique]
+    Reprenons le problème de notre barman énoncé comme suit :
+    \begin{maxi*}|l|
+        {}{z = 80 x + 60 y }{}{}
+        \addConstraint{ 5x + 3y }{ \leqslant 30 }
+        \addConstraint{ 2x + 3y }{ \leqslant 24 }
+        \addConstraint{ x + 3y }{ \leqslant 18 }
+        \addConstraint{ x,y }{ \geqslant 0 }
+    \end{maxi*}
+
+    On peut tracer les courbes des contraintes pour identifier la zone contenant les solutions possibles :
+
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            axis lines=middle,
+            xlabel={$x$},
+            ylabel={$y$},
+            xmin=0, xmax=8,
+            ymin=0, ymax=8,
+            grid=major,
+            width=10cm,
+            height=8cm,
+            legend style={at={(0.97,0.97)}, anchor=north east},
+            clip=false
+        ]
+
+        % === Contraintes ===
+        \addplot[name path=C1, thick, domain=0:6, blue] { (30 - 5*x)/3 };
+        \addlegendentry{$5x + 3y = 30$}
+
+        \addplot[name path=C2, thick, domain=0:8, red] { (24 - 2*x)/3 };
+        \addlegendentry{$2x + 3y = 24$}
+
+        \addplot[name path=C3, thick, domain=0:8, orange] { (18 - x)/3 };
+        \addlegendentry{$x + 3y = 18$}
+        
+        % === Solution ===
+        \addplot[name path=C4, dashed, domain=0:8, black] { (540 - 80*x)/60 };
+        \addlegendentry{$540 = 80x + 60y$}
+
+        % === Zone faisable ===
+        \addplot[fill=green!30, fill opacity=0.4]
+            coordinates {(0,0) (0,6) (3,5) (6,0)} -- cycle;
+
+        % === Points d'intersection ===
+        \addplot[mark=*] coordinates {(0,6)}; 
+        \addplot[mark=*] coordinates {(6,0)}; 
+        \addplot[mark=*] coordinates {(3,5)}; 
+        \addplot[mark=*] coordinates {(0,0)}; 
+
+        % === Flèche de la fonction objectif ===
+        \addplot[->, thick, black!70] coordinates {(0,0) (3,5)};
+        \node[black!70, right] at (axis cs:4,3) {$z = 80x + 60y$ ↑};
+
+        \end{axis}
+    \end{tikzpicture}
+
+    \captionof{figure}{Espace des solutions réalisables du programme linéaire}
+
+    Le barman peut donc produire 80 litres de "sunrise" et 3 litres de "swing" pour un profit total de 540 euros. 
+\end{example}
+
+\begin{remark}
+    En pratique, il sera très rare de pouvoir résoudre un tel problème graphiquement car le nombre de variable sera 
+    bien supérieur à 2. 
+\end{remark}
+
+
+% =======================================================================================================
+% Solutions Algébriques et Algorithme du Simplexe
+
+\section{Algorithme du Simplexe et Dualité}
+
+\subsection{Principe du simplexe}
+
+Comme dit précédement, le caractère linéaire des contraintes d'un programme linéaire nous permettent 
+d'en déduire que l'espace des solutions possible est un polyèdre. D'où le théorème suivant. 
+
+\begin{theorem}[Solutions Possibles]
+    L'ensemble $S$ des solutions possibels d'un programme linéaire est convexe et est un polyèdre non borné 
+    ou un polytope. Si $S$ est non vide et borné, alors il existe au moins un vecteur de $S$ pour lequel 
+    le maximum de la fonction objectif est atteint.  
+\end{theorem}
+
+\begin{remark}
+    Ce théorème nous permet de distinguer plusieurs cas pour l'ensemble des solutions : 
+    \begin{itemize}
+        \item Le programme linéaire a au moins une solution : 
+            \begin{itemize}
+                \item soit elle est unique 
+                \item soit il en existe une infinité (i.e le maximum est atteint en plusieurs vecteurs) on parle 
+                alors de cas dégénéré. 
+            \end{itemize}
+        \item Le programme linéaire n'a pas de solution, lorsque les contraintes ne sont pas compatibles, 
+        l'ensemble des solutions est donc vide. 
+        \item Le programme linéaire n'a pas d'optimum (i.e l'ensemble des solutions n'est pas borné).
+    \end{itemize}
+\end{remark}
+
+\begin{proposition}[Résolution d’un programme linéaire par le simplexe]
+    Nous avons précédemment résolu nos programmes linéaires graphiquement. 
+    Nous allons voir que nous pouvons aussi les résoudre \emph{algébriquement}, 
+    en utilisant l'\emph{algorithme du simplexe}.
+    Soit le programme suivant : 
+
+    \begin{maxi*}|l|
+        {}{z = x + 2y }{}{}
+        \addConstraint{ 4x + 2y }{ \leqslant 300 }
+        \addConstraint{ 5x }{ \leqslant 310 }
+        \addConstraint{ 2x + 4y }{ \leqslant 200 }
+        \addConstraint{ 3y }{ \leqslant 100 }
+        \addConstraint{ x, y }{ \geqslant 0 }
+    \end{maxi*}
+
+    On passe ce programme sous \emph{forme standard} en introduisant des variables d’écart 
+    $e_1, e_2, e_3, e_4 \geqslant 0$ :
+    
+    \begin{maxi*}|l|
+        {}{z = x + 2y}{}{}
+        \addConstraint{4x + 2y + e_1}{ = 300} 
+        \addConstraint{5x + e_2}{ = 310}
+        \addConstraint{2x + 4y + e_3}{ = 200}
+        \addConstraint{3y + e_4}{ = 100}
+        \addConstraint{x, y, e_1, e_2, e_3, e_4}{ \geqslant 0 }
+    \end{maxi*}
+
+    Le vecteur $(x, y, e_1, e_2, e_3, e_4) = (0, 0, 300, 310, 200, 100)$ 
+    est une \emph{solution de base réalisable} : toutes les contraintes sont vérifiées et les variables sont positives.
+    L’idée du simplexe est de :
+    \begin{enumerate}
+        \item Choisir une \emph{base initiale} (ici, les variables d’écart $e_i$).
+        \item Exprimer les variables hors base ($x, y$) en fonction des variables de base.
+        \item \emph{Augmenter la valeur de la fonction objectif $z$} en remplaçant une variable de base par une variable hors base
+              qui améliore $z$.
+        \item Répéter jusqu’à ce qu’aucune amélioration ne soit possible : la solution est alors optimale.
+    \end{enumerate}
+
+    Formellement, le simplexe cherche à écrire le système sous la forme :
+    \[
+        \begin{cases}
+            z = C + \sum_i c_i x_i \\
+            x_B = b - A x_N
+        \end{cases}
+        \quad \text{où } x_B \geqslant 0, \; x_N \geqslant 0
+    \]
+    À chaque itération :
+    \begin{itemize}
+        \item une variable hors base entre dans la base (celle qui augmente le plus $z$),
+        \item une variable de base quitte la base (celle qui devient nulle en premier).
+    \end{itemize}
+    Lorsque tous les coefficients $c_i \leqslant 0$, 
+    aucune amélioration n’est possible et la solution actuelle est \emph{optimale} : 
+    la valeur optimale est alors $z = C$.
+\end{proposition}
+
+\begin{example}[Résolution algébrique du programme par le simplexe]
+    Considérons le programme linéaire suivant :
+    \begin{maxi*}|l|
+        {}{z = x + 2y}{}{}
+        \addConstraint{4x + 2y}{\leqslant 300}
+        \addConstraint{5x}{\leqslant 310}
+        \addConstraint{2x + 4y}{\leqslant 200}
+        \addConstraint{3y}{\leqslant 100}
+        \addConstraint{x, y}{\geqslant 0}
+    \end{maxi*}
+
+    \begin{enumerate}
+        \item \textbf{Mise sous forme standard : } On introduit une variable d’écart pour chaque contrainte :
+                \[
+                    \begin{cases}
+                        4x + 2y + e_1 = 300 \\
+                        5x + e_2 = 310 \\
+                        2x + 4y + e_3 = 200 \\
+                        3y + e_4 = 100
+                    \end{cases}
+                    \quad \text{avec } e_i \geqslant 0.
+                \]
+            La fonction objectif s’écrit :
+                \[
+                    z = x + 2y.
+                \]
+
+            Une solution de base réalisable évidente est obtenue en prenant \(x = y = 0\), ce qui donne :
+                \[
+                    (e_1, e_2, e_3, e_4) = (300, 310, 200, 100),
+                    \quad z = 0.
+                \]
+            C’est notre {solution de base initiale}.  
+        
+        \item \textbf{Recherche d’une direction d’amélioration : } Comme \(z = x + 2y\), augmenter \(y\) 
+        est plus rentable que \(x\) (le coefficient 2 est supérieur à 1).  
+        On va donc chercher à \textbf{augmenter \(y\)} tant que c’est possible sans violer les contraintes.
+        On part du système :
+            \[
+                \begin{cases}
+                    e_1 = 300 - 2y - 4x \\
+                    e_2 = 310 - 5x \\
+                    e_3 = 200 - 2x - 4y \\
+                    e_4 = 100 - 3y
+                \end{cases}
+            \]
+        Comme on garde \(x=0\) au départ, ces équations deviennent :
+            \[
+                \begin{cases}
+                    e_1 = 300 - 2y \\
+                    e_2 = 310 \\
+                    e_3 = 200 - 4y \\
+                    e_4 = 100 - 3y
+                \end{cases}
+            \]
+        Pour rester faisable, il faut \(e_i \geq 0\).  
+        On obtient donc :
+            \[
+                y \leq 150, \quad y \leq 50, \quad y \leq 25, \quad y \leq 33{,}3.
+            \]
+        La contrainte la plus restrictive est \(y \leq 25\) (provenant de \(e_3 = 200 - 4y\)).  
+        On choisit donc \(y = 25\) et \(e_3 = 0\).  
+        Cela définit une nouvelle base : \(\{e_1, e_2, e_4, y\}\).
+        
+        \item \textbf{Amélioration suivante : } Pour cette valeur \(y = 25\), les variables d’écart valent :
+            \[
+                e_1 = 300 - 2(25) = 250, \quad
+                e_2 = 310, \quad
+                e_3 = 0, \quad
+                e_4 = 100 - 3(25) = 25.
+            \]
+        La fonction objectif vaut alors :
+            \[
+                z = x + 2y = 2 \times 25 = 50.
+            \]
+        On peut encore améliorer \(z\) en augmentant \(x\), tant que toutes les contraintes restent valides.
+        En remplaçant \(y = 25\), on obtient :
+            \[
+                \begin{cases}
+                    e_1 = 300 - 2(25) - 4x = 250 - 4x \\
+                    e_2 = 310 - 5x \\
+                    e_3 = 200 - 2x - 4(25) = 100 - 2x \\
+                    e_4 = 100 - 3(25) = 25
+                \end{cases}
+            \]
+        Les contraintes donnent :
+            \[
+                x \leq 62{,}5, \quad x \leq 62, \quad x \leq 50.
+            \]
+        Le plus restrictif est \(x \leq 50\) (provenant de \(e_3 \geq 0\)).  
+        On prend donc \(x = 50\) et \(e_3 = 0\).
+
+        \item \textbf{Calcul de la solution optimale : } On obtient :
+            \[
+                \begin{cases}
+                    x = 50, \quad y = 25, \\
+                    e_1 = 300 - 4(50) - 2(25) = 100, \\
+                    e_2 = 310 - 5(50) = 60, \\
+                    e_3 = 0, \\
+                    e_4 = 100 - 3(25) = 25.
+                \end{cases}
+            \]
+        La fonction objectif vaut :
+            \[
+                z = x + 2y = 50 + 2 \times 25 = 100.
+            \]
+        Si on essaye d’augmenter \(y\) ou \(x\) davantage, on viole immédiatement une contrainte.  
+        La solution est donc \textbf{optimale}.
+                
+        \item \textbf{Conclusion :} Le programme atteint son maximum en :
+            \[
+                \boxed{x^* = 50, \quad y^* = 25, \quad z_{\max} = 100.}
+            \]
+        Cette résolution illustre la logique du simplexe : on part d’une solution réalisable triviale,
+        puis on améliore la fonction objectif pas à pas en déplaçant la base vers les sommets adjacents
+        du polytope faisable, jusqu’à atteindre un sommet où toute augmentation violerait une contrainte.
+    \end{enumerate}
+\end{example}
+
+
+\subsection{Dualité}
+
+\begin{definition}[Programme Primal]
+    Le \emph{problème primal} (ou primaire) est la forme standard d’un programme linéaire :
+        
+        \begin{maxi*}
+            {}{z = \; ^tc x}{}{}
+            \addConstraint{Ax}{\leqslant b}
+            \addConstraint{x}{\geqslant 0}
+        \end{maxi*}
+
+    où :
+    \begin{itemize}
+        \item $x \in \mathbb{R}^n$ est le vecteur des variables de décision ;
+        \item $c \in \mathbb{R}^n$ est le vecteur des coefficients de la fonction objectif ;
+        \item $A \in \mathbb{R}^{m \times n}$ est la matrice des coefficients des contraintes ;
+        \item $b \in \mathbb{R}^m$ est le vecteur des bornes du système d’inégalités.
+    \end{itemize}
+\end{definition}
+
+\begin{definition}[Problème Dual]
+    À tout problème primal est associé un \emph{problème dual} défini par :
+        
+        \begin{mini*}|l|
+            {}{w = \; ^tb y}{}{}
+            \addConstraint{^tA y}{ \geqslant c}
+            \addConstraint{y}{\geqslant 0}
+        \end{mini*}
+
+    où :
+    \begin{itemize}
+        \item $y \in \mathbb{R}^m$ est le vecteur des variables duales ;
+        \item chaque contrainte du primal correspond à une variable du dual ;
+        \item chaque variable du primal correspond à une contrainte du dual.
+    \end{itemize}
+\end{definition}
+
+\begin{remark}[Interprétation]
+    Le problème \emph{primal} cherche à \emph{maximiser un profit} ou une valeur objective en respectant des 
+    contraintes de ressources. Le problème \emph{dual} cherche à \emph{minimiser le coût} de ces ressources tout 
+    en garantissant que la valeur de chaque ressource couvre la contribution de chaque variable du primal.
+    Autrement dit :
+    \begin{quote}
+        \emph{Le primal cherche {ce qu’on peut obtenir au maximum} avec des ressources limitées,  
+        tandis que le dual cherche {le coût minimal} que doivent avoir ces ressources pour que le système reste équilibré.}
+    \end{quote}
+\end{remark}
+
+\begin{example}
+    En reprenant l'exemple de notre barman, le programme primal cherche à maximiser le profit du barman 
+    en fixant le prix des barrils $c_j$ de cocktails $j$ qu'il produit en utilisant au plus $b_i$ litres 
+    de jus $i$. Les variables $x_j$ représentent alors le nombre de barrils de cocktail $j$. 
+
+    Ici, le programme dual cherche à minimiser le profit total obtenu grâce aux stocks $b_i$ de chaque jus 
+    $i$ si le barman vent chaque cocktail $j$ pour un prix minimal de $c_j$. 
+    Les variables $y_i$ représentent donc le profit que le barman réalise par litre de jus $i$. 
+
+    Voici les expressions mathémartiques de ces deux programmes :  
+
+    \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \begin{maxi*}|l|
+                {}{z = 80 x + 60 y }{}{}
+                \addConstraint{ 5x + 3y }{ \leqslant 30 }
+                \addConstraint{ 2x + 3y }{ \leqslant 24 }
+                \addConstraint{ x + 3y }{ \leqslant 18 }
+                \addConstraint{ x,y }{ \geqslant 0 }
+            \end{maxi*}
+            \captionof{figure}{Programme primal du barman}
+        \end{minipage}
+        \hfill
+        \begin{minipage}{0.45\textwidth}
+            \begin{mini*}|l|
+                {}{w = 20 y_1 + 24 y_2 + 18 y_3}{}{}
+                \addConstraint{5 y_1 + 2 y_2 + y_2}{ \geqslant 80}
+                \addConstraint{3y_1 + 3y_2 + 3y_3}{\geqslant 60}
+                \addConstraint{y_1, y_2, y_3}{\geqslant 0}
+            \end{mini*}
+            \captionof{figure}{Programme dual du barman}
+        \end{minipage}
+    \end{center}
+
+    La solution optimale du primal est $(x_1, x_2) = (3, 5)$ pour un profit maximal de $540$. En revanche 
+    la solution du dual est $(y_1, y_2, y_3) = (15, 0, 5)$ pour un profit de $540$ aussi. 
+\end{example}
+
+Il existe un lien direct entres les solutions du dual et celles du primal. Elles sont décrites par les théorèmes 
+de dualité. 
+
+\begin{theorem}[Dualité Faible]
+    La solution optimale du programme primal est inférieure ou égale à celle du dual. 
+\end{theorem}
+
+\begin{theorem}[Dualité Forte]
+    Nous avons les deux implications suivantes : 
+    \begin{enumerate}
+        \item Si l'un des deux programmes (primal ou dual) admet une solution optimale finie, alors l'autre aussi. 
+        De plus, la valeur optimale pour des deux programmes est la même. 
+        \item Si l'ensemble des solutions de l'un des deux programmes est non borné , alors celui de l'autre est vide. 
+    \end{enumerate}
+\end{theorem}
+
+
+
