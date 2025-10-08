@@ -604,5 +604,38 @@ de dualité.
     \end{enumerate}
 \end{theorem}
 
+\begin{remark}
+    Le théorème de coupure minimale/flot maximal dans un réseau est l'équivalent du théorème de dualité forte ici. 
+    En effet, le problème de coupure minimale dans un réseau est l'exact dual du problème de flot maximal dans le 
+    même réseau. 
+\end{remark}
+
+\begin{example}[Utilité de la dualité]
+    Considérons le programme linéaire suivant : 
+        
+        \begin{maxi*}|l|
+            {}{x + 3x + 6y + z}{}{}
+            \addConstraint{w + x + 5y + 6z}{ \leqslant 20}
+            \addConstraint{w + 2x + y + 3z}{ \leqslant 30}
+            \addConstraint{x,y,w,z}{\geqslant 0}
+        \end{maxi*}
+    
+    Ce programme ne peut pas être résolu graphiquement du fait du trop grand nombre de 
+    variables. En passant au dual, nous aurons un programme linéaire à deux variables et 4 contraintes que l'on 
+    pourra résoudre graphiquement. Attention, la résolution du dual nous donnera seulement une idée de la 
+    valeur de la solution maximale. 
+\end{example}
+
+\begin{remark}
+    Ainsi, passer au problème dual peut être avantageux dans plusieurs cas : 
+    \begin{itemize}
+        \item Le dual peut être plus simple à résoudre (moins de variables ou moins de contraintes). 
+        \item Il peut exister une solution optimale évidente pour le dual mais pas pour le primal. 
+        \item La valeur de n'importe quelle solution du dual nous donne une borne supérieure pour 
+        pour la solution du primal. 
+        \item La solution optimale du dual nous donne des informations sur la solution optimale du primal. 
+    \end{itemize}
+\end{remark}
+
 
 
