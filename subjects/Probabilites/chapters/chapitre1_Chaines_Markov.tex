@@ -191,7 +191,7 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
         &=  \sum_{k \in E} \myP(X_{n+m} = j | X_n = k) \myP(X_n = k | X_0 = i_0)  
     \end{align*}
     On remarque de $\myP(X_{n+m} = j | X_n = k)$ est la probabilité de passer de l'état $k$ à $j$ en $m$ pas d'où :
-        \[ \myP(X_{n+n} = j | X_n = k) = \myP(X_m = j | X_0 = k) \]   
+        \[ \myP(X_{n+m} = j | X_n = k) = \myP(X_m = j | X_0 = k) \]   
     Déduisons maintetant la seconde formule de la première : 
         \begin{align*}
             \myP(X_2 = j | X_0 = i_0) &= \sum_{k \in E} \myP(X_2 = j | X_1 = k) \myP(X_1 = k | X_0 = i_0) \\ 
@@ -347,60 +347,97 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
 
 \section{Propriétés de Markov}
 
-\begin{theorem}[Version Faible]
-    Soit $(X_n)$ une chaîne de Markov homogène de matrice de transition $P$ et de loi initiale $ \pi_0$. 
-    Soit $n \in \N$ fixé. Conditionnellement à l'évènement $\{X_n = i\}$ pour tout $i \in E$, 
-    la suite de variables aléatoires $(X_{n+m})_{n \geqslant 0}$ est une chaîne de Markov homogène 
-    de même matrice de transition $P$ et de loi initiale $ \delta_i$. 
+\subsection{Propriété de Markov Faible}
 
-    De plus, elle est indépendante du passé de $ (X_0, \dots, X_n)$ conditionnnellement à $\{X_n = i\}$. 
-    Soient $A$ un évènement indépendant de $X_{n+1}, \dots, X_{n+m}$ et $B$ un évènement 
-    indépendant de $X_1, \dots, X_{n-1}$, on a alors : 
-        \[ \text{i.e } \quad  \myP(A \cap B | X_m = i ) = \myP(A | X_m = i) \myP(B | X_m = i) \]  
+\begin{theorem}[Propriété de Markov Faible]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov homogène de matrice de transition $P$ et de loi initiale 
+    $ \pi_0$. Soit $ m \in \N$ fixé. Alors, conditionnellement à l’événement $\{X_m = i\}$, la chaîne décalée 
+    $(X_{m+k})_{k \in \N}$ est une chaîne de Markov homogène de même matrice de transition $P$ et de loi initiale 
+    $\delta_i$.
+
+    \vspace{0.3cm}
+
+    En particulier, le \emph{futur} $(X_{m+1}, X_{m+2}, \dots)$ est indépendant du \emph{passé} 
+    $(X_0, X_1, \dots, X_{m-1})$ conditionnellement à $X_m$. Autrement dit, pour tous événements $A$ mesurables 
+    par rapport à $\sigma(X_{m+1}, X_{m+2}, \dots)$ et $B$ mesurables par rapport à 
+    $\sigma(X_0, X_1, \dots, X_{m-1})$, on a :
+    
+    \[
+        \mathbb{P}(A \cap B \mid X_m = i)
+        = \mathbb{P}(A \mid X_m = i)\,\mathbb{P}(B \mid X_m = i).
+    \]
 \end{theorem}
 
 \begin{proof}
     Démontrons ce théorème en deux parties : 
+
     \begin{enumerate}
-        \item \underline{Égalité des lois :} Montrons que : 
-            \[ \myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n | X_n = i, \dots, X_0 = i_0) = \myP(X_1 = y_1, \dots, X_n = y_n | X_0 = i)  \]  
-        On a : 
-            \begin{align*}
-                & \myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n | X_n = i, \dots, X_0 = i_0) \\[1em]
-                &= \frac{\myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n, X_n = i, \dots, X_0 = x_0)}{ \myP(X_m = i, X_{m-1} = x_{m-1}, \dots, X_0 = x_0) } \\[1em] 
-                &= \frac{ \pi_0(x_0) P(x_0, x_1) \dots P(X_{n-1}, i) P(i, y_1) \dots P(y_{n-1}, y_n) }{ \pi_0(x_0) P(x_0, x_1) \dots P(x_{m-1}, i)}  \\[1em] 
-                &= P(i,y_1) P(y_1, y_2) \dots P(y_{n-1}, y_n) \\[1em] 
-                &= \myP(X_1 = y_1, \dots, X_n = y_n | X_0 = i)  
-            \end{align*}
-        \item \underline{Indépendance conditonnelle :}  Soient $A$ un évènement indépendant de 
-        $X_{n+1}, \dots, X_{n+m}$ et $B$ un évènement indépendant de $X_1, \dots, X_{n-1}$. 
-        Montrons que : 
-            \[ \myP(A \cap B | X_m = i ) = \myP(A | X_m = i) \myP(B | X_m = i) \] 
-        On a : 
-            \[ \myP(A \cap B | X_m = i) = \frac{ \myP(A \cap B, X_m = i) }{ \myP(X_m = i) } \] 
-            
-            \begin{align*}
-                & \myP(A \cap B, X_m = i) \\[1em]
-                &= \sum_{\substack{x_0, \dots, x_{n-1} \in B \\ y_1, \dots, y_n \in A}}
-                    \myP(X_0 = x_0, \dots, X_{m-1} = x_{m-1}, X_m = i,  X_{m+1} = y_1, \dots, X_{m+n} = y_n) \\[1em]
-                &= \sum_{\substack{x_0, \dots, x_{n-1} \in B \\ y_1, \dots, y_n \in A}} 
-                    \myP(X_{n+1} = y_1, \dots, X_{n+m} = y_n | X_0 = i) \myP(X_m = i, \dots, X_0 = x_0) \\[1em]
-                &= \left( \sum_{y_i \in A}  \myP(X_{n+1} = y_1, \dots, X_{n+m} = y_n | X_0 = i) \right)
-                    \left( \sum_{x_i \in B} \myP(X_n = i, \dots, X_0 = x_0) \right) \\[1em] 
-                &= \left(  \sum_{y_i \in A} \myP(A | X_n = i) \right) \left(  \sum_{x_i \in B} \myP(B, X_m = i) \right) 
-            \end{align*}
-        D'où : 
-            \begin{align*}
-                \myP(A \cap B | X_m = i) &= \myP(A | X_n = i) \myP(B, X_n = i) \times \frac{1}{ \myP(X_m = i) } \\[1em]
-                &= \myP(A | X_m = i) \myP(B | X_m = i)     
-            \end{align*}
+        \item \underline{Égalité des lois :} 
+
+        Montrons que, pour tout $n \in \N$ et toute suite d’états $(y_1, \dots, y_n)$,
+        \[ \myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n \mid X_m = i, X_{m-1} = i_{m-1}, \dots, X_0 = i_0) \]
+        \[ = \myP(X_1 = y_1, \dots, X_n = y_n \mid X_0 = i) \] 
+        On a :
+        \begin{align*}
+            &\myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n \mid X_m = i, X_{m-1} = i_{m-1}, \dots, X_0 = i_0) \\[0.8em]
+            &= \frac{
+                \myP(X_{m+1} = y_1, \dots, X_{m+n} = y_n, X_m = i, X_{m-1} = i_{m-1}, \dots, X_0 = i_0)
+            }{
+                \myP(X_m = i, X_{m-1} = i_{m-1}, \dots, X_0 = i_0)
+            } \\[0.8em]
+            &= \frac{
+                \pi_0(i_0) P(i_0, i_1) \cdots P(i_{m-1}, i)
+                P(i, y_1) \cdots P(y_{n-1}, y_n)
+            }{
+                \pi_0(i_0) P(i_0, i_1) \cdots P(i_{m-1}, i)
+            } \\[0.8em]
+            &= P(i, y_1) P(y_1, y_2) \cdots P(y_{n-1}, y_n) \\[0.8em]
+            &= \myP(X_1 = y_1, \dots, X_n = y_n \mid X_0 = i).
+        \end{align*}
+        Ainsi, la chaîne décalée $(X_{m+k})_{k \in \N}$, conditionnellement à $X_m = i$, 
+        suit bien la loi d’une chaîne de Markov homogène de matrice $P$ et de loi initiale $\delta_i$.
+
+        \vspace{1em}
+
+        \item \underline{Indépendance conditionnelle :}
+
+        Soient $A$ un événement mesurable par rapport au futur $\sigma(X_{m+1}, X_{m+2}, \dots)$ 
+        et $B$ un événement mesurable par rapport au passé $\sigma(X_0, X_1, \dots, X_{m-1})$.
+
+        Montrons que :
+        \[
+            \myP(A \cap B \mid X_m = i)
+            = \myP(A \mid X_m = i)\,\myP(B \mid X_m = i).
+        \]
+
+        Par définition de la probabilité conditionnelle :
+        \[
+            \myP(A \cap B \mid X_m = i)
+            = \frac{\myP(A \cap B, X_m = i)}{\myP(X_m = i)}.
+        \]
+        D’après la propriété de Markov, conditionnellement à $X_m = i$, le futur $(X_{m+1}, X_{m+2}, \dots)$ 
+        ne dépend pas du passé $(X_0, \dots, X_{m-1})$, donc :
+        \[
+            \myP(A \cap B, X_m = i)
+            = \myP(A, X_m = i)\,\myP(B, X_m = i) / \myP(X_m = i).
+        \]
+        Ainsi :
+        \begin{align*}
+            \myP(A \cap B \mid X_m = i)
+            &= \frac{\myP(A, X_m = i)\,\myP(B, X_m = i)}{\myP(X_m = i)^2} \\[0.5em]
+            &= \myP(A \mid X_m = i)\,\myP(B \mid X_m = i).
+        \end{align*}
+        Ce qui montre bien l’indépendance conditionnelle du passé et du futur, sachant $X_m$.
     \end{enumerate}
 \end{proof}
 
 \begin{remark}
     Cette propriété de Markov est aussi vraie de façon plus générale quand on conditionne par l'état de la chaîne en un 
-    temps aléatoire appelé temps d'arrêt. C'est ce que nous verrons par la suite. 
+    temps aléatoire appelé temps d'arrêt. Ce sera exactement le propos de la propriété de Marjov forte que nous verrons 
+    plus tard. 
 \end{remark}
+
+\subsection{Temps d'arrêt et propriété de Markov Forte}
 
 \begin{definition}[Tribu $ \mathcal{F}_n$]
     On définit $ \mathcal{F}_n$ la tribu engendrée par les variables aléatoires $(X_1, \dots, X_n)$ la tribu : 
@@ -408,13 +445,20 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
             \mathcal{F}_n &= \sigma \left(X_0, \dots, X_n\right) \\ 
             &= \sigma \left( \{X_0 = x_0, \dots, X_n = x_n\}, x_0, \dots, x_n \in E\right) 
         \end{align*} 
+    Ainsi, la tribu engendrée par l'ensemble $ \{X_0 = x_0, \dots, X_n = x_n\}$ est la plus petite tribu 
+    contenant cette ensemble. 
 \end{definition}
 
 \begin{definition}[Temps d'arrêt]
-    Un temps d'arrêt $ \tau$ d'une chaîne de Markov $(X_n)_{n \geqslant 0}$ est une \emph{variable aléatoire}
-    à valeurs dans $\N$ mesurable par rapport à la tribu $ \mathcal{F}_n$. 
-        \[ \text{i.e} \quad \forall n \in \N, \{ \tau \leqslant n\} \in \mathcal{F}_n \] 
-    Cela signifie que $ \{ \tau \leqslant n\}$ ne dépend que des variables $X_0, \dots, X_n$.   
+    Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov à valeurs dans un espace d'états $E$, définie sur un espace probabilisé $(\Omega, \mathcal{F}, \mathbb{P})$, avec 
+        \[ \forall n \in \N, \quad X_n : \Omega \longrightarrow E \]
+    On note $\mathcal{F}_n = \sigma(X_0, X_1, \dots, X_n)$ la tribu engendrée par les $n$ premières variables de la chaîne.
+    Une application
+        \[ \boxed{\tau : \Omega \longrightarrow \N \cup \{\infty\}} \]
+    est appelée \emph{temps d'arrêt} de la chaîne de Markov (ou pour la filtration $(\mathcal{F}_n)_{n \geqslant 0}$) si elle vérifie :
+        \[ \boxed{ \forall n \in \N, \quad \{ \tau \leqslant n \} \in \mathcal{F}_n} \]
+    Donc $ \tau$ est mesurable pour la tribu $ \mathcal{F}_n$.  
+    Autrement dit, le fait que l'évènement $\{\tau \leqslant n\}$ ne dépend que de l’évolution de la chaîne jusqu’au temps $n$.
 \end{definition}
 
 \begin{example}
@@ -432,12 +476,12 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
 \end{example}
 
 \begin{theorem}[Propriété de Markov forte]
-    Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov homogène et $T$ un temps d'arrêt. 
-    Alors conditionnellement à $\{T < \infty\}$ et $\{X_T = x\}$ la chaîne décalée $(X_{T+n})_{n \geqslant 0}$ 
+    Soit $(X_n)_{n \geqslant 0}$ une chaîne de Markov homogène et $ \tau$ un temps d'arrêt. 
+    Alors conditionnellement à $\{\tau < \infty\}$ et $\{X_\tau = x\}$ la chaîne décalée $(X_{\tau+n})_{n \geqslant 0}$ 
     est encore une chaîne de Markov de condition initiale $x$. 
 
-    De plus, conditionnellement à $\{T < \infty\} \cap \{X_T = x\}$ on a : 
-        \[ (X_{T+n})_{n \geqslant 0} \text{ est indépendante de } (X_0, \dots, X_{T-1}) \]  
+    De plus, conditionnellement à $\{\tau < \infty\} \cap \{X_\tau = x\}$ on a : 
+        \[ (X_{\tau+n})_{n \geqslant 0} \text{ est indépendante de } (X_0, \dots, X_{\tau-1}) \]  
 \end{theorem}
 
 \begin{remark}
@@ -505,15 +549,15 @@ On s'intéresse maintenant à la loi de $X_n$ au temps $n \in \N$.
 
 \section{Mesures Invariantes}
 
-\subsection{Définition et propriétés}
-
 Dans cette section, nous supposons tout d'abord que l'espace d'états $E$ est fini. 
 Au début du cours on a vu que, pour une chaîne de Markov $(X_n)_{n \in \N}$ de matrice $P$
 et de loi initiale $ \pi_0$, la relation de Chapman-Kolmogorov nous donne : 
     $$ \myP(X_n = j \; | \; X_0 = i_0) = P^n(i_0, j) $$ 
 Nous allons ici chercher des mesures de probabilités telles que : 
-    $$ \pi P = \pi $$. 
-Nous appellerons de tells mesures, des mesures de probabilités invariantes. 
+    $$ \pi P = \pi $$
+Nous appellerons de telles mesures des \emph{mesures de probabilités invariantes}. 
+
+\subsection{Définition et propriétés}
 
 \begin{definition}[Mesures Invariantes]
     Soit une mesure positive $ \pi$ sur $E$. On dit que $ \pi$ est \emph{invariante} pour une matrice de transition 
@@ -524,25 +568,29 @@ Nous appellerons de tells mesures, des mesures de probabilités invariantes.
 \end{definition}
 
 \begin{remark}
-    Attention, une mesure invariante n'est pas forcément un mesure de propabilité. Pour que ce 
-    soit le cas, il faut que : 
-        $$ \sum_{x \in E} \pi(x) = 1 $$
-    Quand $E$ est fini, on peut facilement obtenir une mesure invariante de probabilité à partir 
-    d'une mesure invariante en la normalisant par $\sum_{x \in E} \pi(x)$. 
+    Attention, une mesure invariante n'est pas forcément une mesure de probabilité. Pour que ce 
+    soit le cas, il faut que sa masse totale soit égale à $1$. 
+        $$ \text{i.e} \quad \sum_{x \in E} \pi(x) = 1 $$
+    Or ici, puisque $E$ est fini, cette somme l'est aussi donc toute mesure invariante peut être normalisée
+    en mesure de probabilités. Nous verrons plus tard que ce n'est pas toujours le cas. 
 \end{remark}
 
 \begin{lemma}
     Soit $ \pi$ une mesure invariante pour une matrice de transition $P$. Alors : 
         $$ \forall n \in \N^*, \quad \pi = \pi P^n $$ 
-    De plus si $X_0$ est distribué selon la loi $ \pi$ alors la loi de $X_n$ l'est également 
+    De plus si $X_0$ est distribuée selon la loi $ \pi$ alors la loi de $X_n$ l'est également 
     pour tout $ n > 0$. En conséquence : 
         $$ \forall n,m \in N, \quad (X_0, X_1, \dots, X_m) \overset{ \text{loi} }{=} (X_n, X_{n+1}, \dots, X_{n+m}) $$
 \end{lemma}
 
 \begin{prop}[Mesure Invariante et Loi]
     Soit $ \pi$ une mesure de probabilité invariante. Soit $(X_n)_{n \in \N}$ une chaîne de Markov homogène de 
-    matrice $P$ et de loi initiale $ \pi$ alors, pour tout $n \in \N, X_n \sim \pi$. 
+    matrice $P$ et de loi initiale $ \pi_0$ alors, pour tout $n \in \N, X_n \sim \pi$. 
 \end{prop}
+
+Ce lemme justifie toute l'utilisation que nous ferons des mesures invariantes. En effet, une mesure invariante 
+permet de déterminer le comportement asymptotique de la chaîne de Markov sans avoir à la simuler en entier un 
+grand nombre de fois. 
 
 \subsection{Existence des mesures invariantes}
 
@@ -577,7 +625,9 @@ Nous appellerons de tells mesures, des mesures de probabilités invariantes.
 
 \begin{remark}
     Il existe pleins de méthodes numériques pour approcher une mesure invariante d'une chaîne de Markov homogène. 
-    Ce n'est pas un problème facile à résoudre car il faut résoudre un système de $d$ équations à $d$ inconnues. 
+    Ce n'est pas un problème facile car il faut en général résoudre un système de $d$ équations à $d$ inconnues. 
+    Nous nous intéresserons donc aux \emph{mesures réversibles}, plus faciles à calculer et qui nous donnent 
+    une mesure invariante quand elle existe. 
 \end{remark}
 
 \begin{example}
@@ -601,7 +651,7 @@ Nous appellerons de tells mesures, des mesures de probabilités invariantes.
                     (1) edge[loop left] node{$1-p$} (1); 
             \end{tikzpicture}
         }
-        \caption{Mesure Invariante - 1}
+        \caption{Mesure Invariante}
     \end{figure}
     Soit $ \pi = ( \pi_1, \pi_2)$ une mesure invariante. On a alors $ \pi P = \pi$. 
         \begin{align*}
@@ -647,12 +697,12 @@ Nous appellerons de tells mesures, des mesures de probabilités invariantes.
 \begin{definition}[Classe irréductible]
     Une classe $E_0$ de $E$ est dite \emph{irréductible} si elle est fermée et si : 
         $$ \forall x,y \in E_0, \quad x \leadsto y \text{ et } y \leadsto x $$ 
-    Par extension, on dira qu'une chaîne de Markov homogène est irréuctible si son espace d'état l'est aussi. 
+    Par extension, on dira qu'une chaîne de Markov homogène est irréductible si son espace d'état l'est aussi. 
 \end{definition}
 
 \begin{theorem}[Unicité des mesures invariantes]
-    Toute chaîne de Markov homogène sur un espace d'état fini admet une unique mesure de probabilité 
-    invariante $ \pi$ et : 
+    Toute chaîne de Markov homogène irréductible sur un espace d'état fini admet une \emph{unique mesure de probabilité 
+    invariante} $ \pi$ et : 
         $$ \forall x \in E, \quad \pi(x) > 0 $$
 \end{theorem}
 
@@ -660,7 +710,7 @@ Nous appellerons de tells mesures, des mesures de probabilités invariantes.
     Soit $(X_n)_{n \in \N}$ une chaîne de Markov homogène d'espace d'état $E$. 
     Supposons que $E$ est irréductible et soit $ \pi$ une mesure invariante de $(X_n)_{n \in \N}$. 
     \begin{enumerate}
-        \item \underline{Positivité : }Montrons que $ \pi$ est positive. On sait que $ \pi$ est une 
+        \item \underline{Positivité :} Montrons que $ \pi$ est positive. On sait que $ \pi$ est une 
         mesure de probabilités donc : 
             $$ \sum_{x \in E} \pi(x) = 1 $$ 
         donc il existe nécessairement $x_0 \in E$ tel que $ \pi(x_0) > 0$. Comme $E$ st irréductible, 
@@ -674,27 +724,45 @@ Nous appellerons de tells mesures, des mesures de probabilités invariantes.
                 + \underbrace{\sum_{x \in E, \, x \not= x_0} \pi(x) P^n(x,y)}_{\geqslant 0}
             \end{align*}
         Donc $ \forall y \in E, \pi(y) > 0$. 
-        \item \underline{Unicité : } voir TD
+        \item \underline{Unicité :} voir TD
     \end{enumerate}
 \end{proof}
 
-\subsection{Construction de mesures de probabilités invariantes}
+\subsection{Construction de mesures de probabilité invariantes}
 
-Soit $E$ un espace d'états fini et $(X_n)_{n \in \N}$ une chaîne de Markov homogène irréductible sur $E$. 
-Pour construire une telle mesure, on va essayer de faire tendre la loi de $(X_n)_{n \in \N}$ vers une 
-mesure de probabilités invariante. 
+Nous avons vu que les mesures de probabilité invariantes jouent un rôle fondamental dans l’étude des chaînes de Markov. 
+Elles permettent notamment de décrire le comportement stationnaire du système. 
+Nous allons à présent présenter quelques outils permettant de construire de telles mesures.
+
+Soit $E$ un espace d’états fini, et $(X_n)_{n \in \N}$ une chaîne de Markov homogène et irréductible sur $E$.  
+L’idée est de chercher à faire converger la loi de $X_n$ lorsque $n$ tend vers l’infini, de façon à obtenir une mesure de probabilité invariante pour la matrice de transition associée.
 
 \begin{definition}[Temps de retour]
     Soit $x \in E$, on définit le temps de retour en $x$ comme : 
-        $$ \tau_x^+ := \inf \{ n \geqslant 1 \; | \; X_n = x \} \in \overline{\N} $$ 
+        $$ \boxed{\tau_x^+ := \inf \{ n \geqslant 1 \; | \; X_n = x \} \in \overline{\N}} $$ 
     remarquons que c'est un \emph{temps d'arrêt}.  
 \end{definition}
 
 \begin{remark}
-    Précédement, nous avions définit les temps d'arrêts de la façon suivante : 
-        $$ \tau_x = \inf \{ n \geqslant 0 \; | \; X_n = x \} $$ 
-    La différence avec un temps de retour est que si $ \{ X_0 = x \}$ alors : 
-        $$ \tau_x = 0 \quad \text{et} \quad \tau_X^+ \geqslant 1 $$  
+    Nous pouvons facilement montrer que tout temps de retour est un temps d'arrêt. 
+    En effet, pour rappel nous avons définit les temps d'arrêt comme : 
+        \begin{quote}
+            \emph{Une application
+                \[ {\tau : \Omega \longrightarrow \N \cup \{\infty\}} \]
+            est appelée \emph{temps d'arrêt} de la chaîne de Markov (ou pour la filtration $(\mathcal{F}_n)_{n \geqslant 0}$) si elle vérifie :
+                \[ { \forall n \in \N, \quad \{ \tau \leqslant n \} \in \mathcal{F}_n} \]}
+        \end{quote}
+    Soit $n \in \N$ on a alors : 
+        \begin{align*}
+            \{ \tau_x^+ \leqslant n\} &= \{ \exists k \in \llbracket 1, n \rrbracket \; | \; X_k = x\} \\ 
+            &= \bigcup_{k = 1}^{n} \{X_k = x\}
+        \end{align*}
+    or, pour tout $ k \in \llbracket 1, n \rrbracket $, l'évènement $ \{X_k = x\} \in \mathcal{F}_k \subseteq \mathcal{F}_n$. 
+    Donc par union dénombrable, on a : 
+        $$ \{ \tau_x^+ \leqslant n\} \in \mathcal{F}_n $$ 
+    Donc tout temps d'attente est un temps d'arrêt. De plus, on peut remarque que la différence avec un temps de retour 
+    est que si $ \{ X_0 = x \}$ alors : 
+            $$ \tau_x = 0 \quad \text{et} \quad \tau_x^+ \geqslant 1 $$  
 \end{remark}
 
 \begin{lemma}
@@ -717,14 +785,15 @@ mesure de probabilités invariante.
 \begin{proof}
     Soit $x \in E$ une condition initiale. Soit $ \overline{ \pi} : E \longrightarrow \N$ une application qui compte 
     le nombre de fois que la chaîne visite un point $ y \in E$. 
-        \[ \forall y \in E, \quad \overline{ \pi}(y) := \mathbb{E} \left( \sum_{n=0}^{ \tau_x^+ - 1} \mathbbm{1}_{X_n = y} \; | \; X_0 = x \right)  \] 
-        \[ = \mathbb{E} \left( \sum_{n \geqslant 0} \mathbbm{1}_{X_n = y} \times \mathbbm{1}_{ \tau_x^+ > n} \; | \; X_0 = x \right)  \] 
-    Donc : 
-        \[ \overline{ \pi}(y) = \sum_{n \geqslant 0} \myP(X_n = y, \tau_x^+ > n \; | \; X_0 = x) \quad \text{(Fubini)}  \] 
-    On veut montrer que $ \overline{ \pi}$ est invariante. On va également montrer que $ \overline{ \pi}$ de 
-    dépend pas de la condition initiale $x$. On veut donc montrer que : 
+        \begin{align*}
+            \forall y \in E, \quad \overline{ \pi}(y) &:= \mathbb{E} \left( \sum_{n=0}^{ \tau_x^+ - 1} \mathbbm{1}_{X_n = y} \; | \; X_0 = x \right) \\ 
+            & = \mathbb{E} \left( \sum_{n \geqslant 0} \mathbbm{1}_{X_n = y} \times \mathbbm{1}_{ \tau_x^+ > n} \; | \; X_0 = x \right) \\ 
+            &= \sum_{n \geqslant 0} \myP(X_n = y, \tau_x^+ > n \; | \; X_0 = x)  
+        \end{align*}
+    On veut montrer que $ \overline{ \pi}$ est invariante.  On veut donc : 
         \[ \forall y \in E, \quad \overline{ \pi}(y) = \sum_{z \in E} \overline{ \pi}(z) P(z, y) \]
-    On a donc $ \forall z \in E$ : 
+    (On va également montrer que $ \overline{ \pi}$ de dépend pas de la condition initiale $x$.)
+    Pour tout $z \in E$, calculons donc : 
         \[ \sum_{z \in E} \overline{ \pi}(z) P(y,z) = \sum_{ z \in E} \sum_{n \geqslant 0} \myP(X_n = z, \tau_x^+ > n \; | \; X_0 = x) \times P(z,y)  \] 
     Or on a : 
         \begin{align*}
@@ -746,18 +815,18 @@ mesure de probabilités invariante.
         \begin{align*}
             & \sum_{n \geqslant 1} \myP(\tau_x^+ = n, X_{n} = y \; | \; X_0 = x) \\ 
             &= \sum_{n \geqslant 1} \myP(\tau_x^+ = n, X_{ \tau_x^+} = y \; | \; X_0 = x) \\ 
-            &= \myP(X_{ \tau_x^+} = y \; | \; X_0 = x)
+            &= \sum_{n \geqslant 1} \myP( \tau_x^+ < \infty, X_{ \tau_x^+} = y \; | \; X_0 = x) \\ 
+            &= \myP(X_{ \tau_x^+} = y\; | \; X_0 = x)
         \end{align*}
     D'où : 
         \begin{align*}
-            & \myP(X_n = z, \tau_x^+ > n, X_{n+1} = y \; | \; X_0 = x) \\ 
-            &=  \overline{ \pi}(y) - \myP(X_0 = y, \tau_x^+ > 0 \; | \; X_0 = x) + \myP(X_{ \tau_x^+} = y \; | \; X_0 = x) \\ 
-            &= \overline{ \pi}(y)
+            \sum_{z \in E} \overline{ \pi}(z) P(z,y) &= \overline{ \pi}(y) - \underbrace{\myP(X_0 = y, \tau_x^+ > 0 \mid X_0 = x)}_{1 \text{ si } y = x \text{ et } 0 \text{ sinon}} + \underbrace{ \myP(X_{ \tau_x^+} = y \mid X_0 = x)}_{-1 \text{ si } y = x \text{ et } 0 \text{ sinon}}
+            = \overline{ \pi}(y)  
         \end{align*}
-    On a donc bien : 
-        \[ \sum_{z \in E} \overline{ \pi}(y) P(z,y) = \overline{ \pi}(y) \]
+    
     Donc $ \overline{ \pi}$ est bien une mesure invariante de masse totale : 
         \[ \sum_{y \in E} \overline{ \pi}(y) = \mathbb{E}( \tau_x^+ \; | \; X_0 = x) \] 
+    Or, d'après le lemme précédent, $  \mathbb{E}( \tau_x^+ \; | \; X_0 = x) < \infty$. 
     Donc l'application : 
         \[ \forall y \in E, \quad \pi(y) = \frac{ \overline{ \pi}(y)}{ \mathbb{E}(\tau_x^+ \; | \; X_0 = x)}\] 
     est bien une mesure de probabilités invariante. D'après le théorème d'unicité, c'est donc la seule. De plus, on a 
@@ -795,6 +864,9 @@ est une propriété suffisante pour qu'une mesure soit invariante.
     Une mesure réversible pour une matrice de transition est invariante. 
 \end{proposition}
 
+L'étude des mesures réversibles, plus simples que les mesures invariantes, sera donc privilégiée pour déterminer 
+des mesures invariantes. 
+
 
 % ========================================================================================================
 % Classification des états
@@ -809,7 +881,7 @@ de Markov homogène sur $E$ de matrice de transition $P$.
 \begin{definition}[Nombre de visites]
     Soit $x \in E$, on note $V_x$ le nombre de visites de la chaîne de Markov $(X_n)_{n \in \N}$ dans $x$. 
     Plus formellement : 
-        $$ V_x := \left| \left\{ n \geqslant 1 , X_n = x \right\}\right| $$ 
+        $$ \boxed{V_x := \left| \left\{ n \geqslant 1 , X_n = x \right\}\right|} $$ 
     $V_x$ est donc une variable aléatoire à valeurs dans $ \overline{ \N}$. 
 \end{definition}
 
@@ -824,7 +896,10 @@ de Markov homogène sur $E$ de matrice de transition $P$.
 \end{theorem}
 
 \begin{proof}
-    Montrons que : 
+    Pour démontrer ce théorème, il serait suffisant de montrer que $ \forall k \in \N$, on ait : 
+        \[ \myP(V_x \geqslant k \mid X_0 = x) = \myP( \tau_x^+ < \infty \mid X_0 = x)^k \] 
+        \[ \iff \myP_x(V_x \geqslant k+1) = \myP_x( \tau_x^+) \myP_x(V_x \geqslant k) \]      
+    Montrons donc que : 
         \[ \forall k \geqslant0, \quad \myP_x( V_x \geqslant k+1) = \myP_x( \tau_x^+ < \infty) \myP_x(V_x \geqslant k)  \] 
     Pour l'évènement $ \{V_x \geqslant k+1\}$ on a $V_x \geqslant 1$ donc $ \tau_x^+ < \infty$ d'où : 
         \begin{align*}
@@ -881,9 +956,29 @@ D'après la propriété de Markov forte, ces excursions auront la même loi et s
         \[ \mathbb{E}(V_x) < \infty \Longrightarrow  \sum_{n \geqslant 1} P^n(x,x) < \infty \]  
 \end{proposition}
 
-\begin{theorem}[Réccurence et Transitivité]
+\begin{theorem}[Récurence et Transitivité]
     Soient $x,y \in E$. Alors, si $x$ est récurrent et que $ x \leadsto y$ alors $y$ est récurrent. 
 \end{theorem}
+
+% \begin{proof}
+%     Soient $x,y \in E$. Supposons que $x$ est récurrent et que $ x \leadsto y$, montrons alors que $y$ l'est aussi. 
+%         \[ \text{i.e} \quad \myP_y(V_y = \infty) = 1\]
+%     On va pour cela utiliser le très célèbre lemme de Borel-Cantelli : 
+%         \begin{quote}
+%             \emph{
+%                 Soit $(A_k)$ une suite d'évènements indépendants de probabilité non nulle. Alors l'évènement 
+%                 "une infinité de $\{A_k, k \in \N\}$ est réalisé" est presque sûr. 
+%             }
+%         \end{quote}
+%     On définit ensuite une excursion entre deux visites successives en $x$ de la façon suivante : 
+%     \begin{itemize}
+%         \item Pour $k = 0$, on a : $ X_0 = x, \quad \tau_x^+ = 0 = \inf \{n \geqslant 0 \mid X_n = x \} $ 
+%         \item Pour $ k \in \N$, on définit récursivement : 
+%             \[ \tau^{(k)}_x = \tau^{(k-1)}_x + \tau_x^+((X_{n + \tau_x^{(k-1)}})_{n \in \N}) \] 
+%         où $\tau^{(k)}_x$ sont les temps de passage successifs en $x$. Et $\tau_x^+((X_{n + \tau_x^{(k-1)}})_{n \in \N})$ 
+%         les temps de retour de la chaîne qui démarre en au temps $ \tau_x^{(k-1)}$. 
+%     \end{itemize}
+% \end{proof}
 
 \begin{proposition}
     Donc $ \leadsto$ est une relation d'équivalence pour les points récurrents. On peut donc partitionner l'ensemble 
@@ -962,6 +1057,108 @@ D'après la propriété de Markov forte, ces excursions auront la même loi et s
                     }_{ \mathcal{R}_2 } 
                 \} }_{ \text{états récurrents} } \] 
 \end{example}
+
+
+
+% ========================================================================================================
+% Mesures Invariantes dans le cas dénombrable 
+
+\section{Mesures invariantes dans le cas dénombrable}
+
+\subsection{États récurrents positif ou nul}
+
+De puis le début de ce chapitre, nous nous plaçons dans un ensemble d'états $E$ fini. Or ce n'est pas toujours 
+le cas. En général, $E$ est infini et dénombrable. Nous pouvions donc définir une mesure de 
+probabilité invariante $ pi$ telle que : 
+    \[ \forall x \in E, \quad \pi(x) = \frac{1}{ \mathbb{E}( \tau_x^+ \mid X_0 = x) }  \] 
+Du fait de la dénombrabilité de E, nous aurons plusieurs classes d'états qui communiquent entre eux. 
+On peut donc redéfinir la notion d'\emph{irréductibilité} pour ces chaînes. 
+
+\begin{definition}[Chaîne irréductible (cas dénombrable)]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov homogène sur un espace d'état $E$ \emph{dénombrable}. 
+    On dira que $(X_n)_{n \in \N}$ est irréductible : 
+    \begin{itemize}
+        \item si tous les états de $E$ sont transiants 
+        \item si il existe une unique classe de récurrence dans $E$
+            \[ \text{i.e} \quad \forall x,y \in E, \quad x \text{ et récurrent et } x \leadsto y \] 
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    Si on considère une chaîne de Markov irréductible et récurrente alors : 
+        $$ \forall x \in E, \myP_x( \tau_x^+ < \infty) = 1$$ 
+    Or quand $E$ est fini, on n'a pas forcément : 
+        $$  \mathbb{E}( \tau_x^+ \mid X_0 = x) < \infty $$ 
+    Cela va donc nous mener à introduire une classification plus fine des états en distinguant les états récurrents 
+    selon que $ \mathbb{E}( \tau_x^+ \mid X_0 = x) < \infty$ ou pas. 
+\end{remark}
+
+\begin{definition}[État récurrent positif]
+    On dit qu'un état $x \in E$ est \emph{récurrent positif} s'il est récurent et que $ \mathbb{E}( \tau_x^+ \mid X_0 = x) < \infty$. 
+    On dira en revanche que $x$ est \emph{récurent nul} s'il est récurrent et que : 
+        \[ \myP_x( \tau_x^+ < \infty) = 1 \text{ et } \mathbb{E}_x( \tau_x^+) = \infty \] 
+\end{definition}
+
+La notion de récurrence positive ou nulle permet de quantifier la vitesse de retour de la chaîne dans un état $x$. 
+Un état récurrent positif est donc un état où la chaîne revient souvent alors qu'un état récurrent nul est un état où 
+la chaîne revient en temps fini mais potentiellement très long. 
+C'est ce que traduit le fait que $ \mathbb{E}_x( \tau_x^+)$ soit fini ou pas. 
+
+\begin{remark}
+    Dans le cas des espaces d'états finis, lors de la construction de la mesure de probabilités invariante, 
+    nous avions posé : 
+        \[ \overline{ \pi}(y) = \mathbb{E} \left( \sum_{n=0}^{ \tau_x^+ -1} \mathbbm{1}_{X_n} = y \right) \] 
+    en tant que mesure invariante de masse totale $ \mathbb{E}_x( \tau_x^+)$. Or dans le cas actuel si $(X_n)_{n \in \N}$ 
+    est réucurrente positive, on aura $ \mathbb{E}_x( \tau_x^+) < \infty$ donc on pourra construire notre 
+    mesure de probabilités invariante. Dans le cas contraire, notre mesure ne sera pas de probabilité.  
+\end{remark}
+
+\subsection{Propriétés des chaînes irréductibles}
+
+\begin{prop}[Positivité]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible récurrente.  
+    Si $\pi$ est une mesure de probabilités invariante non nulle, alors : 
+        \[
+            \forall x \in E, \quad \pi(x) > 0.
+        \]
+\end{prop}
+
+\begin{proof}
+    Comme $\pi$ est non nulle, il existe $x_0 \in E$ tel que $\pi(x_0) > 0$.  
+    Comme la chaîne est irréductible, pour tout $y \in E$, il existe $n_0 \ge 0$ tel que :
+        \[ P^{n_0}(x_0, y) > 0 \]
+    En utilisant l’invariance de $\pi$ et en isolant le terme $z = x_0$, on obtient :
+        \[ \pi(y) = \sum_{z \in E} \pi(z) P^{n_0}(z, y) \geqslant \pi(x_0) P^{n_0}(x_0, y) > 0 \]
+    Ainsi, chaque état $y \in E$ a une mesure strictement positive sous $\pi$.
+\end{proof}
+
+\begin{theorem}[Unicité]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible et réccurente. Il existe alors une unique 
+    mesure invariante à constante multiplicative près. 
+    \begin{itemize}
+        \item De plus, si tous les états sont \emph{récurents nuls} alors toute mesure invariante non nulle est de masse infinie. 
+        \item En revanche, si $(X_n)_{n \in \N}$ est \emph{récurente positive}, alors toutes les mesures invariantes sont 
+        de masse finie donc il existe une unique mesure de probabilités invariante telle que : 
+            \[ \forall x \in E, \quad \pi(x) = \frac{1}{ \mathbb{E}_x( \tau_x^+) }  \] 
+    \end{itemize}
+\end{theorem}
+
+% \begin{example}
+    
+% \end{example}
+
+\subsection{Critère de récurrence positive}
+
+Il peut être très difficile de calcule $ \mathbb{E}_x( \tau_x^+)$ car il faut très bien connaître 
+les propriétés des excursions de la chaîne. En pratique, on utilisera le critère suivant : 
+
+\begin{theorem}[Réciproque]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible. Si il existe une mesure invariante $ \pi$ non nulle 
+    et de masse finie alors la chaîne est récurrente positive. 
+\end{theorem}
+
+Ce théorème traduit le fait qu'il y a équivalence entre le fait qu'une chaîne de Markov soit récurrente positive et 
+qu'elle admette une mesure de probabilités invariante. 
 
 
 
