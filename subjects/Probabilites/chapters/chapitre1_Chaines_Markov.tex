@@ -940,6 +940,8 @@ D'après la propriété de Markov forte, ces excursions auront la même loi et s
     de condition initiale $x$ et indépendante de $X_0, \dots, X_m$. 
 \end{proposition}
 
+\subsection{État transiant et état récurrent}
+
 \begin{definition}[État récurrent/transiant]
     Si $x \in E$ tel que $ \myP_x( \tau_x^+ < \infty) = 1$, on dit alors que $x$ est \emph{récurrent} et 
     $V_x = \infty$. Sinon, on dit que $x$ est \emph{transiant} et $ V_x < \infty$ presque sûrement. 
@@ -1094,8 +1096,8 @@ On peut donc redéfinir la notion d'\emph{irréductibilité} pour ces chaînes.
 \end{remark}
 
 \begin{definition}[État récurrent positif]
-    On dit qu'un état $x \in E$ est \emph{récurrent positif} s'il est récurent et que $ \mathbb{E}( \tau_x^+ \mid X_0 = x) < \infty$. 
-    On dira en revanche que $x$ est \emph{récurent nul} s'il est récurrent et que : 
+    On dit qu'un état $x \in E$ est \emph{récurrent positif} s'il est récurrent et que $ \mathbb{E}( \tau_x^+ \mid X_0 = x) < \infty$. 
+    On dira en revanche que $x$ est \emph{récurrent nul} s'il est récurrent et que : 
         \[ \myP_x( \tau_x^+ < \infty) = 1 \text{ et } \mathbb{E}_x( \tau_x^+) = \infty \] 
 \end{definition}
 
@@ -1133,19 +1135,88 @@ C'est ce que traduit le fait que $ \mathbb{E}_x( \tau_x^+)$ soit fini ou pas.
 \end{proof}
 
 \begin{theorem}[Unicité]
-    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible et réccurente. Il existe alors une unique 
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible et récurrente. Il existe alors une unique 
     mesure invariante à constante multiplicative près. 
     \begin{itemize}
-        \item De plus, si tous les états sont \emph{récurents nuls} alors toute mesure invariante non nulle est de masse infinie. 
-        \item En revanche, si $(X_n)_{n \in \N}$ est \emph{récurente positive}, alors toutes les mesures invariantes sont 
+        \item De plus, si tous les états sont \emph{récurrents nuls} alors toute mesure invariante non nulle est de masse infinie. 
+        \item En revanche, si $(X_n)_{n \in \N}$ est \emph{récurrente positive}, alors toutes les mesures invariantes sont 
         de masse finie donc il existe une unique mesure de probabilités invariante telle que : 
             \[ \forall x \in E, \quad \pi(x) = \frac{1}{ \mathbb{E}_x( \tau_x^+) }  \] 
     \end{itemize}
 \end{theorem}
 
-% \begin{example}
+\begin{example}[Modèle de file d'attente]
+    Soit $(X_n)_(n \in \N)$ une chaîne de Markov définie par le graphe suivant : 
     
-% \end{example}
+    \begin{figure}[h!]
+        \centering
+        \makebox[\textwidth][c]{ % Centre le tikz dans la largeur du texte
+            \begin{tikzpicture}[
+                baseline=(current bounding box.center),
+                shorten >=1pt,
+                node distance=2cm,
+                on grid,auto
+            ]
+                \node[state] (0) {$0$}; 
+                \node[state, right of=0] (1) {$1$}; 
+                \node[state, right of=1] (2) {$2$}; 
+                \node[state, right of=2] (d) {$\dots$};
+
+                \path[->]
+                    (0) edge[below, bend right] node{$1$} (1)
+                    (1) edge[above, bend right] node{$1-p$} (0)
+                    (1) edge[below, bend right] node{$p$} (2)
+                    (2) edge[above, bend right] node{$1-p$} (1)
+                    (2) edge[below, bend right] node{$p$} (d)
+                    (d) edge[above, bend right] node{$1-p$} (2); 
+            \end{tikzpicture}
+        }
+        \caption{Graphe d'un modèle de file d'attente}
+    \end{figure}
+
+    Donc les transitions sont décrites par la matrice de transition $P$ : 
+        $$ 
+            \begin{cases}
+                P(k,k+1) = p \quad \text{si } k \geqslant 1 \\ 
+                P(k, k-1) = 1 - p \quad \text{si } k \geqslant 1 \\ 
+                P(0,1) = 1 
+            \end{cases}
+        $$ 
+    Cette chaîne de Markov est irréductible car : 
+        \[ \forall x,y \in \N, \exists n \in \N, \quad \myP_x(X_n = y) > 0  \] 
+        \[ \iff \forall x,y \in \N, \exists n \in \N, \quad P^n(x,y) > 0 \]
+    Déterminons une mesure invariante pour cette chaîne de Markov. Soit $ \pi$ une mesure invariante pour $P$. 
+    Alors elle vérifie $ \pi P = \pi$ d'où : 
+        \[ 
+            \begin{cases}
+                \displaystyle
+                \pi(0) = \sum_{k \in \N} \pi(k) P(k,0) = (1-p) \pi(1) \\[1em]
+                \displaystyle
+                \pi(1) = \pi(0) + (1-p) \pi(2)
+            \end{cases}
+        \] 
+    et $ \forall k \geqslant 1$, on a $ \pi(k) = p \pi(k-1) + (1-p) \pi(k+1)$. Nous avons donc une relation 
+    de récurrence d'ordre 2 : 
+        $$ Q = (1-p)X^2 - X + p $$ 
+    de racines évidentes $1$ et $p/(1-p)$. Les solutions de la relation de récurrence sont donc de la forme : 
+            \[ 
+                \forall k \geqslant 1, \quad \pi(k) = a 1^k + b \left( \frac{p}{1-p} \right)^k 
+            \] 
+    Déterminons $a$ et $b$. On a : 
+            \[ 
+                \begin{cases}
+                    \pi(1) = \dfrac{ \pi (0)}{1-p} = a + \dfrac{bp}{1 - p} \\[1em]
+                    \pi(2) = \dfrac{ \pi(0)}{1-p} \left( \dfrac{1}{1-p} -1 \right) = \dfrac{ \pi(0) p}{(1-p)^2} = a + b \dfrac{p^2}{(1-p)^2}      
+                \end{cases}
+            \] 
+    Par identification, on obtient donc : 
+        \[ a = 0  \quad \text{et} \quad b = \frac{ \pi(0)}{p}  \]
+    Donc la solution de l'équation de récurrence s'écrit : 
+        \[  \forall k \geqslant 1, \quad \pi(k) = \frac{ \pi(0)}{p} \left( \frac{p}{1-p} \right)^k  \] 
+    Pour aller plus loin, en considérant la série $ \sum_{k \geqslant 0} \pi(k)$ on peut affirmer que 
+    si $p < 1/2$ alors la mesure peut être de probabilité. Dans le cas contraire, toutes les mesures invariantes seront 
+    de masse infinie. 
+\end{example}
 
 \subsection{Critère de récurrence positive}
 
@@ -1160,7 +1231,37 @@ les propriétés des excursions de la chaîne. En pratique, on utilisera le crit
 Ce théorème traduit le fait qu'il y a équivalence entre le fait qu'une chaîne de Markov soit récurrente positive et 
 qu'elle admette une mesure de probabilités invariante. 
 
-
-
+\begin{proof}
+    Revenons à notre théorème d'unicité des mesures invariantes. Le principe de la démonstration est le même que 
+    dans le cas discret. Soit $ \pi$ une mesure invariante non nulle de masse finie. On veut comparer $ \pi$ 
+    avec $ \overline{ \pi}$ qui compte le nombre moyen de passage en $y \in \E$. 
+        \[ \forall x \in E, \quad \overline{ \pi}(x) = \mathbb{E}_x \left( \sum_{n=0}^{ \tau_x^+ - 1} \mathbbm{1}_{X_n = y}  \right) = \sum_{n \geqslant 0} \myP_x( X_n = y, \tau_x^+ > n) \] 
+    or $ \pi$ est invariante donc $ \forall y \in E$, on a : 
+        \begin{align*}
+            \pi(y) &= \sum_{z \in E} \pi(z) P(z,y) \\
+            &= \pi(x)P(x,y) + \sum_{z_1 \not = x} \pi(z_1)P(z_1, y) \\ 
+            &= \pi(x) P(x,y) + \sum_{z_1 \not = x} \left( \sum_{z_2 \in E} \pi(z_2)P(z_2, z_2) \right) P(z_1, y) \\ 
+            &= \pi(x) P(x,y) + \pi(x) \underbrace{\sum_{z_1 \not = x} P(x,z_1)P(z_1,y)}_{ \text{terme } z_2 = x } 
+            + \sum_{z_1 \not = x} \left( \sum_{z_2 \not = x} \pi(z_2) P(z_2, z_1) P(z_1, y)\right) 
+        \end{align*}
+    où $ \pi(x) \sum_{z_1 \not = x} P(x,z_1)P(z_1,x) = \myP(X_2 = y, X_1 \not = x, X_0 = x)$. Si on itère $ l \in \N$ 
+    fois ce processus, on aura donc : 
+        \begin{align*}
+            \pi(y) &= \pi(x) \left( P(x,y) + \sum_{k=1}^{l-1} \sum_{\substack{z_1 \not = x \\ \dots \\ z_k \not = x}} P(x,z_k) P(z_k, z_{k-1}) \dots P(z_1, y)\right) \\ 
+            & + \sum_{\substack{z_1 \not = x \\ \dots \\ z_l \not = x}} \pi(z_l) P(z_l, z_{l-1}) \dots P(z_1, y) 
+        \end{align*}
+    Donc 
+        \[ \pi(y) \geqslant \pi(x) \left[ \sum_{k=1}^{l-1} \myP_x(X-k = y, \tau_x^+ > k ) \right] \]
+    or ceci est valable pour tout $l \in \N$ donc on peut faire tendre $l$ vers $\infty$ d'où : 
+        \[ \pi(y) \geqslant \pi(x) \overline{ \pi}(y) \] 
+    Si on choisit $x \in E$ tel que $ \pi(x) > 0$ alors : 
+        \[ \infty > \frac{ \pi(y)}{ \pi(x)} \geqslant \overline{ \pi}(y) \] 
+    donc $ \overline{ \pi}$ est bien définie. Or $ \overline{ \pi}$ est définie de telle sorte que : 
+        \[ \sum_{y \in E} \overline{ \pi}(y) = \mathbb{E}_x( \tau_x^+) \leqslant \sum_{y \in E} \frac{ \pi(y)}{ \pi(x)}   \] 
+    or $ \sum_{y \in E} \frac{ \pi(y)}{ \pi(x)} < \infty$ car $ \pi$ est finie donc : 
+        \[ \forall x \in E, \quad \mathbb{E}_x( \tau_x^+) < \infty  \] 
+    i.e $x$ est récurrent positif donc la chaîne des récurrente potivite irréductible. On peut donc construire l'unique 
+    mesure de probabilité invariante. 
+\end{proof}
 
 

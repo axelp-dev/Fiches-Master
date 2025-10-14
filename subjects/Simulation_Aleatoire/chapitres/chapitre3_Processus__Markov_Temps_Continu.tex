@@ -1,0 +1,222 @@
+\minitoc 
+
+% ========================================================================================================
+% Introduction 
+
+Pour certains modèles, la description d'un processus étape par étape à l'aide d'une chaîne de Markov 
+peut masquer des informations importantes, comme le temps passé dans chaque état. Illustrons cela par un exemple.
+
+\begin{example}[Désintégration radioactive]
+    Considérons la désintégration radioactive de l'uranium 238, représentée par le processus suivant : 
+        \[
+            ^{238}\mathrm{U} \underset{10^9 \text{ ans}}{\longrightarrow} \; ^{234}\mathrm{Th} 
+            \underset{20 \text{ jours}}{\longrightarrow} \; ^{234}\mathrm{Pr} 
+            \underset{8 \text{ h}}{\longrightarrow} \; ^{234}\mathrm{U} \longrightarrow ... \longrightarrow \mathrm{Pb}.
+        \]
+    Si l'on modélisait ce processus par une chaîne de Markov classique, on ne connaîtrait que la succession des atomes traversés avant la formation du plomb, mais pas le temps passé dans chaque état, pourtant souvent l'information la plus pertinente.  
+
+    Nous allons donc construire un processus de Markov en temps continu \((X_t)_{t \in \mathbb{R}_+}\) 
+    qui nous donnera cette information.
+\end{example}
+
+Dans la suite de ce cours, on cherchera donc à construire des processus de Markov $(X_t)_(t \in \R_+)$ 
+sur des espaces d'états finis ou dénombrables qui vérifient une propriété de Markov. Autrement dit, tels que la variable : 
+    $$ T = \inf \{t > 0 \mid X_t \not = X_0\} $$ 
+satisfasse une propriété d'abscence de mémoire. On veut donc un équivalent à la propriété de Markov 
+mais pour les processus à temps continu. 
+
+% ========================================================================================================
+% Lois exponentielles et lemme des réveils 
+
+\section{Lois exponentielles et lemme des réveils}
+
+\begin{rappel}[Loi exponentielle]
+    Une variable aléatoire $E$ est de loi exponentielle de paramètre $ \lambda > 0$, noté $X \sim \mathcal{E}(\lambda)$ 
+    si pour tout $x \geqslant 0$, on ait : 
+        \[ \myP(X \geqslant x) = e^{- \lambda x} \iff \myP(X \leqslant x) = 1 - e^{- \lambda x}  \] 
+    Cette variable aléatoire a donc pour densité la fonction : 
+        $$ x \longmapsto \lambda e^{- \lambda x} \mathbbm{1}_{x \geqslant 0} $$ 
+    par rapport à la mesure de Lebesgue.  
+\end{rappel}
+
+\begin{prop}[Loi exponentielle]
+    Soit $ \lambda> 0$ et $X \sim \mathcal{E}(1)$ alors $ X/ \lambda \sim \mathcal{E}( \lambda)$. 
+    De plus, si $U \sim \mathcal{U}[0,1]$ alors $ - \log U \sim \mathcal{E}(1)$. On a aussi, pour 
+    $ X \sim \mathcal{E}( \lambda)$ : 
+        $$ \mathbb{E}(X) = \frac{1}{ \lambda} \quad \text{et} \quad \V(X) = \frac{1}{ \lambda^2} $$         
+\end{prop}
+
+\begin{prop}[Abscence de Mémoire]
+    On dit qu'une variable aléatoire $T$ satisfait la propriété d'abscence de mémoire si : 
+        $$ \boxed{ \forall t,s > 0, \quad \myP(T > t + s \mid T > t) = \myP(T > s)  } $$ 
+    Les seules variables satisfaisant cette propriété sont les variables aléatoires de loi exponentielle. 
+\end{prop}
+
+\begin{proof}
+    Soit $T$ une variable aléatoire satisfaisant la propriété d'abscence de mémoire. Montrons que $T$
+    est de loi exponentielle. Posons : 
+        $$ f : 
+            \begin{cases}
+                \R_+ \longrightarrow [0,1] \\ 
+                t \longmapsto \myP(T > t)  
+            \end{cases}
+        $$ 
+    On a donc $ \forall t,s \> 0$ : 
+        \begin{align*}
+            & \myP(T > t+s \mid T > t) = \myP(T > s) \\ 
+            \iff & \frac{\myP(T > t+s, T > t)}{ \myP(T > t) } = \myP(T > s) \\ 
+            \iff & \frac{\myP(T > t+s)}{ \myP(T > t) } = \myP(T > s) \\ 
+            \iff & \frac{f(t+s)}{f(t)} = f(s) \\ 
+            \iff & f(t+s) = f(t) f(s)
+        \end{align*}
+    En particulier, pour tout $ n \in \N$, on a : 
+        $$ f(n) = f(n - 1 + 1) = f(1)f(n-1) = f(1)^n $$ 
+    Soient $p,q \in \N$, on a alors : 
+        $$ f(p) = f \underbrace{\left( \frac{p}{q} + \dots + \frac{p}{q}\right)<}_{q \text{ fois} } = f \left(\frac{p}{q} \right)^q $$ 
+    or $f(p) = f(1)^p$ donc pour tout $q \in \Q_+$, on a : 
+        $$ f(q) = f(1)^q = e^{q \log(f(1))} $$ 
+    Soit $x \in \R_+$, par décroissante de $f$, pour tout $ n \in \N$, on a :
+        \begin{align*}
+            & f \left( \frac{ \lceil nx \rceil +1}{n} \right) \leqslant f(x) \leqslant f \left( \frac{\lceil nx \rceil}{n} \right) \\ 
+            \iff & f(x) \in \left[ \exp \left( \frac{\lceil nx \rceil +1}{n} \log f(1) \right); \exp \left( \frac{\lceil nx \rceil}{n} \log f(1)  \right) \right]
+        \end{align*}
+    d'où $f(x) = \exp ( x \log f(1))$. Par conséquent $ T \sim \mathcal{E}(- \log f(1)) $. 
+\end{proof}
+
+\begin{lemma}[Réveils]
+    Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de lois respectives $ \mathcal{E}( \lambda_1), \dots, \mathcal{E}( \lambda_n)$. 
+    On pose : 
+        $$ T = \min_{1 \leqslant i \leqslant n} T_i \quad \text{et} \quad I \in \llbracket 1, n \rrbracket \text{ tel que } T_I = T $$ 
+    On a donc : 
+        $$ \{I = k\} = \{T_k < T_1, T_k < T_2, \dots, T_k < T_n\} $$    
+    Alors : 
+        \begin{enumerate}
+            \item $T \sim \mathcal{E}\left( \lambda_1 + \dots, \lambda_n\right) $
+            \item $ \myP(I = k) = \frac{ \lambda_k}{ \lambda_1 + \dots + \lambda_k} $
+            \item $ T \perp I$.    
+        \end{enumerate}
+\end{lemma}
+
+\begin{proof}
+    Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de loi $\mathcal{E}(\lambda_1), \dots, \mathcal{E}(\lambda_n)$. 
+    Posons : 
+        $$ T = \min_{1 \le i \le n} T_i, \quad I \in \llbracket 1, n \rrbracket, \ T_I = T. $$ 
+    Soient $x \ge 0$ et $k \in \llbracket 1, n \rrbracket$, on a : 
+        $$ \mathbb{P}(T > x, I=k) = \mathbb{P}(x \le T_k \le z_k), \quad z_k = \min_{j \neq k} T_j. $$ 
+    Comme les $T_j$ sont indépendantes : 
+        \begin{align*}
+            \mathbb{P}(z_k \ge y) &= \prod_{j \neq k} \mathbb{P}(T_j \ge y) 
+            = \prod_{j \neq k} e^{- \lambda_j y} 
+            = e^{- ((\lambda_1 + \dots + \lambda_n) - \lambda_k) y }.
+        \end{align*}
+    Donc : 
+        \begin{align*}
+            \mathbb{P}(T > x, I=k) 
+            &= \mathbb{E}[\mathbf{1}_{T_k \ge x} \, e^{-((\lambda_1 + \dots + \lambda_n) - \lambda_k) T_k}] \\
+            &= \int_x^\infty \lambda_k e^{-(\lambda_1 + \dots + \lambda_n) t} \, dt \\
+            &= \frac{\lambda_k}{\lambda_1 + \dots + \lambda_n} e^{-(\lambda_1 + \dots + \lambda_n)x}.
+        \end{align*}
+    En particulier : 
+        $$ \mathbb{P}(I=k) = \mathbb{P}(T > 0, I=k) = \frac{\lambda_k}{\lambda_1 + \dots + \lambda_n}. $$
+    Par ailleurs : 
+        \begin{align*}
+            \mathbb{P}(T \ge x) &= \mathbb{P}(\min_i T_i \ge x) 
+            = \prod_{i=1}^n \mathbb{P}(T_i \ge x) 
+            = e^{-(\lambda_1 + \dots + \lambda_n)x}.
+        \end{align*}
+    Enfin : 
+        $$ \mathbb{P}(T \ge x, I=k) = \mathbb{P}(T \ge x) \, \mathbb{P}(I=k). $$
+
+    % Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de loi $ \mathcal{E}( \lambda_1), \dots, \mathcal{E}_{ \lambda_n}$. 
+    % Posons : 
+    %     $$ T = \min_{1 \leqslant i \leqslant n} T_i \quad I \in \llbracket 1, n \rrbracket, T_I = T $$ 
+    % Soient $x \geqslant 0$ et $ k \in \llbracket 1, n \rrbracket $, on a :
+    %     $$ \myP(T > x, I = k) = \myP(x \leqslant T_k \leqslant \underbrace{\min \{T_j \mid j \leqslant n, j \not = k \}}_{z_k}) $$ 
+    % on a donc $z_k = \min \{T_1, T_2, \dots, T_{k-1}, T_{k+1}, \dots, T_n\}$ de plus : 
+    %     \begin{align*}
+    %         \myP(z_k \geqslant y) &= \prod_{\substack{k = 1 \\j \not = k}}^{n} \myP(T_j \geqslant y)
+    %         = \prod_{\substack{k = 1 \\j \not = k}}^{n} e^{ \lambda_j y } \\ 
+    %         &= e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)y }
+    %     \end{align*}
+    % Par suite : 
+    %     \begin{align*}
+    %         & \myP(T > x, I = k) \\  
+    %         &= \mathbb{E} \left( \myP(x \leqslant T_k \leqslant z_k \mid T_k) \right) \\ 
+    %         &= \mathbb{E} \left( \mathbbm{1}_{T_k \geqslant x} \times e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k) T_k} \right) \\ 
+    %         &= \int_{x}^{\infty} e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)t} \times f_{T_k}(t) \; dt \\
+    %         &= \lambda_k \int_{x}^{\infty} e^{ - \lambda_k t} e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)t} \; dt \\
+    %         &= \lambda_k \int_{x}^{\infty} e^{- ( \lambda_1 + \dots + \lambda_n) t} \; dt \\ 
+    %         &= \lambda_k \left[ - \frac{e^{- ( \lambda_1 + \dots + \lambda_n) t}}{ \lambda_1 + \dots + \lambda_n} \right]_x^{\infty} \\ 
+    %         &= \lambda_k \frac{e^{- ( \lambda_1 + \dots + \lambda_n) }}{ \lambda_1 + \dots + \lambda_n} 
+    %     \end{align*}
+    % En particulier, on a = 
+    %     $$ \myP(I = k) = \myP(I = k, T > 0) = \frac{ \lambda_k}{ \lambda_1 + \dots + \lambda_n} $$ 
+    % Par indépendance, on a donc : 
+    %     \begin{align*}
+    %         \myP(T \geqslant x) &= \prod_{i=1}^{n} \myP(T_i \geqslant x) \\ 
+    %         &= \prod_{i=1}^{n} e^{- \lambda_i x} = e^{ -( \lambda_1 + \dots + \lambda_n) x}   
+    %     \end{align*}
+    % Enfin, on a donc : 
+    %     $$ \myP(T \geqslant x, I = k) = \myP(T \geqslant x) \myP(I = k) $$   
+\end{proof}
+
+\begin{remark}
+    Si on souhaite tirer un entier $x$ proportionnellement à un poinds $w_x$ sans calculer $ \sum_{i=1}^{n} w_i$, 
+    le lemme des réveils nous donne une solution. On peut donc utiliser l'algorithme suivant : 
+    \begin{lstlisting}
+def tirer(poids): 
+    x = -1
+    val = infty
+    for k in range(len(poids)):
+        e = - log(rand())/poids[k]
+        if e < val : 
+            val = e 
+            x = k
+    return x
+    \end{lstlisting}
+\end{remark}
+
+\begin{example}[Sélection sans remplacement]
+    Soient $w_1, \dots, w_n$ des poids positifs associés aux entiers $ \llbracket 1, n \rrbracket $. On souhaite 
+    tirer sans replacement $k$ entiers avec des probabilités proportionnelles à $w_k$. 
+    On procédera donc comme suit : 
+    \begin{enumerate}
+        \item On sélection $I_1$ avec : 
+            $$ \myP(I_1 = j) \frac{w_j}{ w_1 + \dots + w_n} $$ 
+        \item Conditionnellement à $I_1$, on sélectionne $I_2$ avec : 
+            $$ \myP(I_2 = j \mid I_1) = \frac{w_j \mathbbm{1}_{I_1 \not = j}}{ \sum_{i=1}^{n} w_i - w_{I_1}} $$     
+    \end{enumerate}
+    Par généralisation, du lemme des réveils, les variables $I_1, \dots, I_n$ sont de même loi que les variables 
+    construites comme suit. Soient $T_1, \dots, T_n$ des variables de loi $ \mathcal{E}(w_k)$ on pose 
+    $I_j$ l'indice correspondant à la jième plus petite valeur de $\{T_1, \dots, T_n\}$. 
+        $$ \text{i.e} \quad \left| \left\{ k \in \llbracket 1, n \rrbracket \mid T_k \leqslant T_{I_j}\right\}\right| $$   
+\end{example}
+
+\begin{example}
+    Soient $w_1 = w_2 = \dots = w_{n-1} = 1$ et $w_n = a < 1$. Alors : 
+        \begin{align*}
+            & \myP( \text{ dernier choisi soit } n ) = \myP(I_n = n) \\ 
+            &= \myP(T_n \geqslant \max(T_1, \dots, T_{n-1})) \\
+            &= \int_{0}^{\infty} a e^{-at} \myP( \max (T_1, \dots, T_{n-1}) \leqslant t) \; dt \\ 
+            &= a \int_{0}^{\infty} e^{-at} (1 - e^{-t})^{n-1} \; dt  
+        \end{align*} 
+\end{example}
+
+% ========================================================================================================
+% Processus de Markov en temps continu
+
+\section{Processus de Markov en temps continu}
+
+Nous considérons ici que $E$ est un espace d'états fini ou dénombrable. 
+
+\begin{definition}[Processus de Markov en temps continu]
+    Un processus $(X_t)_{t \geqslant 0}$ sur $E$ est un processus de Markov en temps continue si : 
+        $$ \forall j \in E, \forall t,s \geqslant 0, \quad \myP(X_{t+s} = j \mid \mathcal{F}_t ) = \myP_s(X_t, j) $$
+    où $ \mathcal{F}_t$ est la tribu engendrée par les évènements $ \{X_r = x_r\}, 0 \leqslant r \leqslant t$. 
+    En particulier, pour tout $i,j \in E$ et $ \forall t \geqslant 0$, on a : 
+        $$ P_t(i,j) = \myP(X_t = j \mid X_0 = i) $$
+    où $(P_t)$ est le \emph{semi-groupe} du processus de Markov.
+\end{definition}
+
+
+

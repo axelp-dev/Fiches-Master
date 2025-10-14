@@ -141,12 +141,12 @@ La notion de "descente" se formalise par la construction d'une suite $(u_n)_{n \
 \end{definition}
 
 Pour l'algorithme de descente, ce vecteur $d$ nous donnera le "sens" dans lequel il faut descendre 
-pour s'approcher du minimum. Or maintetant, que l'on sait de quel "coté" descendre, essayons de 
+pour s'approcher du minimum. Or maintenant, que l'on sait de quel "coté" descendre, essayons de 
 savoir "de combien" faut-il descendre. 
 
 \begin{theorem}[Existence du pas]
     Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x,d \in \R^n$ tels que 
-    $ \nabla f(x) \not = 0$. Si $d$ est un direction de descente de $f$ en $x$, alors il existe $ \mu > 0$ 
+    $ \nabla f(x) \not = 0$. Si $d$ est une direction de descente de $f$ en $x$, alors il existe $ \mu > 0$ 
     tel que : 
         $$ \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x)} $$ 
     De plus, pour tout $ \beta < 1$, il existe $ \mu > 0$ tel que : 
@@ -165,7 +165,7 @@ savoir "de combien" faut-il descendre.
 
 \subsection{Plus profonde descente}
 
-Nous allons maintetant nous intéresser à différents types de descente. En effet, en fonction de l'application 
+Nous allons maintenant nous intéresser à différents types de descente. En effet, en fonction de l'application 
 à minimiser nous utiliserons différents pas et directions lors de la descente. 
 La méthode naturelle serait de prendre la direction dans laquelle les valeurs de l'application descendent le plus. 
 Nous choissirons donc au début la direction $ d = - \nabla f(x)$. 
@@ -194,7 +194,7 @@ Nous choissirons donc au début la direction $ d = - \nabla f(x)$.
 
 On remarque assez vite que choisir un pas constant très petit (comme $0.0001$) rallonge considérablement 
 la descente. D'autre part, nous savons que l'existence d'un minimum pour un champ de scalaire est une notion 
-locale. Prendre un pas trop grand risquerai de nous faire rater le minimum et de faire augmenter la fonction 
+locale. Prendre un pas trop grand risquerait donc de nous faire rater le minimum et de faire augmenter la fonction 
 objectif. 
 
 Or, résoudre un problème d'optimisation pour $ \alpha_k$ à chaque itération 
@@ -218,7 +218,11 @@ la décroissance de notre fonction objectif.
     et $d_k \in \R^n$ une direction de descente de $f$ en $x_k$ et $ \alpha_k > 0$. 
     On dit que la fonction $f$ \emph{diminue suffisament} en $x_k + \alpha_k d_k$ par rapport à $x_k$ si : 
         $$ {f(x_k + \alpha_k d_k) < f(x_k) + \alpha_k \beta \langle \nabla f(x_k), d_k \rangle} $$
+    avec $ \beta \in ]0,1[$. 
 \end{definition}
+
+Cette condition nous permet de rejeter des pas trop grands qui ne fournissent pas de décroissance suffisante de 
+la fonction. 
 
 Il peut arriver que les pas $ \alpha_k$ deviennent très proches de 0 et empêchent la méthode de progresser. 
 On va donc chercher à avancer dans notre descente mais sans dépasser le minimum (première condition de Wolfe), mais 
@@ -234,38 +238,65 @@ de Wolfe).
         $$ \iff \frac{ \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle}{\langle \nabla f(x_k), d_k \rangle} \geqslant \beta $$ 
 \end{definition}
 
-La \emph{recherche linéaire} permet donc d'identifier un pas qui satisfait les deux conditions de Wolfe. 
+Les algorithmes de \emph{recherche linéaire} nous permettrons d'identifier un pas qui satisfait les deux conditions de Wolfe. 
 
 \subsection{Algorithme de Recherche Linéaire}
 
-L'idée de l'algorithme de recherche linéaire est de construire un intervalle $[ \alpha_g, \alpha_d]$ 
-contetant des valeurs qui satisfassent les deux conditions de Wolfe. On choisis ensuite un $ \alpha \in [ \alpha_g, \alpha_d]$
+L'idée de l'algorithme de recherche linéaire est de construire de manière itérative un intervalle $[ \alpha_g, \alpha_d]$ 
+contenant des valeurs qui satisfassent les deux conditions de Wolfe. On choisis ensuite un $ \alpha \in [ \alpha_g, \alpha_d]$
 et s'il viole l'une des deux conditions de Wolfe, on réduit l'intervalle précédente et on recommence. 
 
-\begin{proposition}
-    Soient $f : \R^n \longrightarrow \R$ une application différentiable, $x_k \in \R^n$, une direction de 
-    descente $d_k \in \R^n$ de $f$ par rapport à $x_k$ et $ \alpha_0 > 0$. Soient 
-    $ \beta_1$ et $ \beta_2$ deux paramètres tels que $ 0 < \beta_1 < \beta_2 < 1$ et $ \lambda > 1$. 
-    On a l'algorithme suivant : 
-    \begin{enumerate}
-        \item \textbf{Initialisation} : $ i = 0, \alpha_g = 0, \alpha_d = \infty$ 
-        \item \textbf{Itération} : Tant que l'un des conditions de Wolfe est violée avec $ \alpha_k = \alpha_i$ faire : 
-            \begin{enumerate}
-                \item si $ \alpha_i$ viole la première condition de Wolfe, alors le pas est trop long donc : 
-                    $$ \alpha_d = \alpha_i $$ 
-                    $$ \alpha_{i+1} = \frac{ \alpha_g + \alpha_d}{2} $$ 
-                \item si $ \alpha_i$ viole la seconde condition de Wolfe, alors le pas est trop court donc : 
-                    $$ \alpha_g = \alpha_i $$ 
-                    $$ \alpha_{i+1} = 
-                        \begin{cases}
-                            \frac{ \alpha_g + \alpha_d}{2} \quad \text{si } \alpha_d < \infty \\ 
-                            \lambda \alpha_i \quad \text{sinon}  
-                        \end{cases}
-                    $$ 
-                \item $ i++$ 
-            \end{enumerate}
-    \end{enumerate}
-\end{proposition}
+% \begin{proposition}
+%     Soient $f : \R^n \longrightarrow \R$ une application différentiable, $x_k \in \R^n$, une direction de 
+%     descente $d_k \in \R^n$ de $f$ par rapport à $x_k$ et $ \alpha_0 > 0$. Soient 
+%     $ \beta_1$ et $ \beta_2$ deux paramètres tels que $ 0 < \beta_1 < \beta_2 < 1$ et $ \lambda > 1$. 
+%     On a l'algorithme suivant : 
+%     \begin{enumerate}
+%         \item \textbf{Initialisation} : $ i = 0, \alpha_g = 0, \alpha_d = \infty$ 
+%         \item \textbf{Itération} : Tant que l'un des conditions de Wolfe est violée avec $ \alpha_k = \alpha_i$ faire : 
+%             \begin{enumerate}
+%                 \item si $ \alpha_i$ viole la première condition de Wolfe, alors le pas est trop long donc : 
+%                     $$ \alpha_d = \alpha_i $$ 
+%                     $$ \alpha_{i+1} = \frac{ \alpha_g + \alpha_d}{2} $$ 
+%                 \item si $ \alpha_i$ viole la seconde condition de Wolfe, alors le pas est trop court donc : 
+%                     $$ \alpha_g = \alpha_i $$ 
+%                     $$ \alpha_{i+1} = 
+%                         \begin{cases}
+%                             \frac{ \alpha_g + \alpha_d}{2} \quad \text{si } \alpha_d < \infty \\ 
+%                             \lambda \alpha_i \quad \text{sinon}  
+%                         \end{cases}
+%                     $$ 
+%                 \item $ i++$ 
+%             \end{enumerate}
+%     \end{enumerate}
+% \end{proposition}
+
+\begin{algorithm}[H]
+    \caption{Recherche linéaire satisfaisant les conditions de Wolfe}
+        \begin{algorithmic}[1]
+        \Require Fonction $f : \R^n \to \R$, point courant $x_k$, direction de descente $d_k$, pas initial $\alpha_0 > 0$, paramètres $0 < \beta_1 < \beta_2 < 1$, $\lambda > 1$
+        \Ensure Pas $\alpha$ satisfaisant les conditions de Wolfe
+        \State $i \gets 0$, $\alpha_g \gets 0$, $\alpha_d \gets \infty$
+        \State $\alpha_i \gets \alpha_0$
+        \While{$\alpha_i$ viole l'une des conditions de Wolfe}
+            \If{$\alpha_i$ viole la première condition de Wolfe (Armijo)}
+                \State $\alpha_d \gets \alpha_i$ \Comment{le pas est trop long}
+                \State $\alpha_{i+1} \gets \frac{\alpha_g + \alpha_d}{2}$
+            \ElsIf{$\alpha_i$ viole la seconde condition de Wolfe (curvature)}
+                \State $\alpha_g \gets \alpha_i$ \Comment{le pas est trop court}
+                \If{$\alpha_d < \infty$}
+                    \State $\alpha_{i+1} \gets \frac{\alpha_g + \alpha_d}{2}$
+                \Else
+                    \State $\alpha_{i+1} \gets \lambda \alpha_i$
+                \EndIf
+            \EndIf
+            \State $i \gets i + 1$
+            \State $\alpha_i \gets \alpha_{i+1}$
+        \EndWhile
+        \State \Return $\alpha_i$
+    \end{algorithmic}
+\end{algorithm}
+
 
 \begin{theorem}[Finitude de la recherche linéaire]
     Soit $f$ une application différentiable bornée inférieurement dans une direction $d_k$ 
@@ -275,10 +306,136 @@ et s'il viole l'une des deux conditions de Wolfe, on réduit l'intervalle préc�
 
 \subsection{Méthode de Newton}
 
+Le principe de la méthode de Newton est d'approximer localement la fonction $f$ à minimiser 
+par un développement de Taylor à l'ordre 2 puis de trouver le minimum de cette approximation. 
+
+Dans sa forme la plus générale, la méthode de Newton sert à résoudre un système non linéaire 
+définit par $g(x) = 0$ où $ g : \R^n \longrightarrow \R^n$. Elle consiste 
+à construire une suite de points $(x_k)_{n \in \N}$ où à chaque étape on cherche un $d \in \R^n$ tel que :
+    $$ \forall k \in \N, \quad g(x_k + d) = 0 $$ 
+Or, en remplaçcant $g$ par son approximation linéaire : 
+    $$ g(x_k + d) \simeq g(x_k) + J(x_k)d $$ 
+La recherche de $d$ tel que $g(x_k + d) = 0$ est alors équivalente à la recherche d'un $d$ tel que : 
+    \begin{align*}
+        & g(x_k) + J(x_k)d = 0 \\ 
+        \iff & g(x_k) = - J(x_k)d 
+    \end{align*}
+L'itéré suivant est alors $x_{k+1} = x_k + d$. On s'arrête lorsque $\| g(x_k) \|$ est plus petit qu'un seuil fixé. 
+
+\begin{proposition}
+    Appliquons maintenant la méthode de Newton à la recherche d'un minimum d'une fonction $f : \R^n \longrightarrow \R$. 
+    On cherche donc à obtenir une condition d'optimalité de la forme $g(x) = \nabla f(x) = 0$. Dans le 
+    cadre précédent, on a donc $g(x) = \nabla f(x)$ et $ J(x) = H_f(x)$. Ici, l'approximation de $f$ 
+    par un développement de Taylor de la forme : 
+        $$ f(x) \simeq f(x_k) + \langle \nabla f(x_k), d \rangle + \frac{1}{2} \langle d, H_f(x_k) d \rangle $$ 
+    est minimisée si $ H_f(x_k)$ est définie positive. Autrement dit, lorsque le gradient de $g$ est nul soit : 
+        $$ \nabla f(x_k) + H_f(x_k)d = 0 $$ 
+\end{proposition}
+
+On utilisera donc l'algorithme suivant : 
+
+\begin{algorithm}[H]
+    \caption{Méthode de Newton (optimisation)}
+    \begin{algorithmic}[1]
+        \Require Fonction $f : \mathbb{R}^n \to \mathbb{R}$, point initial $x_0$, tolérance $\varepsilon > 0$
+        \Ensure Approximation $x^*$ d’un point critique de $f$
+        \State $k \gets 0$
+        \While{$\| \nabla f(x_k) \| > \varepsilon$}
+            \State Calculer le gradient $\nabla f(x_k)$
+            \State Calculer la hessienne $H_f(x_k)$
+            \State Résoudre $H_f(x_k) d_k = - \nabla f(x_k)$
+            \State Mettre à jour $x_{k+1} \gets x_k + d_k$
+            \State $k \gets k + 1$
+        \EndWhile
+        \State \Return $x^* \gets x_k$
+    \end{algorithmic}
+\end{algorithm}
 
 
+L'avantage de la méthode de Newton est sa convergence quadratique lorsque les conditions favorables sont réunies. 
+En revanche, elle possède plusieurs inconvénients qui nous pousseront à développer une méthode plus fine : 
+\begin{itemize}
+    \item Si le point de départ de la méthode est trop éloigné, elle peut diverger très violement. 
+    \item Elle nécessite le calcul de la hessienne de la fonction à minimiser. 
+    \item Elle n'est pas définie si la hesienne n'est pas inversible. 
+    \item Dans le contexte de l’optimisation, même lorsque la suite $(x_k)_{k \in \N}$
+    converge, elle converge vers un point critique, c’est-à-dire une solution de l’équation 
+    $ \nabla f(x) = 0$. Elle peut donc converger vers un maximum local.
+\end{itemize}
 
+Pour pallier ces contraintes, nous utiliserons la méthode de Newton hybride. 
+Elle vise à améliorer la robustesse de la méthode de Newton classique, 
+en garantissant que la direction de recherche reste toujours une direction de descente. 
+Elle combine pour cela la régularisation de la hessienne et une étape de recherche linéaire. 
+Ainsi, même lorsque la hessienne $H_f(x_k)$ n’est pas définie positive, la méthode reste stable et converge vers un minimum local.
 
+\begin{algorithm}[H]
+    \caption{Méthode de Newton hybride (régularisée avec recherche linéaire)}
+    \begin{algorithmic}[1]
+        \Require Fonction $f : \mathbb{R}^n \to \mathbb{R}$, point initial $x_0$, tolérance $\varepsilon > 0$
+        \Ensure Approximation $x^*$ d’un point critique de $f$
+        \State $k \gets 0$
+        \While{$\| \nabla f(x_k) \| > \varepsilon$}
+            \State Calculer le gradient $\nabla f(x_k)$ et la hessienne $H_f(x_k)$
+            \If{$H_f(x_k)$ est définie positive}
+                \State $D_k \gets H_f(x_k)$
+            \Else
+                \State Choisir $\mu > 0$ tel que $D_k = H_f(x_k) + \mu I$ soit définie positive
+            \EndIf
+            \State Résoudre $D_k d_k = - \nabla f(x_k)$
+            \State Effectuer une recherche linéaire pour trouver $\alpha_k > 0$ satisfaisant la condition de Wolfe ou d’Armijo
+            \State Mettre à jour $x_{k+1} \gets x_k + \alpha_k d_k$
+            \State $k \gets k + 1$
+        \EndWhile
+        \State \Return $x^* \gets x_k$
+    \end{algorithmic}
+\end{algorithm}
 
+\subsection{Méthode de quasi-Newton (BFGS)}
 
+Comme dit précédement, la méthode de Newton possède quelques désavantages que l'on souhaiterai résoudre. 
+En effet, la hessienne est parfois impossible à calculer si la fonction n'est pas deux fois dérivable. De plus, 
+une fois calculée, il peut être très coûteux de l'évaluer en un point. Nous allons donc ici chercher 
+à estimer trouver une estimation $M$ de cette hessienne ou de son inverse (notée $W$).
+
+Le schéma d'un algorithme de quasi-Newton est le même que la méthode de Newton hybride dans lequel on 
+remplace la résolution du système linéaire : 
+    $$ H_f(x_k) d_k = - \nabla f(x_k) $$ 
+par la résolution d'un autre système : 
+    $$ M_k d_k = - \nabla f(x_k) \quad \text{ou} \quad d_k = - W_k \nabla f(x_k)$$ 
+où $M_k$ ou $W_k$ sont des matrices construires grâce à des \emph{formules de mise à jour}. 
+
+\begin{proposition}
+    Soient 
+        \[ s_k = x_{k+1} - x_k, \quad y_k = \nabla f(x_{k+1}) - \nabla f(x_k) \] 
+    la mise à jour de $W_k$ pour obtenir $W_{k+1}$ est donnée par :
+
+    \[ \boxed{ W_{k+1} = \Big(I - \frac{s_k y_k^\top}{y_k^\top s_k}\Big) W_k \Big(I - \frac{y_k s_k^\top}{y_k^\top s_k}\Big) + \frac{s_k s_k^\top}{y_k^\top s_k}} \]
+
+    Cette formule garantit que $W_{k+1}$ reste symétrique et définie positive à condition que $y_k^\top s_k > 0$.
+    La direction de descente est alors simplement :
+        \[ \boxed{d_k = - W_k \nabla f(x_k)} \]
+\end{proposition}
+
+\begin{algorithm}[H]
+\caption{Algorithme quasi-Newton (BFGS)}
+\begin{algorithmic}[1]
+\Require Fonction $f : \mathbb{R}^n \to \mathbb{R}$, point initial $x_0$, tolérance $\varepsilon > 0$, matrice initiale $W_0$ définie positive
+\Ensure Approximation $x^*$ d’un minimum local de $f$
+\State $k \gets 0$
+\While{$\| \nabla f(x_k) \| > \varepsilon$}
+    \State Calculer le gradient $g_k \gets \nabla f(x_k)$
+    \State Déterminer la direction de descente $d_k \gets - W_k g_k$
+    \State Effectuer une recherche linéaire pour obtenir $\alpha_k > 0$
+    \State Mettre à jour $x_{k+1} \gets x_k + \alpha_k d_k$
+    \State Calculer $s_k \gets x_{k+1} - x_k$, $y_k \gets \nabla f(x_{k+1}) - \nabla f(x_k)$
+    \State Mettre à jour la matrice inverse de Hessienne :
+    \[
+        W_{k+1} \gets \Big(I - \frac{s_k y_k^\top}{y_k^\top s_k}\Big) W_k \Big(I - \frac{y_k s_k^\top}{y_k^\top s_k}\Big) + \frac{s_k s_k^\top}{y_k^\top s_k}
+    \]
+    \State $k \gets k + 1$
+\EndWhile
+\State \Return $x^* \gets x_k$
+\end{algorithmic}
+\end{algorithm}
 

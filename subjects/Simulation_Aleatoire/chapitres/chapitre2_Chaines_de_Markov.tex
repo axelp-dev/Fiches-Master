@@ -9,9 +9,11 @@ Dans ce chapitre, nous nous intéresserons à la simulation de processus de Mark
 fluctuations aléatoires. C'est une notion plus générale que les variables i.i.d. 
 
 % ========================================================================================================
-% Définition et propriétés 
+% Généralités 
 
-\section{Définition et propriétés}
+\section{Généralités}
+
+\subsection{Définition et exemples}
 
 \begin{definition}[Chaîne de Markov]
     Une chaîne de Markov est un processus aléatoire $(X_n)_{n \geqslant 1}$ défini sur un espace $E$ 
@@ -58,6 +60,8 @@ fluctuations aléatoires. C'est une notion plus générale que les variables i.i
 
 Le lemme suivant nous l'assure donc en affirmant que l'on peut produire autant de loi uniformes à partir d'une 
 seule. 
+
+\subsection{La simulation en pratique}
 
 \begin{lemma}[Doublement de la loi uniforme]
     Il existe $g : [0,1] \longrightarrow [0,1]^2$ mesurable telle que si $ U \sim \mathcal{U}([0,1])$ 
@@ -182,8 +186,11 @@ def simul_chaine_Markov(n,x0,f):
         traj.append(f(traj[-1],rand()))
     return traj
 \end{lstlisting}
-    La principale difficulté est donc de définir la fonction $f$. 
 \end{proposition}
+
+\begin{remark}
+    La principale difficulté est donc de définir la fonction $f$ qui caractérise notre chaîne de Markov. 
+\end{remark}
 
 % ========================================================================================================
 % Comportement asymptotique d'une chaîne de Markov 
@@ -194,7 +201,7 @@ L'utilisation des chaînes de Markov en simulation est liée au théorème suiva
 
 \begin{theorem}[Ergodique de Birkhoff]
     Soit $(X_n)_{n \geqslant 1}$ une chaîne de Markov. Si cette chaîne admet une mesure de probabilités $ \pi$ invariante 
-    et ergodique alors $ \forall f \in \in L^1( \pi)$, on a : 
+    et ergodique alors $ \forall f \in L^1( \pi)$, on a : 
         $$ \boxed{ \lim_{n \to \infty} \frac{1}{n} \sum_{i=1}^{n} f(X_i) = \int f \; d_{ \pi} \quad \text{p.s}  } $$
 \end{theorem}
 
@@ -203,13 +210,14 @@ invariante et ergodique d'une chaîne de Markov, on peut approcher $I$ par $ \li
 Évidemment, puisque les variables $X_i$ ne sont pas i.i.d, la convergence a lieu a un rythme plus lent. Sous certaines 
 conditions, on peut avoir : 
     $$ \sqrt{n} \left( \frac{1}{n} \sum_{i=1}^{n} f(X_i) - \int f \; d_\pi  \right) \underset{n \to \infty}{\longrightarrow} \mathcal{N}(0,1) $$
+Ce théorème peut être vu comme une généralisation de la loi des grands nombres aux chaînes de Markov. 
 
 \begin{definition}[Mesure Invariante]
-    Soit $(X_n)_{n \in \N}$ une chaîne de Markov et $u \sim \mathcal{U}([0,1])$. 
+    Soient un espace mesurable $(E, \mathcal{F} )$ et $(X_n)_{n \in \N}$ une chaîne de Markov et $u \sim \mathcal{U}([0,1])$. 
     Soit $ \pi$ une mesure sur $(E, \mathcal{F}) $. On dit que $ \pi$ est \emph{invariante} si pour tout $A \in \mathcal{F}$ 
     on a : 
-        $$ \int \myP_x(X_1 \in A) \; d_{ \pi(x)} = \pi(A) $$ 
-        $$ \iff \int \myP(f(x,u_1) \in A) \; d_{ \pi(x)} = \pi(A) $$  
+        $$ \int_E \myP_x(X_1 \in A) \; d_{ \pi(x)} = \pi(A) $$ 
+        $$ \iff \int_E \myP(f(x,u_1) \in A) \; d_{ \pi(x)} = \pi(A) $$  
     Si $ \pi$ est une \emph{mesure de probabilité}, cette définition est équivalente à : 
         $$ X_0 \sim \pi \quad \text{et} \quad U_1 \sim \mathcal{U}([0,1]) \Longrightarrow X_1 = f(X_0, U_1) \sim \pi $$  
 \end{definition}
@@ -255,17 +263,17 @@ et finit par "oublier" son point de départ.
         \item partant de $A^c$, la chaîne reste dans $A^c$.
     \end{itemize}
 
-    Une mesure invariante peut alors mettre du poids à la fois sur $A$ et sur $A^c$. 
+    Une mesure non invariante peut alors mettre du poids à la fois sur $A$ et sur $A^c$. 
     En pratique, cela signifie que la chaîne peut rester confinée dans différents 
     "blocs" selon l'état initial, et donc qu'elle ne se mélange pas complètement.  
 
-    Autrement dit, une chaîne non ergodique peut être décomposée en plusieurs 
-    sous-chaînes indépendantes (les ensembles invariants), et la dynamique globale 
-    dépend de l'état initial.
+    % Autrement dit, une chaîne non ergodique peut être décomposée en plusieurs 
+    % sous-chaînes indépendantes (les ensembles invariants), et la dynamique globale 
+    % dépend de l'état initial.
 \end{remark}
 
 \begin{prop}[Ergodicité et Irréductibilité]
-    Pour les chaînes de Markov sur des espaces d'états discrets, être ergodique est équivalent à être irréductible. 
+    Pour les chaînes de Markov sur des espaces d'états discrets, être \emph{ergodique} est équivalent à être \emph{irréductible}. 
 \end{prop}
 
 \begin{corollary}[Sur les espaces d'états discrets]
@@ -273,14 +281,15 @@ et finit par "oublier" son point de départ.
     mesure de probabilité $ \mu$. 
 \end{corollary}
 
-\begin{theorem}[Birkhoff (Variante)]
+\begin{theorem}[Birkhoff - Variante]
     Soit $(X_n)_{n \in \N}$ une chaîne de Markov de mesure invariante et ergodique $ \pi$. 
     Soient $f,g \in L^1( \pi)$ on a alors : 
-        $$ \boxed{ \lim_{n \to \infty} \frac{\sum_{i=1}^{n} f(X_i)}{\sum_{i=1}^{n} g(X_i)} = \frac{\int f \; d \pi}{\int g \; d \pi} \quad \text{p.s} } $$
+        $$ \boxed{ \lim_{n \to \infty} \frac{\displaystyle \sum_{i=1}^{n} f(X_i)}{\displaystyle \sum_{i=1}^{n} g(X_i)} = \frac{ \displaystyle \int f \; d \pi}{ \displaystyle \int g \; d \pi} \quad \text{p.s} } $$
 \end{theorem}
 
 Intuitivement, puisque qu'une chaîne ergodique se "mélange bien" dans son espace d'état, alors 
-les fréquences empiriques (la moyenne des trajectoire) reflètent bien les fréquences théoriques (la mesure $ \pi$). 
+les fréquences empiriques (la moyenne des trajectoires) reflètent bien les fréquences théoriques (la mesure $ \pi$) 
+de la chaîne de Markov. 
 
 % \begin{remark}
 %     Ce théorème, en plus d'être une monstre ambulant de théorie des chaînes de Markov est très fort. 

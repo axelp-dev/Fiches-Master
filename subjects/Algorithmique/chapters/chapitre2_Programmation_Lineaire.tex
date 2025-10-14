@@ -13,11 +13,11 @@ du simple. Les problème de flots maximaux, vus précédement, peuvent s'exprime
 linéaire. 
 
 % =======================================================================================================
-% Généralités
+% Programmation Linéaire
 
-\section{Généralités}
+\section{Programmation Linéaire}
 
-\subsection{Définition et exemples}
+\subsection{Généralités}
 
 \begin{definition}[Programme linéaire]
     Un \emph{programme linéaire} ou \emph{problème de programmation linéaire} est un problème d'optimisation 
@@ -295,12 +295,7 @@ Détaillons cela autour d'un exemple.
 \end{remark}
 
 
-% =======================================================================================================
-% Solutions Algébriques et Algorithme du Simplexe
-
-\section{Algorithme du Simplexe et Dualité}
-
-\subsection{Principe du simplexe}
+\subsection{Algorithme du Simplexe}
 
 Comme dit précédement, le caractère linéaire des contraintes d'un programme linéaire nous permettent 
 d'en déduire que l'espace des solutions possible est un polyèdre. D'où le théorème suivant. 
@@ -637,5 +632,171 @@ de dualité.
     \end{itemize}
 \end{remark}
 
+% =======================================================================================================
+% Programmation Linéaire en nombres entiers
+
+\section{Programmation Linéaire en Nombres Entiers}
+
+Dans cette section, nous allons traiter un nouveau type de problèmes : les \emph{programes linéaires en nombres entiers}. 
+Vous l'aurez compris, il s'agit maintenant de considérer des programmes linéaires à variables entières. Nous allons donc 
+une méthode pour les résoudre ainsi que quelques techniques de modélisation. Commençons tout d'abord 
+par un exemple introductif. 
+
+\begin{example}
+    Un commerçant souhaite remplir son sac à dos d'au plus $n$ objets de poids et valeurs respectifs $ p_i \in \N$ 
+    et $ v_i \in \N$. Or le sac du commerçant ne peut contenir qu'un poids maximal $C \in \N$. 
+    Le commerçant veut choisir les objets à prendre de manière à maximiser la valeur emportée. 
+    On modélisera donc le problème de la façon suivante : 
+        
+        \begin{maxi*}|l|
+            {}{V = \sum_{i=1}^{n} v_i \times x_i }{}{}
+            \addConstraint{ \sum_{i=0}^{n} p_i x_i }{\leqslant C} 
+            \addConstraint{\forall i \in \llbracket 1, n \rrbracket, \; x_i \in \N}{}
+        \end{maxi*}
+    Ici le vecteur $(x_1, \dots, x_n) \in \{0,1\}^n$ représentera les objets que l'on prend. En effet, $x_i = 0$ 
+    si le commerçant ne prend pas l'objet $i$ et $1$ sinon. 
+
+    Nous avons donc affaire à un programme linéaire. Or sa résolution pourrait non conduire à une solution comportant 
+    des valeurs $x_i \not \in \{0,1\}^n$ alors que l'on considère que l'on ne peut pas prendre une partie d'un objet 
+    (ex : $3/4$ de l'object $i$). Nous devons donc chercher une nouvelle méthode pour résoudre ce genre de programmes. 
+\end{example}
+
+\subsection{Définition et relaxation}
+
+\begin{definition}[Programme linéaire en nombres entiers]
+    Un \emph{programme linéaire en nombres entiers} est un programme linéaire comme définit précédement où un certain nombre 
+    de variables sont à valeurs entières. Plus formellement, la forme strandard d'un tel programme est de la forme : 
+        
+        \begin{maxi*}|l|
+            {}{\sum_{j=1}^{n} c_j x_j}{}{}
+            \addConstraint{\sum_{j=1}^{n} a_{ij} x_j}{ = b_i \quad \forall i \in \llbracket 1, m \rrbracket}
+            \addConstraint{x_j}{\geqslant 0 \quad \forall j \in \llbracket 1, n \rrbracket}
+            \addConstraint{x_j}{\in \N \quad \forall j \in \llbracket 1, n \rrbracket}
+        \end{maxi*}
+    où les constantes $c_j, a_{ij}$ et $b_i$ sont entières. 
+\end{definition}
+
+\begin{definition}[Relaxation linéaire]
+    Soit un programme linéaire en nombres entiers (PLNE) :
+
+        \begin{maxi*}|l|
+            {}{\sum_{j=1}^{n} c_j x_j }{}{}
+            \addConstraint{\sum_{j=1}^{n} a_{ij} x_j}{= b_i \quad \forall i \in \llbracket 1, m \rrbracket}
+            \addConstraint{x_j \in \N \quad \forall j \in \llbracket 1, n \rrbracket}
+        \end{maxi*}
+
+    La \emph{relaxation linéaire} de ce programme consiste à supprimer les contraintes d’intégralité :
+    \[
+        x_j \in \R_+ \quad \forall j \in \llbracket 1, n \rrbracket
+    \]
+    On obtient ainsi un programme linéaire classique, plus facile à résoudre. 
+\end{definition}
 
 
+\begin{example}
+    Considérons le programme linéaire suivant que nous allons résoudre graphiquement :
+
+        \begin{maxi*}|l|
+            {}{z = 2x + 3y}{}{}
+            \addConstraint{5 x + 8y}{\leqslant 40}
+            \addConstraint{2x-y}{\leqslant 8}
+            \addConstraint{x,y}{\geqslant 0}
+        \end{maxi*}
+
+        \centering
+        \begin{tikzpicture}
+            \begin{axis}[
+                axis lines=middle, 
+                xlabel={$x$}, 
+                ylabel={$y$}, 
+                xmin= 0, xmax=10,
+                ymin=0, ymax=8, 
+                grid=major, 
+                height=8cm, 
+                width=10cm, 
+                legend style={at={(0.97,0.97)}, anchor=north east},
+                clip=false
+            ]
+                % === CONTRAINTES === 
+                \addplot[name path=C1, thick, domain=-1:8, blue] { (40 - 5*x)/8 };
+                \addlegendentry{$5x + 8y \leqslant 40$}
+
+                \addplot[name path=C2, thick, domain=3.8:8, red] {2*x - 8}; 
+                \addlegendentry{$2x - y \leqslant 8$}
+
+                % === SOLUTION === 
+                \addplot[name path=S, dashed, domain=2:6, gray] {11.81 - 2 * x}; 
+                \addlegendentry{$2x + y = 11.81$}
+
+
+                % === ZONE FAISABLE === 
+                \addplot[fill=green!30, fill opacity=0.4]
+                    coordinates {(0,0) (4,0) (4.95,1.9) (0,5)} --cycle; 
+            \end{axis}
+        \end{tikzpicture}
+    
+    Graphiquement, nous trouvons une solution optimale de valeur $11.81$. 
+
+\end{example}
+
+\subsection{Algorithme "Branch and Bound"}
+
+\begin{theorem}[Lien entre PLNE et relaxation]
+    Soit un programme linéaire en nombres entiers (PLNE) et sa relaxation linéaire correspondante.  
+    Notons $z^*_\text{int}$ la valeur optimale du PLNE et $z^*_\text{relax}$ celle de la relaxation. Alors :  
+    \[
+        z^*_\text{relax} \geqslant z^*_\text{int} \quad \text{(en cas de maximisation)}, \qquad
+        z^*_\text{relax} \leqslant z^*_\text{int} \quad \text{(en cas de minimisation)}.
+    \]
+    Autrement dit, la solution optimale de la relaxation fournit une \emph{borne supérieure} (ou \emph{borne inférieure}) pour le PLNE initial.
+\end{theorem}
+
+La méthode \emph{Branch and Bound} est une technique de résolution des programmes linéaires en nombres entiers 
+(PLNE) qui repose sur l'utilisation des relaxations linéaires pour obtenir des bornes sur la solution optimale.
+\subsection{Algorithme Branch and Bound}
+
+L'algorithme \emph{Branch and Bound} construit un arbre de recherche binaire dont la racine est le 
+problème initial $\Pi$. L'algorithme s'arrête lorsque tous les nœuds feuilles de l'arbre sont \emph{fathomés} 
+(c'est-à-dire qu'ils n'ont plus besoin d'être explorés).
+
+\begin{definition}[Nœud fathomé]
+    Un nœud est dit \emph{fathomé} si au moins une des conditions suivantes est vérifiée :
+    \begin{enumerate}
+        \item La relaxation linéaire est \emph{infaisable}, c'est-à-dire qu'aucune solution réelle ne satisfait les contraintes.
+        \item La valeur optimale de la relaxation linéaire est inférieure ou égale à la meilleure solution entière connue.
+        \item La solution optimale de la relaxation linéaire est entière, et est donc également solution optimale du programme entier.
+    \end{enumerate}
+\end{definition}
+
+\begin{algorithm}[H]
+\caption{Branch and Bound pour un programme linéaire en nombres entiers}
+\begin{algorithmic}[1]
+\State Résoudre la relaxation linéaire du problème $\Pi$.
+\If{le nœud est fathomé}
+    \State arrêter l'exploration de ce nœud.
+\Else
+    \State Identifier une variable $x_i$ fractionnaire dans la solution $x^*$.
+    \State Créer deux sous-problèmes en ajoutant respectivement les contraintes :
+    \[
+        x_i \leqslant \lfloor x^*_i \rfloor \quad \text{et} \quad x_i \geqslant \lceil x^*_i \rceil
+    \]
+    \State Appeler \textbf{Branch and Bound} récursivement sur ces sous-problèmes.
+\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\begin{remark}
+    L'algorithme explore donc l'arbre de recherche en combinant deux techniques :
+    \begin{itemize}
+        \item Le \emph{branching}, qui divise le problème en sous-problèmes plus simples.
+        \item Le \emph{bounding}, qui utilise la relaxation linéaire pour élaguer les sous-problèmes 
+              ne pouvant pas améliorer la meilleure solution entière connue.
+    \end{itemize}
+\end{remark}
+
+
+
+
+
+
+\subsection{Techniques de modélisation}
