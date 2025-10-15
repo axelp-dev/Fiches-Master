@@ -30,6 +30,8 @@ mais pour les processus à temps continu.
 
 \section{Lois exponentielles et lemme des réveils}
 
+\subsection{Rappels et Abscence de mémoire}
+
 \begin{rappel}[Loi exponentielle]
     Une variable aléatoire $E$ est de loi exponentielle de paramètre $ \lambda > 0$, noté $X \sim \mathcal{E}(\lambda)$ 
     si pour tout $x \geqslant 0$, on ait : 
@@ -83,6 +85,8 @@ mais pour les processus à temps continu.
     d'où $f(x) = \exp ( x \log f(1))$. Par conséquent $ T \sim \mathcal{E}(- \log f(1)) $. 
 \end{proof}
 
+\subsection{Lemme des réveils et exemples}
+
 \begin{lemma}[Réveils]
     Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de lois respectives $ \mathcal{E}( \lambda_1), \dots, \mathcal{E}( \lambda_n)$. 
     On pose : 
@@ -98,66 +102,66 @@ mais pour les processus à temps continu.
 \end{lemma}
 
 \begin{proof}
-    Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de loi $\mathcal{E}(\lambda_1), \dots, \mathcal{E}(\lambda_n)$. 
-    Posons : 
-        $$ T = \min_{1 \le i \le n} T_i, \quad I \in \llbracket 1, n \rrbracket, \ T_I = T. $$ 
-    Soient $x \ge 0$ et $k \in \llbracket 1, n \rrbracket$, on a : 
-        $$ \mathbb{P}(T > x, I=k) = \mathbb{P}(x \le T_k \le z_k), \quad z_k = \min_{j \neq k} T_j. $$ 
-    Comme les $T_j$ sont indépendantes : 
-        \begin{align*}
-            \mathbb{P}(z_k \ge y) &= \prod_{j \neq k} \mathbb{P}(T_j \ge y) 
-            = \prod_{j \neq k} e^{- \lambda_j y} 
-            = e^{- ((\lambda_1 + \dots + \lambda_n) - \lambda_k) y }.
-        \end{align*}
-    Donc : 
-        \begin{align*}
-            \mathbb{P}(T > x, I=k) 
-            &= \mathbb{E}[\mathbf{1}_{T_k \ge x} \, e^{-((\lambda_1 + \dots + \lambda_n) - \lambda_k) T_k}] \\
-            &= \int_x^\infty \lambda_k e^{-(\lambda_1 + \dots + \lambda_n) t} \, dt \\
-            &= \frac{\lambda_k}{\lambda_1 + \dots + \lambda_n} e^{-(\lambda_1 + \dots + \lambda_n)x}.
-        \end{align*}
-    En particulier : 
-        $$ \mathbb{P}(I=k) = \mathbb{P}(T > 0, I=k) = \frac{\lambda_k}{\lambda_1 + \dots + \lambda_n}. $$
-    Par ailleurs : 
-        \begin{align*}
-            \mathbb{P}(T \ge x) &= \mathbb{P}(\min_i T_i \ge x) 
-            = \prod_{i=1}^n \mathbb{P}(T_i \ge x) 
-            = e^{-(\lambda_1 + \dots + \lambda_n)x}.
-        \end{align*}
-    Enfin : 
-        $$ \mathbb{P}(T \ge x, I=k) = \mathbb{P}(T \ge x) \, \mathbb{P}(I=k). $$
-
-    % Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de loi $ \mathcal{E}( \lambda_1), \dots, \mathcal{E}_{ \lambda_n}$. 
+    % Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de loi $\mathcal{E}(\lambda_1), \dots, \mathcal{E}(\lambda_n)$. 
     % Posons : 
-    %     $$ T = \min_{1 \leqslant i \leqslant n} T_i \quad I \in \llbracket 1, n \rrbracket, T_I = T $$ 
-    % Soient $x \geqslant 0$ et $ k \in \llbracket 1, n \rrbracket $, on a :
-    %     $$ \myP(T > x, I = k) = \myP(x \leqslant T_k \leqslant \underbrace{\min \{T_j \mid j \leqslant n, j \not = k \}}_{z_k}) $$ 
-    % on a donc $z_k = \min \{T_1, T_2, \dots, T_{k-1}, T_{k+1}, \dots, T_n\}$ de plus : 
+    %     $$ T = \min_{1 \le i \le n} T_i, \quad I \in \llbracket 1, n \rrbracket, \ T_I = T. $$ 
+    % Soient $x \ge 0$ et $k \in \llbracket 1, n \rrbracket$, on a : 
+    %     $$ \mathbb{P}(T > x, I=k) = \mathbb{P}(x \le T_k \le z_k), \quad z_k = \min_{j \neq k} T_j. $$ 
+    % Comme les $T_j$ sont indépendantes : 
     %     \begin{align*}
-    %         \myP(z_k \geqslant y) &= \prod_{\substack{k = 1 \\j \not = k}}^{n} \myP(T_j \geqslant y)
-    %         = \prod_{\substack{k = 1 \\j \not = k}}^{n} e^{ \lambda_j y } \\ 
-    %         &= e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)y }
+    %         \mathbb{P}(z_k \ge y) &= \prod_{j \neq k} \mathbb{P}(T_j \ge y) 
+    %         = \prod_{j \neq k} e^{- \lambda_j y} 
+    %         = e^{- ((\lambda_1 + \dots + \lambda_n) - \lambda_k) y }.
     %     \end{align*}
-    % Par suite : 
+    % Donc : 
     %     \begin{align*}
-    %         & \myP(T > x, I = k) \\  
-    %         &= \mathbb{E} \left( \myP(x \leqslant T_k \leqslant z_k \mid T_k) \right) \\ 
-    %         &= \mathbb{E} \left( \mathbbm{1}_{T_k \geqslant x} \times e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k) T_k} \right) \\ 
-    %         &= \int_{x}^{\infty} e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)t} \times f_{T_k}(t) \; dt \\
-    %         &= \lambda_k \int_{x}^{\infty} e^{ - \lambda_k t} e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)t} \; dt \\
-    %         &= \lambda_k \int_{x}^{\infty} e^{- ( \lambda_1 + \dots + \lambda_n) t} \; dt \\ 
-    %         &= \lambda_k \left[ - \frac{e^{- ( \lambda_1 + \dots + \lambda_n) t}}{ \lambda_1 + \dots + \lambda_n} \right]_x^{\infty} \\ 
-    %         &= \lambda_k \frac{e^{- ( \lambda_1 + \dots + \lambda_n) }}{ \lambda_1 + \dots + \lambda_n} 
+    %         \mathbb{P}(T > x, I=k) 
+    %         &= \mathbb{E}[\mathbf{1}_{T_k \ge x} \, e^{-((\lambda_1 + \dots + \lambda_n) - \lambda_k) T_k}] \\
+    %         &= \int_x^\infty \lambda_k e^{-(\lambda_1 + \dots + \lambda_n) t} \, dt \\
+    %         &= \frac{\lambda_k}{\lambda_1 + \dots + \lambda_n} e^{-(\lambda_1 + \dots + \lambda_n)x}.
     %     \end{align*}
-    % En particulier, on a = 
-    %     $$ \myP(I = k) = \myP(I = k, T > 0) = \frac{ \lambda_k}{ \lambda_1 + \dots + \lambda_n} $$ 
-    % Par indépendance, on a donc : 
+    % En particulier : 
+    %     $$ \mathbb{P}(I=k) = \mathbb{P}(T > 0, I=k) = \frac{\lambda_k}{\lambda_1 + \dots + \lambda_n}. $$
+    % Par ailleurs : 
     %     \begin{align*}
-    %         \myP(T \geqslant x) &= \prod_{i=1}^{n} \myP(T_i \geqslant x) \\ 
-    %         &= \prod_{i=1}^{n} e^{- \lambda_i x} = e^{ -( \lambda_1 + \dots + \lambda_n) x}   
+    %         \mathbb{P}(T \ge x) &= \mathbb{P}(\min_i T_i \ge x) 
+    %         = \prod_{i=1}^n \mathbb{P}(T_i \ge x) 
+    %         = e^{-(\lambda_1 + \dots + \lambda_n)x}.
     %     \end{align*}
-    % Enfin, on a donc : 
-    %     $$ \myP(T \geqslant x, I = k) = \myP(T \geqslant x) \myP(I = k) $$   
+    % Enfin : 
+    %     $$ \mathbb{P}(T \ge x, I=k) = \mathbb{P}(T \ge x) \, \mathbb{P}(I=k). $$
+
+    Soient $T_1, \dots, T_n$ des variables aléatoires indépendantes de loi $ \mathcal{E}( \lambda_1), \dots, \mathcal{E}_{ \lambda_n}$. 
+    Posons : 
+        $$ T = \min_{1 \leqslant i \leqslant n} T_i \quad I \in \llbracket 1, n \rrbracket, T_I = T $$ 
+    Soient $x \geqslant 0$ et $ k \in \llbracket 1, n \rrbracket $, on a :
+        $$ \myP(T > x, I = k) = \myP(x \leqslant T_k \leqslant \underbrace{\min \{T_j \mid j \leqslant n, j \not = k \}}_{z_k}) $$ 
+    on a donc $z_k = \min \{T_1, T_2, \dots, T_{k-1}, T_{k+1}, \dots, T_n\}$ de plus : 
+        \begin{align*}
+            \myP(z_k \geqslant y) &= \prod_{\substack{k = 1 \\j \not = k}}^{n} \myP(T_j \geqslant y)
+            = \prod_{\substack{k = 1 \\j \not = k}}^{n} e^{ \lambda_j y } \\ 
+            &= e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)y }
+        \end{align*}
+    Par suite : 
+        \begin{align*}
+            & \myP(T > x, I = k) \\  
+            &= \mathbb{E} \left( \myP(x \leqslant T_k \leqslant z_k \mid T_k) \right) \\ 
+            &= \mathbb{E} \left( \mathbbm{1}_{T_k \geqslant x} \times e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k) T_k} \right) \\ 
+            &= \int_{x}^{\infty} e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)t} \times f_{T_k}(t) \; dt \\
+            &= \lambda_k \int_{x}^{\infty} e^{ - \lambda_k t} e^{- (( \lambda_1 + \dots \lambda_n) - \lambda_k)t} \; dt \\
+            &= \lambda_k \int_{x}^{\infty} e^{- ( \lambda_1 + \dots + \lambda_n) t} \; dt \\ 
+            &= \lambda_k \left[ - \frac{e^{- ( \lambda_1 + \dots + \lambda_n) t}}{ \lambda_1 + \dots + \lambda_n} \right]_x^{\infty} \\ 
+            &= \lambda_k \frac{e^{- ( \lambda_1 + \dots + \lambda_n) }}{ \lambda_1 + \dots + \lambda_n} 
+        \end{align*}
+    En particulier, on a : 
+        $$ \myP(I = k) = \myP(I = k, T > 0) = \frac{ \lambda_k}{ \lambda_1 + \dots + \lambda_n} $$ 
+    Par indépendance, on a donc : 
+        \begin{align*}
+            \myP(T \geqslant x) &= \prod_{i=1}^{n} \myP(T_i \geqslant x) \\ 
+            &= \prod_{i=1}^{n} e^{- \lambda_i x} = e^{ -( \lambda_1 + \dots + \lambda_n) x}   
+        \end{align*}
+    Enfin, on a donc : 
+        $$ \myP(T \geqslant x, I = k) = \myP(T \geqslant x) \myP(I = k) $$   
 \end{proof}
 
 \begin{remark}
@@ -207,6 +211,8 @@ def tirer(poids):
 
 \section{Processus de Markov en temps continu}
 
+\subsection{Définition, semi-groupe et générateur}
+
 Nous considérons ici que $E$ est un espace d'états fini ou dénombrable. 
 
 \begin{definition}[Processus de Markov en temps continu]
@@ -217,6 +223,356 @@ Nous considérons ici que $E$ est un espace d'états fini ou dénombrable.
         $$ P_t(i,j) = \myP(X_t = j \mid X_0 = i) $$
     où $(P_t)$ est le \emph{semi-groupe} du processus de Markov.
 \end{definition}
+
+\begin{prop}[Semi-groupe]
+    $(P_t)_{t \geqslant 0}$ est un \emph{semi-groupe} si : 
+        $$ \forall t,s \in E, \quad P_{t+s} = P_t P_s $$
+    si $E$ est fini, alors $(P_t)_{t \geqslant 0}$ est une matrice et $ P_t P_s$ est un produit matriciel. 
+    Dans un cas plus général, on a : 
+        \begin{align*}
+            P_t P_s (i,j) &= \sum_{k \in E} P_t(i,k) P_s(k,j) = P_{t + s}(i,j) \\ 
+            &= \sum_{k \in E} \myP(X_t = k \mid X_0 = i) \myP(X_{t + s} = j | X_t = k) \\ 
+            &= \sum_{k \in E} \myP(X_t = k, X_{t+s} = j \mid X_0 = i) \\
+            &= \myP(X_{t+s} = j \mid X_0 = i)    
+        \end{align*}
+    Donc le semi-groupe caractérise la loi du processus de Markov. De même, grâce à la cette propriété, il n'est 
+    pas nécessaire de connaître tout le semi-groupe. 
+\end{prop}
+
+\begin{prop}[Génération du semi-groupe]
+    En particulier, $(P_t)_{t \geqslant 0}$ est uniquement déterminé par $(P_s)_{0 \leqslant s \leqslant a}$ avec 
+    $a$ arbitrairement petit. 
+\end{prop}
+
+\begin{definition}[Générateur Infinitésimal]
+    Le \emph{générateur infinitésimal} d'un processus de Markov $(X_t)_{t \geqslant 0}$ est défini par : 
+        \begin{align*}
+            Q_{i,j} &= \lim_{t \to 0} \frac{P_t(i,j) - \mathbbm{1}_{i = j}}{t} \\ 
+            &= \lim_{t \to 0} \frac{ \myP_i(X_t = j) - \mathbbm{1}_{i=j}}{t} 
+        \end{align*}
+    Il correspond à la dérivée de $P_t(i,j)$ par rapport à $t$ en 0. 
+\end{definition}
+
+\begin{lemma}
+    Soit $(X_t)_{t \geqslant 0}$ un processus de Markov sur $E$ tel que $X_0 = i$ p.s. On pose : 
+        $$ T = \inf \{t > 0 \mid X_t \not = i\} \quad \text{et} \quad Y = X_T $$ 
+    La variable $T$ suit une loi exponentielle et est indépendante de $Y$. 
+\end{lemma}
+
+Intuitivement, cela signifie que le temps que prend le processus pour sortir d'un état suit une loi exponentielle 
+et ne dépend pas de l'état suivant. 
+
+\begin{remark}
+    Le générateur infinitésimal caractérise la loi du processus de Markov. Donc $ -Q_{i,i}$ donne le paramètre de la 
+    loi exponentielle correspondant au temps de sortie de l'état $i$ par $X$. De même, $\frac{Q_{i,j}}{Q_{i,i}} $ donne 
+    la probabilité de finir en $j$ après un saut hors de $i$. 
+\end{remark}
+
+\subsection{Construction}
+
+\begin{proposition}
+    Un processus de Markov de générateur $Q$ peut donc être construit comme suit : 
+    \begin{itemize}
+        \item On fixe $X_0$. 
+        \item On génère $T_0$ une variable aléatoire de loi $ \mathcal{E}(-Q_{X_0, X_0})$ ainsi que $X_1$ indépendant 
+            de $X_0$ tel que : 
+                $$ \myP(X_1 = j) = - \frac{Q_{X_0, X_1}}{Q_{X_0, X_0}} $$ 
+        \item Par récurrence, $X_n$ étant donné, on génère $T_{n+1}$ de loi $ \mathcal{E}(- Q_{X_n, X_n})$ et $X_{n+1}$ 
+            de loi : 
+                $$ \myP(X_{n+1} = j \mid X_n) = - \frac{Q_{X_n,j}}{Q_{X_n, X_n}} $$ 
+    \end{itemize}
+
+    \begin{center}
+    \begin{tikzpicture}[scale=1,>=stealth]
+
+        % Axes
+        \draw[->] (-0.2,0) -- (6,0) node[right] {$t$};
+        \draw[->] (0,-0.2) -- (0,4) node[above] {$Y_t$};
+
+        % Valeurs de la chaîne 
+        \draw[thick] (0,0.8) -- (2.5,0.8) node[midway, above] {$T_0$}; 
+        \draw[thick] (2.5,1.2) -- (4,1.2) node[midway, above] {$T_1$}; 
+        \draw[thick] (4,0.5) -- (5,0.5) node[midway, above] {$T_2$}; 
+        \draw[thick] (5,2) -- (6,2) node[midway, above] {$T_3$}; 
+
+        % Pointillés verticaux
+        \draw[dashed] (2.5,0.8) -- (2.5,0) node[below] {$S_1$}; 
+        \draw[dashed] (2.5,0.8) -- (2.5,1.2); 
+        \draw[dashed] (4,1.2) -- (4,0) node[below] {$S_2$};  
+        \draw[dashed] (5,0.5) -- (5,0) node[below] {$S_3$}; 
+        \draw[dashed] (5,0.5) -- (5,2); 
+
+        % Pointillés horizontaux 
+        \draw[dashed] (0,1.2) -- (2.5,1.2); 
+        \draw[dashed] (0,0.5) -- (4,0.5); 
+        \draw[dashed] (0,2) -- (5,2); 
+
+        % Valeurs des ordonnées 
+        \draw[dashed] (0,0) -- (0,0.8) node[left] {$X_0$}; 
+        \draw[dashed] (0,0) -- (0,1.2) node[left] {$X_1$}; 
+        \draw[dashed] (0,0) -- (0,0.5) node[left] {$X_2$}; 
+        \draw[dashed] (0,0) -- (0,2) node[left] {$X_3$}; 
+    
+    \end{tikzpicture}
+    \end{center}
+
+    Un processus de Markov en temps continu est donc un processus qui reste un temps exponentiel dans un état 
+    avant de sauter dans un autre. On peut alors poser : 
+        $$ S_k = T_0 + T_1 + \dots + T_{k-1} \quad \text{et} \quad \forall t \in [S_k, S_{k+1}], Y_t = X_k $$
+    Les variables $S_1, S_2, \dots$ définissent les temps de saut du processus $Y$ et $(X_n)_{n \geqslant 0}$
+    est une chaîne de Markov (à temps discret) appelée le \emph{squelette} du processus de Markov. 
+    
+    \begin{center}
+        \begin{tikzpicture}[scale=1,>=stealth]
+            % Axes
+            \draw[->] (-0.2,0) -- (9,0) node[right] {$n$};
+            \draw[->] (0,-0.2) -- (0,4) node[above] {$X_n$};
+
+            % Valeurs de la chaîne 
+            \coordinate (P0) at (0,1.5); 
+            \coordinate (P1) at (1.5,2); 
+            \coordinate (P2) at (3,1.5); 
+            \coordinate (P3) at (4.5,1); 
+            \coordinate (P4) at (6,1.5); 
+            \coordinate (P5) at (7.5,1); 
+
+            % Ajout des points 
+            \filldraw[black] (P0) circle (2pt); 
+            \filldraw[black] (P1) circle (2pt); 
+            \filldraw[black] (P2) circle (2pt); 
+            \filldraw[black] (P3) circle (2pt); 
+            \filldraw[black] (P4) circle (2pt); 
+            \filldraw[black] (P5) circle (2pt); 
+            
+            % Ajout des lignes 
+            \draw[thick] (P0) -- (P1); 
+            \draw[thick] (P1) -- (P2); 
+            \draw[thick] (P2) -- (P3); 
+            \draw[thick] (P3) -- (P4); 
+            \draw[thick] (P4) -- (P5); 
+
+            % Ajout des durées
+            \draw[<->] ($(P0) - (0.5, 0)$) -- ($(P0) + (0.5,0)$); 
+            \draw[<->] ($(P1) - (1, 0)$) -- ($(P1) + (1,0)$); 
+            \draw[<->] ($(P2) - (0.75, 0)$) -- ($(P2) + (0.75,0)$); 
+            \draw[<->] ($(P3) - (0.5, 0)$) -- ($(P3) + (0.5,0)$); 
+            \draw[<->] ($(P4) - (0.8, 0)$) -- ($(P4) + (0.8,0)$); 
+            \draw[<->] ($(P5) - (0.7, 0)$) -- ($(P5) + (0.7,0)$); 
+        \end{tikzpicture}
+    \end{center}
+    Un processus de Markov en temps continu est donc une chaîne de Markov en temps discret auquel on 
+    a rajouté des durées aléatoires (exponentielles) entre le passage d'un état à l'autre.
+    
+    On peut observer une limite au processus. En effet, le processus de Markov est définit jusqu'au temps $ \overline{S} = \lim_{k \to \infty} S_k$. 
+    Ainsi un processus tel que $ \myP( \overline{S} < \infty) > 0$ est dit \emph{explosif}. Sinon il est dit \emph{non explosif}. 
+\end{proposition}
+
+Formalisons maintenant toutes ces nouvelles notions. 
+
+\begin{definition}[Squelette d'un processus de Markov]
+    Soit $(Y_t)_{t \geqslant 0}$ un processus de Markov à temps continu, 
+    et $(S_k)_{k \geqslant 0}$ la suite croissante de ses temps de saut, 
+    définie par : 
+        $$  S_0 = 0, \quad S_{k+1} = S_k + T_k $$
+    où les $T_k$ sont les durées passées dans chaque état avant le saut suivant.
+    On appelle \emph{squelette} du processus $(Y_t)$ la suite $(X_n)_{n \geqslant 0}$ définie par :
+        $$ X_n = Y_{S_n}, \quad \text{pour tout } n \geqslant 0 $$
+
+    Le processus $(X_n)_{n \geqslant 0}$ est alors une \emph{chaîne de Markov à temps discret}, 
+    dont la matrice de transition $P$ est donnée par :
+    $$
+        P_{ij} = \myP(X_{n+1} = j \mid X_n = i) 
+        = - \frac{Q_{ij}}{Q_{ii}}, \quad i \neq j.
+    $$
+\end{definition}
+
+\begin{definition}[Processus explosif]
+    Soit $(Y_t)_{t \geqslant 0}$ un processus de Markov à temps continu et 
+    $(S_k)_{k \geqslant 0}$ la suite de ses temps de saut. 
+    On définit :
+        $$ \overline{S} = \lim_{k \to \infty} S_k $$
+
+    \begin{itemize}
+        \item Le processus $(Y_t)$ est dit \emph{explosif} si 
+            $$ \myP(\overline{S} < \infty) > 0 $$
+            c’est-à-dire qu’il effectue une infinité de sauts en un temps fini.
+        \item Il est dit \emph{non explosif} si 
+            $$ \myP(\overline{S} = \infty) = 1 $$
+    \end{itemize}
+\end{definition}
+
+\paragraph{Vocabulaire. } On appelle $Q_{i,j}$ le temps de saut de l'état $i$ vers $j$. On a aussi 
+$Q_{i,j} = \lambda_i \myP_i(Y = j)$. 
+
+\begin{example}[Espace d'états fini]
+    Soit $E = \{1,2\}$ et $(X_t)_{t \geqslant 0}$ un processus de Markov sur $E$ donné par le 
+    générateur infinitésimal : 
+        $$ Q = 
+            \begin{pmatrix}
+                -p & p \\ 
+                q & -q 
+            \end{pmatrix}
+        $$ 
+    On a donc le graphe suivant pour cette chaîne de Markov : 
+
+    \begin{center}
+        \begin{tikzpicture}[
+            baseline=(current bounding box.center),
+            shorten >=1pt,
+            node distance=2cm,
+            on grid,auto
+        ]
+            \node[state] (1) {$1$}; 
+            \node[state, right of=1] (2) {$2$}; 
+
+            \path[->]
+                (1) edge[below, bend right] node{$ \mathcal{E}(p) $} (2)
+                (2) edge[above, bend right] node{$ \mathcal{E}(q) $} (1); 
+        \end{tikzpicture}
+    \end{center}
+    
+    La durée de séjour du processus dans l'état $1$ suit donc une loi $ \mathcal{E}(p)$ et celle dans 
+    l'état $2$ suit $ \mathcal{E}(q)$.  
+
+    La probabilité de passer d'un état à l'autre suit une loi exponentielle. Soient $(T_k)_{k \in \N}$ 
+    des variables iid de loi $ \mathcal{E}(p)$ et $(Q_k)_{k \in \N}$ des variables iid de loi $ \mathcal{E}(q)$. 
+    Posons : 
+        $$ S_0 = 0, \quad \text{et} \quad S_n = \sum_{k=1}^{n} T_k + Q_k $$ 
+    On a donc : 
+        $$ 
+            \begin{cases}
+                \displaystyle X_t = 1 \quad \text{si } t \in \bigcup_{n \in \N} [S_n, S_n + T_{n+1}[ \\[1em]
+                \displaystyle X_t = 2 \quad \text{si } t \in \bigcup_{n \in \N} [S_n + T_{n+1}, S_{n+1}[
+            \end{cases}   
+        $$  
+    On peut donc représenter la trajectoire de ce processus par le graphe suivant : 
+        \begin{center}
+            \begin{tikzpicture}[scale=1,>=stealth]
+
+                % Axes
+                \draw[->] (-0.2,0) -- (6,0) node[right] {$t$};
+                \draw[->] (0,-0.2) -- (0,3) node[above] {$X_t$};
+
+                % Valeurs de la chaîne 
+                \coordinate (P0) at (0,1); 
+                \coordinate (P1) at (1.5,1); 
+                \coordinate (P2) at (1.5,2); 
+                \coordinate (P3) at (2.5,2); 
+                \coordinate (P4) at (2.5,1); 
+                \coordinate (P5) at (4,1); 
+                \coordinate (P6) at (4,2); 
+                \coordinate (P7) at (5.5,2); 
+
+                % Ajout des lignes 
+                \draw[thick] (P0) -- (P1); 
+                \draw[thick] (P2) -- (P3); 
+                \draw[thick] (P4) -- (P5); 
+                \draw[thick] (P6) -- (P7); 
+
+                % Sauts en pointillés 
+                \draw[dashed] (P1) -- (P2); 
+                \draw[dashed] (P3) -- (P4); 
+                \draw[dashed] (P5) -- (P6); 
+
+                % Points en ordonnées 
+                \filldraw[black] (0,1) circle (1pt) node[left] {$1$}; 
+                \filldraw[black] (0,2) circle (1pt) node[left] {$2$};; 
+                
+                % Points en abscisses 
+                \filldraw[black] (1.5,0) circle (1pt) node[below] {$T_1$}; 
+                \filldraw[black] (2.5,0) circle (1pt) node[below] {$S_1$}; 
+                \filldraw[black] (4,0) circle (1pt) node[below] {$S_1 + T_2$}; 
+            \end{tikzpicture}
+        \end{center}
+\end{example}
+
+\begin{example}[Espace d'états infini]
+    Posons maintenant $ E = \N^*$ et soit $(X_t)_{t \geqslant 0}$ un processus de Markov sur $E$ 
+    de générateur :  
+        $$ Q_{n,n} = -n^2, \quad \text{et} \quad Q_{n, n+1} = n^2 $$ 
+    Le processus passe donc de l'état $n$ à $n+1$ à taux $ n^2$. Le squelette de la chaîne est donc le processus 
+        $$ (1,2,3,4, \dots) $$ 
+    avec $S_n = T_1 + T_2 + \dots + T_n$ où $(T_n)_{n \in \N}$ sont indépendantes et de loi $ \mathcal{E}(k^2)$. On 
+    peut donc en déduire que : 
+        $$ S_n = E_1 + \frac{E_2}{2^2} + \dots + \frac{E_n}{n^2} $$ 
+    où les $(E_i)_{i \in \N}$ sont iid de loi $ \mathcal{E}(1)$. On a alors : 
+        $$ \overline{S} = \lim_{n \to \infty} S_n = \sum_{k=1}^{\infty} \frac{E_k}{k^2} $$ 
+        $$ \mathbb{E}( \overline{S}) = \sum_{k=1}^{\infty} \frac{ \mathbb{E}(E_k) }{k^2} = \sum_{k=1}^{\infty} \frac{1}{k^2} < \infty $$ 
+    d'où $ \overline{S} < \infty$ presque sûrement. Cette chaîne est donc \emph{explosive}. 
+\end{example}
+
+\subsection{Simulation}
+
+\begin{proposition}
+    La construction des processus de Markov donné ici est parfois appelé \emph{processus de Gillepsie}. On 
+    peut définir l'algorithme suivant pour les simuler : 
+\begin{lstlisting}
+def procMarkov(t,x,Q): 
+    tau = - 1 * log(rand()) / (- Q(x,x))
+    if tau > t : 
+        return x 
+    # On tire x selon la loi -Qx,. / -Qx,x 
+    return procMarkov(t - tau, y, Q)
+\end{lstlisting}
+\end{proposition}
+
+\begin{example}[Processus de naissance et de mort]
+    Soit $(X_t)_{t \geqslant 0}$ un processus de Markov sur $\N^*$ et pour tout $ i \geqslant 0$
+    soit $b_i$ le taux de naissance en $i$ et $ d_i$ le taux de mort en $i$. 
+    $$ \text{i.e} \quad 
+        \begin{cases}
+            X_t \text{ saute de } i \text{ en } i+1 \text{ à taux } b_i \\  
+            X_t \text{ saute de } i \text{ en } i-1 \text{ à taux } d_i \\  
+        \end{cases}  
+    $$ 
+    On ne simule évidemment pas ce processus à partir de son générateur, mais plutôt par un tirage
+    successif des durées de séjour exponentielles et des transitions, comme dans le code ci-dessous :
+\begin{lstlisting}
+def simulMortNaissance(x,t,b,d): 
+    etat = x 
+    tps = - log(rand()) / (b[etat] + d[etat])
+    while tps < t : 
+        if rand() < b[etat] / (b[etat] + d[etat]): 
+            etat += 1
+        else : 
+            etat -= 1
+        tps += - log(rand()) / (b[etat] + d[etat])
+    return etat
+\end{lstlisting}
+\end{example}
+
+\begin{proposition}[Construction par le lemme des réveils]
+    Il existe une deuxième construction des processus de Markov, 
+    fondée sur le \emph{lemme des réveils}. 
+
+    Lorsque le processus $(X_t)$ est en état $x \in E$, 
+    on associe à chaque $y \in E \setminus \{x\}$ une variable aléatoire indépendante 
+    $T_y$ de loi exponentielle $\mathcal{E}(Q_{x,y})$.  
+    On pose alors :
+    $$
+        T = \min_{y \neq x} T_y, \qquad
+        Y = \arg\min_{y \neq x} T_y.
+    $$
+    Le processus reste dans l’état $x$ pendant une durée $T$, 
+    puis saute en l’état $Y$.
+
+    Ainsi, la durée de séjour en $x$ suit une loi exponentielle 
+    de paramètre $-Q_{x,x} = \sum_{y \neq x} Q_{x,y}$, 
+    et la probabilité de transition vérifie :
+    $$
+        \mathbb{P}(X_{t+T} = y \mid X_t = x) 
+        = -\frac{Q_{x,y}}{Q_{x,x}}.
+    $$
+\end{proposition}
+
+\begin{remark}
+    Le \emph{lemme des réveils} fournit une autre manière d’interpréter la dynamique d’un processus de Markov :
+    chaque transition potentielle est associée à une horloge exponentielle indépendante, et la première à sonner 
+    détermine le prochain saut.
+\end{remark}
+
+
+
 
 
 
