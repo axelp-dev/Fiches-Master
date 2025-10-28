@@ -3,7 +3,7 @@
 % =======================================================================================================
 % Introduction 
 
-Intéressons nous maintetant aux problèmes de programmation linéaire. Même si le nom peut prêter à confusion, 
+Intéressons nous maintenant aux problèmes de programmation linéaire. Même si le nom peut prêter à confusion, 
 il s'agit en réalité de problèmes d'optimisation d'une \emph{fonction objectif} en respectant 
 certaines \emph{contraintes}. Le caractère linéaire de tels problèmes vient du fait que 
 nous ne traiterons que des fonctions objectifs et des contraintes linéaires. 
@@ -554,7 +554,7 @@ d'en déduire que l'espace des solutions possible est un polyèdre. D'où le th�
     $i$ si le barman vent chaque cocktail $j$ pour un prix minimal de $c_j$. 
     Les variables $y_i$ représentent donc le profit que le barman réalise par litre de jus $i$. 
 
-    Voici les expressions mathémartiques de ces deux programmes :  
+    Voici les expressions mathématiques de ces deux programmes :  
 
     \begin{center}
         \begin{minipage}{0.45\textwidth}
@@ -685,13 +685,10 @@ par un exemple introductif.
             \addConstraint{x_j \in \N \quad \forall j \in \llbracket 1, n \rrbracket}
         \end{maxi*}
 
-    La \emph{relaxation linéaire} de ce programme consiste à supprimer les contraintes d’intégralité :
-    \[
-        x_j \in \R_+ \quad \forall j \in \llbracket 1, n \rrbracket
-    \]
+    La \emph{relaxation linéaire} de ce programme consiste à supprimer les contraintes de la forme : 
+        $$ x_j \in \N \quad \forall j \in \llbracket 1,n \rrbracket $$ 
     On obtient ainsi un programme linéaire classique, plus facile à résoudre. 
 \end{definition}
-
 
 \begin{example}
     Considérons le programme linéaire suivant que nous allons résoudre graphiquement :
@@ -753,9 +750,7 @@ par un exemple introductif.
 
 La méthode \emph{Branch and Bound} est une technique de résolution des programmes linéaires en nombres entiers 
 (PLNE) qui repose sur l'utilisation des relaxations linéaires pour obtenir des bornes sur la solution optimale.
-\subsection{Algorithme Branch and Bound}
-
-L'algorithme \emph{Branch and Bound} construit un arbre de recherche binaire dont la racine est le 
+Cet algorithme construit un arbre de recherche binaire dont la racine est le 
 problème initial $\Pi$. L'algorithme s'arrête lorsque tous les nœuds feuilles de l'arbre sont \emph{fathomés} 
 (c'est-à-dire qu'ils n'ont plus besoin d'être explorés).
 
@@ -793,10 +788,3 @@ problème initial $\Pi$. L'algorithme s'arrête lorsque tous les nœuds feuilles
               ne pouvant pas améliorer la meilleure solution entière connue.
     \end{itemize}
 \end{remark}
-
-
-
-
-
-
-\subsection{Techniques de modélisation}

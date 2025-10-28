@@ -40,7 +40,7 @@ Résoudre un tel problème signifie trouver $ \overline{x} \in C \subset \R^n$ t
 % ========================================================================================================
 % CNS d'optimalité dans contraintes
 
-\section{CNS d'optimalité dans contraintes}
+\section{CNS d'optimalité sans contraintes}
 
 Dans cette section, nous nous intéressons aux problèmes de la forme suivante : 
 
@@ -58,20 +58,20 @@ où $f : \R^n \longrightarrow \R$. Nous commencerons par aborder l'optimalité l
 
 \begin{theorem}[CN1 - Principe de Fermat]
     Soit $f : \R^n \longrightarrow \R$ et $ \overline{x} \in \R^n$ un minimum local de $f$. 
-    Si $f$ \emph{est différentiable} alors : 
+    Si $f$ est \emph{différentiable} alors : 
         \[ \nabla f( \overline{x} ) = 0 \]  
 \end{theorem}
 
 \begin{definition}[Matrice définie positive]
-    Soit $A \in \mathcal{M}_{n,m}(\R)$ une matrice, on dit que $A$ est \emph{définie positive} si 
-        \[ \forall x \in \R^n, x \not = 0, \quad ^t x A x > 0  \]
+    Soit $A \in \mathcal{M}_{n,n}(\R)$ une matrice symétrique, on dit que $A$ est \emph{définie positive} si 
+        \[ \forall x \in \R^n \setminus \{0\}, \quad ^t x A x > 0  \]
         \[ \iff Sp(A) \subset R_+^* \] 
     On note alors $ A \succ 0$ 
 \end{definition}
 
 \begin{definition}[Matrice semi-définie positive]
-    Soit $A \in \mathcal{M}_{n,m}(\R)$ une matrice, on dit que $A$ est \emph{semi-définie positive} si 
-        \[ \forall x \in \R^n, x \not = 0, \quad ^t x A x \geqslant 0  \]
+    Soit $A \in \mathcal{M}_{n,n}(\R)$ une matrice symétrique, on dit que $A$ est \emph{semi-définie positive} si 
+        \[ \forall x \in \R^n \setminus \{0\}, \quad ^t x A x \geqslant 0  \]
         \[ \iff Sp(A) \subset R_+ \] 
     On note alors $ A \succeq 0$ 
 \end{definition}
@@ -105,7 +105,7 @@ Passons maintenant aux conditions suffisantes d'optimalités...
         \item $ \nabla f( \overline{x}) = 0$ 
         \item $ \nabla^2 f( \overline{x}) \succeq 0 $
     \end{itemize}
-    Alors $ \overline{x}$ est un \emph{minimum local strict de $f$}. 
+    Alors $ \overline{x}$ est un \emph{minimum local de $f$}. 
 \end{theorem}
 
 Le théorème suivant nous permet de généraliser ce minimum local en minimum global. Pour cela, 
@@ -120,6 +120,26 @@ Pour cela, on utilisera la notion de convexité.
         \item Si $f$ est \emph{strictement convexe} alors $ \overline{x}$ est \emph{l'unique minimum global} de $f$. 
     \end{enumerate}
 \end{theorem}
+
+Ce résultat est fondamental : la convexité assure qu’un minimum local est automatiquement global, ce qui simplifie 
+considérablement la recherche de solutions.
+
+\begin{definition}[Fonction Coercive]
+    Une fonction $f : \R^n \longrightarrow \R$ est dite \emph{coercive} si : 
+        $$ \forall x \in \R^n \text{ tq } || x || \longrightarrow \infty \quad \text{alors} \quad f(x) \longrightarrow \infty $$ 
+    Intuitivement, cela signifie que $f$ "repousse" les points qui s’éloignent à l’infini : la fonction ne peut pas 
+    être minimisée à l’extérieur d’un compact.
+\end{definition}
+
+\begin{theorem}[Weierstrass]
+    Soit $f : \R^n \longrightarrow \R$. Si $f$ est \emph{continue} et \emph{coercive} alors elle admet un 
+    minimum global sur $\R^n$.
+        $$ \text{i.e} \quad \exists x^* \in \R^n \quad \text{ tel que } \quad f(x^*) = \inf_{x \in \R^n}f(x) $$ 
+\end{theorem}
+
+\begin{corollary}[Minimum Global]
+    Si $f$ est convexe, continue et coercive, alors $f$ admet un minimum global (unique si $f$ est strictement convexe).
+\end{corollary}
 
 % ========================================================================================================
 % Algorithmes de descente
@@ -162,6 +182,31 @@ savoir "de combien" faut-il descendre.
         \item Calculer $x_{k+1} = x_k + \alpha_k d_k $
     \end{enumerate}
 \end{proposition}
+
+Plus formellement, on a donc : 
+
+\begin{algorithm}[H]
+\caption{Algorithme de la Descente de Gradient}
+\begin{algorithmic}[1]
+\Require Fonction $f : \mathbb{R}^n \to \mathbb{R}$, point initial $x_0 \in \mathbb{R}^n$, tolérance $\varepsilon > 0$
+\Ensure Approximation $\overline{x}$ d’un minimum local de $f$
+\State $k \gets 0$
+\While{$\| \nabla f(x_k) \| > \varepsilon$}
+    \State Calculer la direction de descente :
+        \[
+            d_k \gets - \nabla f(x_k)
+        \]
+    \State Déterminer un pas $\alpha_k > 0$ qui minimise $f(x_k + \alpha_k d_k)$
+    \State Mettre à jour :
+        \[
+            x_{k+1} \gets x_k + \alpha_k d_k
+        \]
+    \State $k \gets k + 1$
+\EndWhile
+\State \Return $\overline{x} \gets x_k$
+\end{algorithmic}
+\end{algorithm}
+
 
 \subsection{Plus profonde descente}
 
@@ -438,4 +483,255 @@ où $M_k$ ou $W_k$ sont des matrices construires grâce à des \emph{formules de
 \State \Return $x^* \gets x_k$
 \end{algorithmic}
 \end{algorithm}
+
+
+
+% ========================================================================================================
+% Problèmes Quadratiques
+
+\section{Problèmes Quadratiques}
+
+Dans cette section, nous nous intéressons maintenant à des problèmes d'optimisation dits \emph{quadratiques} de la forme : 
+
+    \begin{mini*}|s|
+        {}{f(x) = \frac{1}{2} \langle x, Qx \rangle + \langle b, x \rangle + c}{}{}
+    \end{mini*}
+
+où $Q $ est symétrique définie positive, $b \in \R^n$ et $c \in \R$. On remarque tout de suite que : 
+\begin{itemize}
+    \item $f$ est continue et coercive, donc elle admet un minimum global (pas nécessairement unique). 
+    \item $f$ est strictement convexe, donc elle admet un unique minimum global $ \overline{x}$ qui vérifie $ \nabla f( \overline{x}) = Q \overline{x} + b = 0$ 
+    donc $ \overline{x} = - Q^{-1} b $ 
+    \item La solution ne dépend pas de la valeur de $c$ que nous supposerons nulle par la suite. 
+\end{itemize}
+
+\begin{proposition}
+    La première approche pour résoudre un tel problème est de simplement inverser la matrice $Q$ en résolvant le système 
+    $ Q x = b$. On peut par exemple utiliser la factorisation de Choleski de la forme $ Q = L\; ^tL$ où $L$ est 
+    triangulaire inférieure. Il nous suffit alors de résoudre deux problèmes triangulaires inférieurs : 
+        $$ Ly = -b \quad \text{et} \quad ^t L x = y $$  
+    Or inverser la matrice $Q$ ou même en trouver une factorisation de Choleski peut être très coûteux. L'objectif de la 
+    méthode des gradient conjugués est justement de trouver une telle solution sans jamais avoir à inverser $Q$. 
+
+    La descente de gradient classique progresse selon la direction du gradient, perpendiculaire 
+    aux courbes de niveau de $f$. Si la matrice $Q$ déforme l'espace (par exemple dans une 
+    vallée elliptique), cette méthode ``zigzague'' et avance lentement.  
+
+    \smallskip
+    L'idée du \emph{gradient conjugué} est d'adapter la géométrie de la descente à celle de 
+    la fonction. Plutôt que de se déplacer selon des directions simplement orthogonales, 
+    on choisit des directions dites \emph{$Q$-conjuguées}, c'est-à-dire orthogonales pour 
+    le produit scalaire défini par $Q$ : 
+    \[
+        \langle d_i, Q d_j \rangle = 0 \quad \text{si } i \neq j.
+    \]
+    Chaque direction de recherche ``corrige'' alors la solution dans une dimension nouvelle, 
+    sans défaire les progrès obtenus aux itérations précédentes.  
+
+    \smallskip
+    Ainsi, en théorie, une famille de $n$ directions $Q$-conjuguées permet d'atteindre la solution 
+    exacte en au plus $n$ étapes. La méthode exploite donc la structure quadratique du problème 
+    pour converger beaucoup plus rapidement qu'une descente de gradient classique, 
+    tout en évitant le coût d'une inversion de matrice.
+\end{proposition}
+
+\subsection{Généralités}
+
+Commençons donc par définir la notion de vecteurs conjugués. 
+
+\begin{definition}[Vecteurs conjugués]
+    Soit $d_1, \dots, d_m \in \R^n$ une famille de vecteurs. On dit qu'ils sont \emph{$Q$-conjugués} lorsque : 
+    \begin{itemize} 
+        \item $ \forall j \in \llbracket 1, m \rrbracket, d_j \not = 0 $ 
+        \item $ \forall j,k \in \llbracket 1,m \rrbracket , j \not = k , \langle d_j, Q d_k \rangle = 0 $ 
+    \end{itemize}
+\end{definition}
+
+\begin{lemma}
+    Une famille de vecteurs $Q$-conjugués est nécessairement \emph{libre}. 
+\end{lemma}
+
+Ce lemme nous assure que l'on ne peut pas construire une famille de plus de $n$ vecteurs $Q$-conjugués. On peut donc 
+construire une méthode itérative de la forme : 
+    $$ x_{k+1} = x_k + \alpha_k d_k $$ 
+avec les caractéristiques suivantes : 
+\begin{itemize} 
+    \item les directions $d_k$ forment une famille de vecteurs $Q$-conjugués (donc nous aurons au plus $n$ itérations). 
+    \item $ \alpha_k$ minimise la fonction $ \alpha \longmapsto  f(x_k + \alpha d_k)$ (possible car la fonction est quadratique)
+\end{itemize}
+
+\begin{lemma}
+    Soit $(d_0, \dots, d_{n-1})$ une famille de vecteurs $Q$-conjugués et soit $x_1, x_2, \dots$ les itérés 
+    produits par la méthode précédente. Alors pour tout $ k \in \{0, \dots, n-1\}$ le pas optimal 
+    $ \alpha_k$ est donné par : 
+        $$ \alpha_k = - \frac{ \langle d_k, \nabla f(x_k) \rangle }{ \langle d_k, Q d_k \rangle } = - \frac{ \langle d_k, Q x_k + b \rangle }{ \langle d_k, Q d_k \rangle }  $$
+\end{lemma}
+
+\begin{lemma}[Fondamental]
+    Pour tout $ k \in \{0, n-1\}$ $ \nabla f(x_k)$ est orthogonal à $ \text{vect}(d_0, d_{k-1})$. En particulier, 
+    $ \nabla f(x_n) = 0$. 
+\end{lemma}
+
+Ce lemme nous montre donc que la solution à notre problème de minimisation est atteinte en au plus $n$ itérations. 
+
+\begin{proposition}
+    Ainsi, pour tout $ k \in \{0, n-1\}$ l'itéré $x_k$ minimise $f$ sur le sous-espace affine 
+        $$ M_k = \{x_0\} + \text{vect}(d_0, \dots, d_{k-1})$$  
+\end{proposition}
+
+\subsection{Algorithme}
+
+Maintenant que nous savons comment construire une solution, il nous reste à construire une famille de 
+vecteurs $Q$-conjugués. On peut remarquer le la $Q$-conjugaison est en réalité l'orthogonalité par rapport 
+au produit scalaire $ x,y \longmapsto \langle x, Qy \rangle $. 
+Définissons donc un procédé de Gram-Schmidt généralisé. 
+
+\begin{proposition}[Procédé de Gram-Schmidt généralisé]
+    Soit $f_0, \dots, f_{m-1}$ une famille de vecteurs libres dans $\R^n$. Soit $Q \in \mathcal{M}_{n}(\R)$ une matrice 
+    symétrique définie positive. On définit la famille $d_0, \dots, d_{m-1}$ par : 
+        \begin{align*}
+            d_0 &= f_0 \\ 
+            d_k &= f_k - \sum_{j=0}^{k-1} \frac{ \langle d_j, Q f_k \rangle }{ \langle d_j, Q d_j \rangle }  \quad \forall k \in \{1, \dots, m-1\}
+        \end{align*}
+    c'est alors une base de $ \text{vect}(f_0, \dots, f_{m-1})$ constituée de vecteurs $Q$-conjugués.  
+\end{proposition}
+
+L'idée de la méthode du gradient conjugué est donc de construire successivement des directions 
+$Q$-conjuguées, de manière à minimiser $f$ sur des sous-espaces de plus en plus grands : 
+après $k$ itérations, $x_k$ est le minimiseur de $f$ sur le sous-espace affine 
+$M_k = x_0 + \mathrm{vect}(d_0, \dots, d_{k-1})$. 
+
+
+La direction initiale $d_0$ est choisie comme l'opposée du gradient initial $-y_0$, 
+puis chaque nouvelle direction est obtenue par une combinaison linéaire du nouveau gradient et de la direction précédente, 
+de façon à préserver la $Q$-conjugaison. 
+
+
+Cette construction conduit à l'algorithme suivant, qui atteint la solution exacte 
+en au plus $n$ itérations en arithmétique exacte (et converge très rapidement en pratique 
+même pour des problèmes non exactement quadratiques).
+
+
+\begin{algorithm}[H]
+\caption{Algorithme du Gradient Conjugué (GC)}
+\begin{algorithmic}[1]
+\Require $Q \in \mathbb{S}_{++}^n$, $b \in \mathbb{R}^n$, point initial $x_0 \in \mathbb{R}^n$, tolérance $\varepsilon > 0$
+\Ensure Approximation $\overline{x}$ du minimum global de $f(x) = \tfrac{1}{2} x^T Q x + b^T x$
+\State $k \gets 0$
+\State Calculer le gradient initial $y_0 \gets Q x_0 + b$
+\State Initialiser la direction $d_0 \gets - y_0$
+\While{$\| y_k \| > \varepsilon$}
+    \State Calculer le pas optimal 
+        \[
+            \alpha_k \gets - \frac{\langle d_k, y_k \rangle}{\langle d_k, Q d_k \rangle}
+        \]
+    \State Mettre à jour la position 
+        \[
+            x_{k+1} \gets x_k + \alpha_k d_k
+        \]
+    \State Calculer le nouveau gradient 
+        \[
+            y_{k+1} \gets Q x_{k+1} + b
+        \]
+    \If{$\| y_{k+1} \| \le \varepsilon$}
+        \State \Return $\overline{x} \gets x_{k+1}$ \Comment{Condition d'arrêt}
+    \EndIf
+    \State Calculer le coefficient de conjugaison
+        \[
+            \beta_{k+1} \gets \frac{\| y_{k+1} \|^2}{\| y_k \|^2}
+        \]
+    \State Mettre à jour la direction conjuguée 
+        \[
+            d_{k+1} \gets - y_{k+1} + \beta_{k+1} d_k
+        \]
+    \State $k \gets k + 1$
+\EndWhile
+\State \Return $\overline{x} \gets x_k$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+% ========================================================================================================
+% Problèmes Quadratiques
+
+\newpage
+\section{Récapitulatif}
+
+\begin{tcolorbox}[colback=gray!5!white,colframe=gray!60!black,title={\textbf{Résumé des principales méthodes de descente}}]
+
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{m{2.8cm} p{4.2cm} p{5cm}}
+        \toprule
+        \textbf{Méthode} & \textbf{Principe / Idée} & \textbf{Itération clé} \\
+        \midrule
+
+        \textbf{Descente de gradient} 
+        & Déplace $x_k$ dans la direction opposée au gradient, qui indique la plus forte pente locale de décroissance. 
+        & \[
+            \scriptsize x_{k+1} = x_k - \alpha_k \nabla f(x_k)
+          \] \\
+
+        \midrule
+
+        \textbf{Plus profonde descente} 
+        & Choisit le pas $\alpha_k$ qui minimise exactement $f(x_k + \alpha d_k)$ le long de la direction de descente. 
+        & \[
+            \scriptsize \alpha_k = \arg \min_{\alpha > 0} f(x_k + \alpha d_k)
+          \] \\
+
+        \midrule
+
+        \textbf{Recherche linéaire (conditions)} 
+        & On ne cherche pas $\alpha_k$ exact, mais on impose les conditions d’Armijo et de Wolfe pour garantir une décroissance suffisante. 
+        & \scriptsize
+        \[
+        \begin{cases}
+        f(x_k + \alpha_k d_k) \le f(x_k) + c_1 \alpha_k \langle \nabla f(x_k), d_k \rangle, \\[3pt]
+        \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle \ge c_2 \langle \nabla f(x_k), d_k \rangle
+        \end{cases}
+        \] \\
+
+        \midrule
+
+        \textbf{Méthode de Newton} 
+        & Utilise l’approximation quadratique de $f$ : ajuste la direction selon la courbure locale (Hessienne).  
+        & \[
+            \scriptsize x_{k+1} = x_k - [\nabla^2 f(x_k)]^{-1} \nabla f(x_k)
+          \] \\
+
+        \midrule
+
+        \textbf{Méthode quasi-Newton (BFGS)} 
+        & Approche itérative de Newton sans inverser la Hessienne : on met à jour une matrice $W_k \approx [\nabla^2 f(x_k)]^{-1}$. 
+        & \scriptsize
+        \[
+        \begin{cases}
+        d_k = - W_k \nabla f(x_k), \\[3pt]
+        W_{k+1} = \Big(I - \frac{s_k y_k^\top}{y_k^\top s_k}\Big)
+                W_k
+                \Big(I - \frac{y_k s_k^\top}{y_k^\top s_k}\Big)
+                + \frac{s_k s_k^\top}{y_k^\top s_k}
+        \end{cases}
+        \]
+        avec $s_k = x_{k+1} - x_k$, $y_k = \nabla f(x_{k+1}) - \nabla f(x_k)$ \\
+
+        \midrule
+
+        \textbf{Gradient conjugué} 
+        & Exploite la structure quadratique : les directions successives sont $Q$-conjuguées, permettant de converger en au plus $n$ étapes. 
+        & \scriptsize
+        \[
+        \begin{cases}
+        d_0 = -y_0, \quad y_k = Q x_k + b, \\[3pt]
+        \alpha_k = -\dfrac{\langle d_k, y_k \rangle}{\langle d_k, Q d_k \rangle}, \\[3pt]
+        \beta_{k+1} = \dfrac{\|y_{k+1}\|^2}{\|y_k\|^2}, \\[3pt]
+        d_{k+1} = -y_{k+1} + \beta_{k+1} d_k, \\[3pt]
+        x_{k+1} = x_k + \alpha_k d_k
+        \end{cases}
+        \] \\
+
+        \bottomrule
+    \end{tabular}
+\end{tcolorbox}
 
