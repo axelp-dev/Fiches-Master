@@ -1260,8 +1260,90 @@ qu'elle admette une mesure de probabilités invariante.
         \[ \sum_{y \in E} \overline{ \pi}(y) = \mathbb{E}_x( \tau_x^+) \leqslant \sum_{y \in E} \frac{ \pi(y)}{ \pi(x)}   \] 
     or $ \sum_{y \in E} \frac{ \pi(y)}{ \pi(x)} < \infty$ car $ \pi$ est finie donc : 
         \[ \forall x \in E, \quad \mathbb{E}_x( \tau_x^+) < \infty  \] 
-    i.e $x$ est récurrent positif donc la chaîne des récurrente potivite irréductible. On peut donc construire l'unique 
+    i.e $x$ est récurrent positif donc la chaîne des récurrente positive irréductible. On peut donc construire l'unique 
     mesure de probabilité invariante. 
 \end{proof}
 
 
+% ========================================================================================================
+% Ergodicité et Convergence en Loi 
+
+\section{Ergodicité et convergence en loi}
+
+\subsection{Ergodicité}
+
+On cherche ici à généraliser la loi forte des grands nombres valable pour une suite iid de 
+variables aléatoires $(Y_i)_{i \in \N}$ telles que $ \mathbb{E}(Y_1) < \infty$ telle que : 
+    \[ \frac{1}{n} \sum_{i=1}^{n} Y_i \underset{n \to \infty}{\longrightarrow} \mathbb{E}(Y_1) \quad \text{p.s}   \] 
+Le théorème suivant est son équivalent pour les chaînes de Markov. 
+
+\begin{theorem}[Birhoff - Ergodique]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible récurrente positive et $ \pi$ sa mesure invariante. 
+    Pour toute fonction $f : E \longrightarrow \R$ telle que :
+        \[ \pi (|f|) = \sum_{x \in E} |f(x)| \pi(x) < \infty \] 
+    on a : 
+        \[ \boxed{ \frac{1}{n} \sum_{i=1}^{n} f(X_i) \underset{n \to \infty}{\longrightarrow} \pi(f)} \quad \text{p.s}  \] 
+        \[ \overset{\text{def}}{\iff} \myP \left( \lim_{n \to \infty} \frac{1}{n} \sum_{i = 1}^{n} f(X_i) = \pi(f) \right) = 1  \] 
+\end{theorem}
+
+\begin{remark}
+    On traitera souvent le cas où $f = \mathbbm{1}_{x = y} $ pour $ y \in E$. On aura alors : 
+        \[ \frac{1}{n} \sum_{i=1}^{n} \mathbbm{1}_{X_i = y} \underset{n \to \infty}{\longrightarrow} \pi(y) \]
+    donc le nombre moyen de passages de $(X_n)_{n \in \N}$ en $y$ tend vers la mesure invariante en $y$. 
+    C'est très utile pour déterminer numériquement une mesure invariante. 
+\end{remark}
+
+\begin{proposition}
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov. On définit le nombre de visites de la chaîne en $y \in E$ 
+    avant le temps $n$ comme : 
+        \[ V_{y,n} = \sum_{i=0}^{n} \mathbbm{1}_{X_i = y}  \] 
+    Si $(X_n)_{n \in \N}$ est irréductible et transiante ou récurrente nulle, alors : 
+        \[ \forall y \in E, \quad  \frac{V_{y,n}}{n} \underset{n \to \infty}{\longrightarrow} 0 \]
+    Si $(X_n)_{n \in \N}$ est récurrente positive, on a : 
+        \[ \forall y \in E, \quad  \frac{V_{y,n}}{n} \underset{n \to \infty}{\longrightarrow} \pi(y) \]  
+\end{proposition}
+
+\subsection{Convergence en loi}
+
+Une conséquence du théorème ergordique est que pour $(X_n)_{n \in \N}$ irréductible récurrente positive on ait : 
+    $$ \frac{1}{n} \sum_{i=1}^{n} \mathbbm{1}_{X_i = y} \underset{n \to \infty}{\longrightarrow} \pi(y) $$ 
+d'où, en passant à l'espérance : 
+    \[ \frac{1}{n} \sum_{i=1}^{n} \myP(X_i = y) \underset{n \to \infty}{\longrightarrow} \pi(y) \] 
+On veut donc savoir sous quelles conditions on aura la convergence en loi suivante $ \lim_{n \to \infty} \myP(X_n = y) = \pi(y)$. 
+
+\begin{definition}[apériodicité]
+    Une chaîne de Markov $(X_n)_{n \in \N}$ irréductible est \emph{apériodique} si : 
+        \[ \boxed{\forall x, y \in E, \; \exists n_0 \in \N, \; \forall n \geqslant n_0, \; P^n(x,y) > 0}  \] 
+        \[ \iff \text{pgcd}( \{ n \in \N \mid P^n(x,y) > 0\}) = 1 \] 
+\end{definition}
+
+\begin{lemma}
+    Soit $(X_n)_{n \in \N}$ une chaîne irréductible. S'il existe $x_0 \in E$ et $ n \in \N$ tel que
+    $P^n(x_0, x_0) > 0$ alors la chaîne est apériodique.
+\end{lemma}
+
+\begin{proof}
+    Soient $y,z \in \E$, puisque $(X_n)_{n \in \N}$ est irréductible, il existe $r,s \in \N$ tels que 
+    $ P^r(x,y) > 0$ et $P^s(y,x) > 0$ On en déduis donc que pour $n$ suffisament grand : 
+        \[ P^{r+n+s}(y,z) \geqslant P^r(y,x) P^n(x,x) P^s(x,z) > 0 \] 
+\end{proof}
+
+\begin{theorem}[Convergence en Loi]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov irréductible et apériodique. Distinguons deux cas : 
+    \begin{enumerate}
+        \item Si $(X_n)_{n \in \N}$ est \emph{récurrente positive}, alors quelque soit la loi initial $ \pi_0$, on a : 
+            \[ \myP_{ \pi_0}(X_n = x) \underset{n \to \infty}{\longrightarrow} \pi(x) \] 
+        \emph{(i.e $X_n$ converge en loi vers $ \pi$)}. 
+        \item Si $(X_n)_{n \in \N}$ est \emph{transiante} ou \emph{récurrente nulle}, alors : 
+            \[ \myP_{ \pi_0}(X_n = x) \underset{n \to \infty}{\longrightarrow} 0 \] 
+    \end{enumerate}
+\end{theorem}
+
+\begin{remark}
+    On peut donc approcher $ \pi$ la mesure invariante de deux façons. Soit par le théorème ergodique : 
+        \[  \frac{1}{n} \sum_{i=1}^{n} \myP(X_i = y) \underset{n \to \infty}{\longrightarrow} \pi(y) \] 
+    grâce à une seule réalisation de $(X_1, \dots, X_n)$. Soit grâce au théorème de convergence en loi : 
+    pour $n$ grand, $X_n$ aura une loi proche de $ \pi(y)$. Ainsi pour $m$ réalisations de $X_n$ 
+    $(X_n^1, \dots, X_n^m)$ on aura : 
+        \[ \frac{1}{m} \sum_{i=1}^{m} \mathbbm{1}_{X_n^i = y} \underset{n \to \infty}{\longrightarrow} \pi(y) \] 
+\end{remark}

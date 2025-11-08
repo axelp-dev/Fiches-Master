@@ -1,0 +1,325 @@
+
+\minitoc
+
+
+% ========================================================================================================
+% Introduction 
+
+
+% ========================================================================================================
+% Espérances conditionnelles de variables aléatoires discrètes  
+
+\section{Espérances conditionnelles sur un espace d'états discret}
+
+\subsection{Exemple Introductif}
+
+Une entreprise souhaite effectuer un questionnaire de satisfaction en vue d'améliorer ses services. 
+Pour chaque client, le résultat du sondage peut être représenté par une variable aléaoite $X$ 
+à valeurs dans $E = \{1, \dots, 100\}$. le résultat du sondage sera la moyenne empirique des 
+réponses et il donnera une bonne estimation de $ \mathbb{E}(X)$. 
+
+Or, pour permettre de personnaliser un peu plus ses services, l'entreprise souhaite connaître 
+les caractéristiques des clients ayant donné le même score au sondage. Par exemple, elle souhaite 
+étudier les réponses moyennes des clients en fonction de leur âge, de leur sexe, etc... Par exemple 
+si $Y$ est la variable aléatoire qui représente l'âge d'un client, on souhaite obtenir la probabilité 
+qu'un client d'âge $y$ attribue la note de $x$. Ce sera donc la quantité suivante : 
+    $$ \myP(X = x \mid Y = y) = \frac{ \myP(X = x, Y = y) }{ \myP(Y = y) } $$
+que l'on appelle \emph{probabilité conditionnelle} de $x$ sachant $y$. On peut ainsi définir 
+une nouvelle mesure de probabilités appelée \emph{probabilité conditionnelle} telle que, pour $y$ 
+fixé, on ait : 
+    $$ \myP(X = \bullet \mid Y) = \frac{ \myP(X = \bullet, Y = y) }{ \myP(Y = y) } $$ 
+    $$ \sum_{x \in E} \myP(X = x \mid Y = y) = 1 $$  
+Ainsi, dans notre exemple, la note moyenne des clients d'âge $y$ sera \emph{l'espérance conditionnelle} de 
+$X$ sachant $Y = y$ définie par : 
+    $$ \mathbb{E}(X \mid Y = y) = \sum_{x \in E} x \myP(X = x \mid Y = y) $$
+On peut donc définir une fonction $h : E \longmapsto \overline{\R}$ telle que : 
+    $$ h = \mathbb{E}(X \mid Y) \quad \text{i.e} \quad \forall y \in E, h(y) = \mathbb{E}(X \mid Y = y) $$   
+À noter que $X$ et $Y$ ne sont pas nécessairement à valeurs dans le même ensemble. 
+
+\begin{example}
+    Considérons l'expérience aléatoire suivante. On lance un dé équilibré à 6 faces. Soit $y$ son résultat. 
+    On lance ensuite $y$ fois une pièce de monnaie équilibrée. On cherche à déterminer le nombre moyen de 
+    fois où on tombe sur Pile. 
+
+    Pour cela, on pose $Y$ une variable aléatoire à valeurs dans $ \llbracket 1, 6 \rrbracket $ et, conditionnellement 
+    à $\{Y = y\}$ on définit $X$ la variable aléatoire de loi $ \mathcal{B}(y,p)$ où $p$ est la probabilité de 
+    faire Pile. On a alors : 
+        $$ \forall k \in \llbracket 0, y \rrbracket , \quad \myP(X = k \mid Y = y) = \binom{k}{y} p^k (1-p)^{y-k} $$ 
+    d'où $ \mathbb{E}(X \mid Y = y) = yp$ donc $ \mathbb{E}(X \mid Y) = pY$.    
+\end{example}
+
+\begin{prop}[Composition]
+    Soient deux variables aléatoires discrètes $X$ et $Y$ on a l'égalité suivante : 
+        $$ \mathbb{E}( \mathbb{E}(X \mid Y) ) = \mathbb{E}(X) $$  
+\end{prop}
+
+\begin{proof}
+    Soient $X$ et $Y$ deux variables aléatoires respectivement à valeurs dans $E$ et $E'$. On a : 
+        \begin{align*}
+            \mathbb{E}( \mathbb{E}(X \mid Y) ) &= \sum_{y \in E'} \mathbb{E}(X \mid Y = y) \myP(Y = y) \quad \quad \text{(Théorème de transfert)} \\ 
+            &= \sum_{y \in E'} \myP(Y = y) \left( \sum_{x \in E} x \myP(X = x \mid Y = y) \right) \\ 
+            &= \sum_{y \in E} \sum_{x \in E} x \myP(X = x, Y = y) \\ 
+            &= \sum_{x \in E} \sum_{y \in E} x \myP(X = x, Y = y) \\ 
+            &= \sum_{x \in E} x \myP(X = x) \quad \quad \text{(Probabilités Totales)} \\
+            &= \mathbb{E}(X) 
+        \end{align*}
+\end{proof}
+
+\begin{proposition}
+    Pour reprendre l'exemple précédent, on se donne maintenant $y \in E'$ l'âge d'une personne et 
+    on cherche à savoir quelle réponse $x \in E$ cette personne a donnée au sondage. 
+    On souhaite donc déterminer $X$ à partir des informations fournies par $Y$. 
+    On cherche donc $h(Y)$, une variable aléatoire fonction de $Y$, qui minimise l'erreur quadratique moyenne :
+    \[
+        \inf_h \mathbb{E}\big[(X - h(Y))^2\big] 
+        = \inf_h \left\{ \mathbb{E}(X^2) - 2\,\mathbb{E}[h(Y)X] + \mathbb{E}[h(Y)^2] \right\}.
+    \]
+
+    On a, par le théorème de transfert :
+    \begin{align*}
+        \mathbb{E}\big[h(Y)\mathbb{E}(X|Y)\big] 
+        &= \sum_{y \in E'} h(y) \mathbb{E}(X \mid Y = y)\, \mathbb{P}(Y = y) \\ 
+        &= \sum_{x \in E}\sum_{y \in E'} x\,h(y)\,\mathbb{P}(X = x, Y = y) \\ 
+        &= \mathbb{E}\big[h(Y)X\big].
+    \end{align*}
+
+    On en déduit que 
+    \[
+        \mathbb{E}\big[h(Y)(X - \mathbb{E}[X|Y])\big] = 0.
+    \]
+    Cette relation peut être interprétée comme une \emph{orthogonalité} : 
+    si l’on considère le produit scalaire défini sur les variables aléatoires par 
+    \[
+        \langle U, V \rangle = \mathbb{E}[UV],
+    \]
+    alors $X - \mathbb{E}[X|Y]$ est orthogonal à toute variable aléatoire de la forme $h(Y)$. 
+    Cette interprétation sera approfondie dans la partie suivante.
+
+    Ainsi :
+    \begin{align*}
+        \inf_h \Big\{ \mathbb{E}(X^2) - 2\,\mathbb{E}[h(Y)X] + \mathbb{E}[h(Y)^2] \Big\}
+        &= \inf_h \Big\{ \mathbb{E}(X^2) - 2\,\mathbb{E}\big[h(Y)\mathbb{E}(X|Y)\big] + \mathbb{E}[h(Y)^2] \Big\} \\
+        &= \inf_h \Big\{ \mathbb{E}(X^2) - \mathbb{E}\big[\mathbb{E}(X|Y)^2\big] 
+           + \mathbb{E}\big[(h(Y) - \mathbb{E}(X|Y))^2\big] \Big\} \\
+        &= \mathbb{E}(X^2) - \mathbb{E}\big[\mathbb{E}(X|Y)^2\big]
+           + \inf_h \mathbb{E}\big[(h(Y) - \mathbb{E}(X|Y))^2\big].
+    \end{align*}
+
+    Le terme d'espérance est minimal lorsque $h(Y) = \mathbb{E}(X|Y)$, 
+    ce qui prouve que l'espérance conditionnelle est la meilleure approximation quadratique de $X$ sachant $Y$.
+\end{proposition}
+
+
+% ========================================================================================================
+% Définition de l'espérance conditionnelle
+
+\section{Définition de l'espérence conditionnelle}
+
+Cette section fait appel à beaucoup de connaissances de théorie de la mesure. 
+Des rappels peuvent s'imposer. On se place ici dans un espace de variables aléatoires 
+de carré intégrable $L^2( \Omega, \mathcal{A}, \myP )$. C'est un espace de Hilbert 
+doté d'un produit scalaire : 
+    $$ 
+        \langle ., \rangle : 
+            \begin{cases}
+                (L^2( \Omega, \mathcal{A}, \myP ))^2 \longrightarrow \R \\ 
+                (X,Y) \longmapsto \mathbb{E}(XY) 
+            \end{cases}
+    $$ 
+et muni d'une norme quadratique : 
+    $$ 
+        \| .\|_2 : 
+            \begin{cases}
+                L^2( \Omega, \mathcal{A}, \myP ) \longrightarrow \R \\ 
+                X \longmapsto \sqrt{ \mathbb{E}(X^2)}
+            \end{cases}
+    $$
+
+\subsection{Généralités}
+
+\begin{definition}[Tribu engendrée]
+    Soit $( \Omega, \mathcal{A}, \myP)$ un espace de probabilité et $X : \Omega \longrightarrow \R$ une variable 
+    aléatoire. On définit la tribu engendrée par $X$, notée $ \sigma(X)$, est la tribu engendrée par les sous-ensembles 
+    de $ \Omega$ de la forme $ \{X \leqslant a\}, \forall a \in \R$. 
+
+    \medskip 
+
+    De même, $ \sigma(X)$ contient tout les évènnement de la forme $\{X \in B\}$ avec $B \in \mathcal{B}_\R$. Plus généralement, 
+    on peut définir $ \sigma(X_1, \dots, X_n)$ pour une collection de $n$ variables aléatoire $X_1, \dots, X_n$.  
+    Intuitivement, $ \sigma(X)$ contient toute l'information associée à la variable $X$. 
+\end{definition}
+
+\begin{definition}[Variable aléatoire mesurable par rapport à $X$]
+    Soit $(\Omega, \mathcal{A}, \mathbb{P})$ un espace de probabilité et $X : \Omega \to \mathbb{R}$ une variable aléatoire. 
+    Une variable aléatoire $Z : \Omega \to \mathbb{R}$ est dite \emph{mesurable par rapport à $X$} si elle est mesurable 
+    pour la tribu $\sigma(X)$, c’est-à-dire si :
+    \[
+        \forall B \in \mathcal{B}_{\mathbb{R}}, \quad Z^{-1}(B) \in \sigma(X).
+    \]
+\end{definition}
+
+\begin{lemma}
+    Soient $Y,W$ deux variables aléatoires sur $( \Omega, \mathcal{A}, \myP)$ telles que $Y$ est à valeurs 
+    dans $ (E, \mathcal{E} )$ et $W$ dans $(R, \mathcal{B}_\R)$. $W$ est mesurable par rappport à $ \sigma(Y)$ 
+    si et seulement si il existe $f \in \mathcal{M}(E,\R) $ telle que $W = f(Y)$. 
+\end{lemma}
+
+
+\subsection{Espérance conditionnelle}
+
+Nous allons maintenant définir l'espérance conditionnelle comme une projection orthogonale.
+
+\begin{proposition}
+    Soient $X, Y \in L^2(\Omega, \mathcal{A}, \mathbb{P})$. 
+    On souhaite approcher $X$ par une variable aléatoire mesurable par rapport à $Y$. 
+    D'après le lemme précédent, toute variable aléatoire mesurable par rapport à $Y$ 
+    est de la forme $h(Y)$ avec une fonction borélienne $h : \mathbb{R} \to \mathbb{R}$.
+
+    On cherche donc à approcher $X$ à partir des variables du sous-espace :
+    \[
+        \mathcal{H} = \{\, h(Y) \mid h \in L^2(\mathbb{R}, \mathcal{B}_{\mathbb{R}}, \mathbb{P}_Y) \,\}
+        \subset L^2(\Omega, \mathcal{A}, \mathbb{P}).
+    \]
+    La variable aléatoire de $\mathcal{H}$ la plus proche de $X$ 
+    est, par définition, le \emph{projeté orthogonal} de $X$ sur $\mathcal{H}$.
+\end{proposition}
+
+\begin{definition}[Espérance conditionnelle comme projection]
+    Dans le même contexte que précédemment, 
+    l'espérance conditionnelle $\mathbb{E}(X \mid Y)$ est le \emph{projeté orthogonal} 
+    de $X$ sur le sous-espace $\mathcal{H}$ défini ci-dessus. 
+    Elle est caractérisée par la relation d’orthogonalité :
+    \[
+        \forall h(Y) \in \mathcal{H}, 
+        \quad \mathbb{E}\big[(X - \mathbb{E}(X \mid Y))\,h(Y)\big] = 0.
+    \]
+\end{definition}
+
+On peut étendre cette définition au cas $L^1$ grâce au théorème suivant.
+
+\begin{theorem}[Existence]
+    Soit $X \in L^1(\Omega, \mathcal{A}, \mathbb{P})$ et 
+    $\mathcal{F}$ une sous-tribu de $\mathcal{A}$. 
+    Alors il existe une unique variable aléatoire $Z$, 
+    mesurable par rapport à $\mathcal{F}$, telle que :
+    \begin{enumerate}
+        \item $\mathbb{E}(|Z|) < \infty$, 
+        \item pour tout $W \in L^\infty(\Omega, \mathcal{F}, \mathbb{P})$, on a
+        \[
+            \mathbb{E}(XW) = \mathbb{E}(ZW).
+        \]
+    \end{enumerate}
+    On appelle $Z$ \emph{l'espérance conditionnelle} de $X$ sachant $\mathcal{F}$ 
+    et on la note $\mathbb{E}(X \mid \mathcal{F})$.
+\end{theorem}
+
+\subsection{Pour les variables à densité}
+
+\begin{rappel}[Loi jointe et lois marginales]
+    Soit $(X,Y)$ un couple de variables aléatoires à densité de loi jointe $f_{X,Y}$. 
+    La \emph{loi marginale} de $y$ par rapport à $x$ est obtenue par : 
+        $$ f_Y(y) = \int_\R f_{X,Y}(x,y) \; dx $$ 
+    de même pour la \emph{loi marginale} de $x$ : 
+        $$ f_X(x) = \int_\R f_{X,Y}(x,y) \; dy $$
+\end{rappel}
+
+\begin{definition}[Probabilité Conditionnelle]
+    De même que pour les variables discrètes, on définit la probabilité conditionnelle de $X$ par sa densité : 
+        $$ f_{X \mid Y = y} = \frac{f_{X,Y}(x,y)}{f_Y(y)} $$
+    Ainsi pour $y \in \R$ fixé tel que  $f_Y(y) > 0$, $f_{X \mid Y = y}$ définit une densité sur $\R$ 
+    et on peut lui associer : 
+        $$ \mathbb{E}(X \mid Y = y) = \int_\R x f_{X \mid Y = y} (x) \; dx $$ 
+\end{definition}
+
+\begin{definition}[Espérance Conditionnelle (Cas continu)]
+    Soient deux variables aléatoires $X$ et $Y$ à densité de loi jointe $f_{X,Y}$. 
+    On définit l'espérance conditionnelle de $X$ par rapport à $Y$ comme la fonction : 
+        $$ h : y \longmapsto \mathbb{E}(X \mid Y = y) = \int_\R x f_{X \mid Y = y} (x) \; dx $$
+\end{definition}
+
+\begin{remark}
+    La condition d'orthogonalité du théorème précédent se vérifie de la même façon. Pour $ h : \R \longrightarrow \R$ 
+    bornée, on a : 
+        \begin{align*}
+            \mathbb{E}( \mathbb{E}( X \mid Y) h(Y)) &= \int_\R  f_Y(y) h(y) \mathbb{E}(X \mid Y = y) \; dy \\ 
+            &= \int_\R f_Y(y) h(y) \left( \int_\R x f_{X \mid Y = y}(x) \; dx \right) \; dy \\ 
+            &= \int_{\R^2} x h(y) f_{X \mid Y = y}(x) f_Y(y) \; dx dy \\ 
+            &= \int_{\R^2} x h(y) f_{X, Y}(x, y) \; dx dy \\ 
+            &= \mathbb{E}(Xh(Y)) 
+        \end{align*}
+\end{remark}
+
+% ========================================================================================================
+% Propriétés de l'espérance conditionnelle
+
+% \section{Propriétés de l'espérance conditionnelle}
+
+% \subsection{Linéarité}
+
+% Pour toutes variables aléatoires $X, Y \in L^1$ et pour tous réels $a, b \in \mathbb{R}$, on a :
+% \[
+%     \mathbb{E}(aX + bY \mid \mathcal{F}) 
+%     = a\,\mathbb{E}(X \mid \mathcal{F}) + b\,\mathbb{E}(Y \mid \mathcal{F}).
+% \]
+% Cette propriété découle directement de la linéarité de l’espérance classique et du fait que la définition
+% de $\mathbb{E}(X \mid \mathcal{F})$ repose sur des égalités d’espérance vis-à-vis de variables mesurables
+% par rapport à $\mathcal{F}$.
+
+% \subsection{Monotonicité}
+
+% Si $X, Y \in L^1$ et $X \leq Y$ presque sûrement, alors :
+% \[
+%     \mathbb{E}(X \mid \mathcal{F}) \leq \mathbb{E}(Y \mid \mathcal{F}) \quad \text{p.s.}
+% \]
+% Cette propriété est une conséquence du théorème de la convergence monotone et de la positivité de l'espérance.
+
+% \subsection{Caractère de projection}
+
+% Si $X$ est $\mathcal{F}$-mesurable, alors :
+% \[
+%     \mathbb{E}(X \mid \mathcal{F}) = X.
+% \]
+% Autrement dit, conditionner une variable déjà déterminée par $\mathcal{F}$ ne modifie pas sa valeur.
+
+% De plus, si $\mathcal{F}_1 \subset \mathcal{F}_2$, on a :
+% \[
+%     \mathbb{E}(\mathbb{E}(X \mid \mathcal{F}_2) \mid \mathcal{F}_1)
+%     = \mathbb{E}(X \mid \mathcal{F}_1),
+% \]
+% ce qu’on appelle la \emph{propriété de la tour}.
+
+% \subsection{Indépendance}
+
+% Si $X$ est indépendante de $\mathcal{F}$, alors :
+% \[
+%     \mathbb{E}(X \mid \mathcal{F}) = \mathbb{E}(X).
+% \]
+% En effet, les informations contenues dans $\mathcal{F}$ n’apportent aucune connaissance supplémentaire sur $X$.
+
+% \subsection{Inégalité de Jensen}
+
+% Si $\varphi : \mathbb{R} \to \mathbb{R}$ est une fonction convexe et $X \in L^1$, alors :
+% \[
+%     \varphi\big(\mathbb{E}(X \mid \mathcal{F})\big)
+%     \leq \mathbb{E}\big(\varphi(X) \mid \mathcal{F}\big)
+%     \quad \text{p.s.}
+% \]
+% Cette propriété généralise l’inégalité de Jensen classique au cadre conditionnel.
+
+% \subsection{Cas particulier : conditionnement par une variable aléatoire}
+
+% Lorsque $\mathcal{F} = \sigma(Y)$, toutes les propriétés précédentes s’écrivent avec la notation abrégée
+% $\mathbb{E}(X \mid Y)$, par exemple :
+% \[
+%     \mathbb{E}(\mathbb{E}(X \mid Y)) = \mathbb{E}(X),
+%     \quad \text{et} \quad
+%     \mathbb{E}(Xh(Y)) = \mathbb{E}(\mathbb{E}(X \mid Y)h(Y)).
+% \]
+
+% \begin{remark}
+%     La dernière égalité correspond précisément à la relation d’orthogonalité démontrée plus haut :
+%     \[
+%         \mathbb{E}\big[(X - \mathbb{E}(X \mid Y))\,h(Y)\big] = 0,
+%     \]
+%     pour toute fonction bornée $h : \mathbb{R} \to \mathbb{R}$.
+% \end{remark}
