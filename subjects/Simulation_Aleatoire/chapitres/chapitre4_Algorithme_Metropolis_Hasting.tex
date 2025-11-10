@@ -4,24 +4,31 @@
 % Introduction 
 
 L'algorithme de Metropolis-Hasting est une procédure permettant de transformer une chaîne de Markov par le rejet 
-sélectof de certains de ses pas en une nouvelle chaîne admettant une mesure invariante fixée. 
+sélectif de certains de ses pas en une nouvelle chaîne admettant une mesure invariante fixée. 
 
-\begin{proposition}[Algorithme] 
-    Soit $(X_n)_{n \in \N}$ une chaîne de Markov définie à partir d'une application 
-    $f : E \times [0,1] \longrightarrow E$ telle que pour tout $n \in \N$, on ait : 
-        $$ X_0 \in E, \quad \text{et} \quad X_{n+1} = f(X_n, U_{n+1}) $$ 
-    où $(U_n)_{n \geqslant 1}$ est une suite de var idd de loi $ \mathcal{U}([0,1]) $. 
-    
-    Soit $(V_n)_{n \in \N}$ une suite de var iid indépendante de $(X_n)_{n \in \N}$ et de loi $ \mathcal{U}([0,1])$. 
-    Soit $ \pi$ une mesure invariante cible. On définit la chaîne de Markov $(Y_n)_{n \in \N}$ par : 
-        $$ Y_{n+1} = 
-            \begin{cases} 
-                f(Y_n, U_{n+1}) \quad \text{si} \quad V_n < \frac{ \pi(y) Q(y,x)}{ \pi(x)Q(x,y)} \\ 
-                Y_n \quad \text{sinon} 
-            \end{cases} $$ 
-    où $x = Y_n$ désigne l'état courant de la nouvelle chaîne au temps $n$ et $y = f(Y_n, U_{n+1})$ 
-    est le nouvel état candidat au temps $n+1$ et : 
-        $$ \forall x \in E, \quad Q(x, A) = \myP(f(x,U) \in A \mid Y_n = x) $$ 
+\begin{proposition}[Algorithme de Metropolis-Hastings]
+    Soit $(U_n)_{n \ge 1}$ et $(V_n)_{n \ge 0}$ deux suites de variables aléatoires indépendantes et identiquement distribuées,  
+    telles que $U_n \sim \mathcal{U}([0,1])$ et $V_n \sim \mathcal{U}([0,1])$.  
+
+    Soit $f : E \times [0,1] \longrightarrow E$ une fonction qui génère un candidat $y = f(x,U)$ à partir d'un état $x \in E$ et d'une variable uniforme $U$.  
+
+    On définit la chaîne $(Y_n)_{n \ge 0}$ de Metropolis-Hastings par :
+        \[
+            Y_0 \in E, \quad
+            Y_{n+1} =
+            \begin{cases}
+                y = f(Y_n, U_{n+1}), & \text{si } V_n < \alpha(Y_n, y), \\
+                Y_n, & \text{sinon},
+            \end{cases}
+        \]
+    où la probabilité d'acceptation est
+        \[
+            \alpha(x,y) = \min\left(1, \frac{\pi(y) Q(y,x)}{\pi(x) Q(x,y)}\right)
+        \]
+    et
+        \[
+            Q(x,A) = \mathbb{P}(f(x,U) \in A), \quad A \subset E.
+        \]
 \end{proposition}
 
 
@@ -117,8 +124,102 @@ def algoMetHast(x):
         $$ P(x,x+1) = \frac{1}{2} \min \left( 1, \frac{ \pi(x+1)}{ \pi(x)}  \right) \quad \text{et} \quad P(x, x-1) = \frac{1}{2} \min \left(1, \frac{ \pi(x-1)}{ \pi(x)} \right) $$
 \end{example}
 
-\begin{prop}
-    Si $Q$ est irréductible et 
-        $$ \forallQ(x,y) > 0 \iff Q(y,x) > 0 $$ 
-    et $ \pi(x) > 0$ 
+\begin{prop}[Irréductibilité et apériodicité]
+    Soit $Q$ une matrice de transition irréductible sur un espace d'états $E$ tel que
+        $$ \forall x, y \in E, \quad Q(x,y) > 0 \iff Q(y,x) > 0, $$
+    et soit $\pi$ une distribution cible strictement positive sur $E$.  
+    Soit $P$ la matrice de transition de la chaîne de Markov construite par l'algorithme de Metropolis-Hastings à partir de $Q$ et $\pi$.  
+
+    Alors :
+        \begin{enumerate}[label=\roman*)]
+            \item La chaîne de transition $P$ est irréductible.
+            \item Si $P(x,x) > 0$ pour au moins un $x \in E$, alors $P$ est apériodique.
+        \end{enumerate}
 \end{prop}
+
+\begin{proof}
+    \begin{enumerate}[label=\roman*)]
+        \item \textbf{Irréductibilité.}  
+            Soient $x, y \in E$. Comme $Q$ est irréductible, il existe un chemin fini
+            $$ x = z_1, z_2, \dots, z_k = y \in E $$
+            tel que $Q(z_i, z_{i+1}) > 0$ pour tout $i = 1, \dots, k-1$.  
+            Or par définition de Metropolis-Hastings :
+            $$ P(z_i, z_{i+1}) = Q(z_i, z_{i+1}) \min \left( 1, \frac{\pi(z_{i+1}) Q(z_{i+1}, z_i)}{\pi(z_i) Q(z_i, z_{i+1})} \right) > 0, $$
+            donc $z_1, \dots, z_k$ constitue un chemin admissible pour $P$. Ainsi, $P$ est irréductible.
+            
+        \item \textbf{Apériodicité.}  
+            Pour tout état $x \in E$, la probabilité de rester en $x$ est
+            $$ P(x,x) = 1 - \sum_{y \neq x} P(x,y) \ge 0. $$
+            Si $P(x,x) > 0$ pour au moins un $x$, alors la chaîne peut rester en $x$ avec une probabilité strictement positive, ce qui assure l'apériodicité de $P$.
+    \end{enumerate}
+\end{proof}
+
+\begin{remark}[Cas des chaînes symétriques]
+    Si $Q$ est une matrice symétrique. 
+        $$ \text{i.e} \quad \forall x, y \in E, \quad Q(x,y) = Q(y,x) $$ 
+    et si elle est irréductible, alors l'algorithme de Metropolis-Hasting s'exprime de façon 
+    simplifiée : 
+        $$ P(x,y) = Q(x,y) \min \left(1, \frac{ \pi(y)}{ \pi(x)}\right) \quad \forall x,y \in E $$ 
+    et : 
+        $$ P(x,y) = 1 -  \sum_{z \neq x} P(x,z) \quad \text{si } x = y $$   
+    Dans ce cas, la probabilité d'acceptation de la transition $ x \to y$ est $ 1 - \min \left(1, \pi(y) / \pi(x)\right)$. 
+\end{remark}
+
+
+% ========================================================================================================
+% Cas d'un espace d'états continu 
+
+\section{Cas d'un espace d'états continu}
+
+\begin{proposition}
+    Dans le cas où $E$ est un espace continu, tout fonctionne de manière analogue.  
+    On note $Q(x,y)$ la densité de la variable $X_1$ sachant $X_0 = x$. Alors :
+        \[
+            \mathbb{E}(\varphi(X_1) \mid X_0 = x) = \int_E \varphi(y) Q(x,y) \, dy, \quad \forall \varphi \text{ mesurable}.
+        \]
+
+    Pour tout petit intervalle $[y, y+\Delta_y]$, on a :
+        \[
+            \myP(X_1 \in [y, y+\Delta_y] \mid X_0 = x) \simeq Q(x,y) \Delta_y.
+        \]
+
+    On note $\pi(x)$ la densité de la mesure cible et on définit la transition de la chaîne $(Y_n)_{n \in \N}$ par :
+        \[
+            P(x,dy) = Q(x,y) \min\left(1, \frac{\pi(y) Q(y,x)}{\pi(x) Q(x,y)}\right) dy
+            + \left[1 - \int_E Q(x,y) \min\left(1, \frac{\pi(y) Q(y,x)}{\pi(x) Q(x,y)}\right) dy \right] \delta_x(dy),
+        \]
+    où $\delta_x$ est la mesure de Dirac en $x$.  
+    On a alors :
+        \[
+            \int_E P(x,dy) = 1.
+        \]
+    L'algorithme reste lui aussi inchangé. On génère $y = X_1$ à, partir de la chaîne $Q$. On accepte la transition 
+    avec probabilité $\frac{\pi(y) Q(y,x)}{\pi(x) Q(x,y)}$. Si on refuse la transition, on reste sur place. 
+    À nouveau, la chaîne de Markov sera, sous de bonnes hypothèses, irréductible et la mesure $ \pi$ sera réversible 
+    pour cette chaîne. 
+\end{proposition}
+
+\begin{example}[Marche aléatoire à pas gaussiens]
+    Soit $(Z_n)_{n \in \N}$ une suite de variables iid de loi $ \mathcal{N}(0,1)$. On définit 
+    le processus $(X_n)_{n \in \N}$ par : 
+        $$ X_0 \in \R, \quad \forall n \geqslant 1, X_{n+1} = X_n + Z_{n+1} $$ 
+    On aura donc : 
+        $$ \forall x,y \in \R, \quad Q(x,y) = \frac{1}{\sqrt{2 \pi}} \exp \left( - \frac{(y-x)^2}{2}\right) $$ 
+    Donc si $ \pi$ est une densité cible quelconque, alors : 
+        $$ \frac{\pi(y) Q(y,x)}{\pi(x) Q(x,y)} = \frac{ \pi(y)}{ \pi(x)} \quad \text{car} \quad Q(x,y) = Q(x,y) $$ 
+    On peut alors définir la nouvelle chaîne $(Y_n)_{n \in \N}$ par : 
+        $$ \forall n \in \N, Y_{n+1} = Y_n + Z_{n+1} \mathbbm{1}_{ \frac{ \pi(Y_n + Z_{n+1})}{ \pi(Y_n)} < V_{n+1}} $$ 
+    avec $(V_n)_{n \in \N}$ une suite idd de variables de loi $ \mathcal{U}([0,1])$. Cette nouvelle 
+    chaîne de Markov admet alors $ \pi$ pour mesure invariante, réversible et ergodique. 
+    De plus : 
+        $$ Y_n \overset{\text{L}}{ \underset{n \to \infty}{\longrightarrow} } \pi $$ 
+\end{example}
+
+L'algorithme de Metropolis-Hasting permet donc d'approcher n'importe quelle densité sur $\R$. 
+Or il peut être très lent dans certains cas. 
+
+% ========================================================================================================
+% Mesures de Gibbs 
+
+\section{Mesures de Gibbs}
+
