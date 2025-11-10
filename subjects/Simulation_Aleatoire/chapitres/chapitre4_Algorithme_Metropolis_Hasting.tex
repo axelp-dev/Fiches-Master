@@ -1,0 +1,124 @@
+\minitoc 
+
+% ========================================================================================================
+% Introduction 
+
+L'algorithme de Metropolis-Hasting est une procédure permettant de transformer une chaîne de Markov par le rejet 
+sélectof de certains de ses pas en une nouvelle chaîne admettant une mesure invariante fixée. 
+
+\begin{proposition}[Algorithme] 
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov définie à partir d'une application 
+    $f : E \times [0,1] \longrightarrow E$ telle que pour tout $n \in \N$, on ait : 
+        $$ X_0 \in E, \quad \text{et} \quad X_{n+1} = f(X_n, U_{n+1}) $$ 
+    où $(U_n)_{n \geqslant 1}$ est une suite de var idd de loi $ \mathcal{U}([0,1]) $. 
+    
+    Soit $(V_n)_{n \in \N}$ une suite de var iid indépendante de $(X_n)_{n \in \N}$ et de loi $ \mathcal{U}([0,1])$. 
+    Soit $ \pi$ une mesure invariante cible. On définit la chaîne de Markov $(Y_n)_{n \in \N}$ par : 
+        $$ Y_{n+1} = 
+            \begin{cases} 
+                f(Y_n, U_{n+1}) \quad \text{si} \quad V_n < \frac{ \pi(y) Q(y,x)}{ \pi(x)Q(x,y)} \\ 
+                Y_n \quad \text{sinon} 
+            \end{cases} $$ 
+    où $x = Y_n$ désigne l'état courant de la nouvelle chaîne au temps $n$ et $y = f(Y_n, U_{n+1})$ 
+    est le nouvel état candidat au temps $n+1$ et : 
+        $$ \forall x \in E, \quad Q(x, A) = \myP(f(x,U) \in A \mid Y_n = x) $$ 
+\end{proposition}
+
+
+% ========================================================================================================
+% Cas d'un espace d'états fini 
+
+\section{Cas d'un espace d'états fini}
+
+\begin{proposition}[Matrice de transition]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov sur un espace d'états fini $E$. On note : 
+        $$ \forall x,y \in E, \quad Q(x,y) = \myP(X_1 = y \mid X_0 = x) $$
+    Supposons que $(X_n)_{n \in \N}$ est irréductible. Alors l'algorithme de Metropolis-Hasting 
+    transforme la chaîne $(X_n)_{n \in \N}$ en une chaîne $(Y_n)_{n \in \N}$ de matrice de transition : 
+        $$ P(x,y) = 
+            \begin{cases}
+                Q(x,y) \times \min \left( 1, \frac{ \pi(y) Q(y,x)}{ \pi(x) Q(x,y)} \right) \quad \text{si} \quad n \not = y \\ 
+                1 - \sum_{z \not = x} P(x,z) \quad \text{si} \quad x = y  
+            \end{cases}
+        $$ 
+\end{proposition}
+
+\begin{proof}
+    Soient $x,y \in E$ tels que $x \not = y$. Calculons $ \myP(Y_1 = y \mid Y_0 = x)$. On a : 
+        \begin{align*}
+            \myP( Y_1 = y \mid Y_0 = x) &= \myP_x \left( f(x,U_1) = y, V_1 < \frac{ \pi(y) Q(y,x)}{ \pi(x) Q(x,y)} \right)  \\
+            &= \myP_x(X_1 = y) \myP \left( V_1 < \frac{ \pi(y) Q(y,x)}{ \pi(x) Q(x,y)}\right) \\
+            &= Q(x,y) \min \left( 1, \frac{ \pi(y) Q(y,x)}{ \pi(x) Q(x,y)} \right)
+        \end{align*} 
+    De même : 
+        \begin{align*}
+            \myP(Y_1 = \mid Y_0 = x) &= 1 - \sum_{y \not = x} \myP(Y_1 = y \mid Y_0 = x) \\
+            &= 1 - \sum_{y \not = x} P(x,y)
+        \end{align*}
+\end{proof}
+
+\begin{proposition}
+    Si pour tout $x,y \in E$, on a : 
+        $$ Q(x,y) > 0 \iff Q(y,x) > 0 $$ 
+    alors la mesure $ \pi$ est réversible pour la chaîne $(Y_n)_{n \in \N}$. 
+\end{proposition}
+
+\begin{proof}
+    Soient $X,y \in E$. On souhaite vérifier que : 
+        $$ \pi(x)P(x,y) = \pi(y)P(y,x) $$ 
+    Distinguons deux cas : 
+    \begin{itemize}
+        \item \underline{si $x = y$} alors on a évidement $\pi(x)P(x,x) = \pi(x)P(x,x)$. 
+        \item \underline{si $x \not = y$} alors : 
+            $$ \pi(x) P(x,y) = \pi(x) Q(x,y) \min \left(1, \frac{ \pi(y) Q(y,x)}{ \pi(x) Q(x,y)}  \right) $$ 
+        de même : 
+            $$ \pi(y) P(y,x) = \pi(y) Q(y,x) \min \left(1, \frac{ \pi(x) Q(x,y)}{ \pi(y) Q(y,x)}  \right) $$ 
+        Supposons que $  \pi(x) Q(x,y) \leqslant \pi(y) Q(y,x)$ alors : 
+            $$ \pi(x)P(x,y) = \pi(x) Q(x,y) $$ 
+        et 
+            \begin{align*}
+                \pi(y) P(y,x) &= \pi(y) Q(y,x) \frac{ \pi(x) Q(x,y)}{ \pi(y) Q(y,x)} \\ 
+                &= \pi(x) P(x,y) 
+            \end{align*}
+        Si $ \pi(x) Q(x,y) > \pi(y) Q(y,x) $, le raisonnement est le même.
+    \end{itemize}
+\end{proof}
+
+\begin{example}
+    Soit $(X_n)_{n \in \N}$ la marche aléatoire simple sur $\Z$. Soit $ \pi$ une mesure de probabilité sur $ \Z$. 
+    On cherche à construire une chaîne de Markov $(Y_n)_{n \in \N}$ sur $\Z$ avec l'algorithme de Metropolis-Hasting 
+    de mesure réversible $ \pi$. On a donc les algorithmes suivants : 
+
+    \begin{center}
+        \begin{minipage}{0.45\textwidth}
+            \begin{lstlisting}[language=Python]
+def etapeMa(x): 
+    if rand() < 1/2: 
+        return x+1
+    return x-1
+            \end{lstlisting}
+        \end{minipage}
+        \hfill 
+        \begin{minipage}{0.45\textwidth}
+            \begin{lstlisting}[language=Python]
+def algoMetHast(x): 
+    y = etapeMa(x)
+    if rand() < pi(y) * (1/2) / pi(x) * (1/2): 
+        return y 
+    return x
+            \end{lstlisting}
+        \end{minipage}
+    \end{center}
+
+    On a donc : 
+        $$ Q(x,x+1) = Q(x,x-1) = \frac{1}{2} $$ 
+        $$ \forall x,y \in E, \; |x-y| \not = 1, \quad Q(x,y) = 0 $$ 
+    Et : 
+        $$ P(x,x+1) = \frac{1}{2} \min \left( 1, \frac{ \pi(x+1)}{ \pi(x)}  \right) \quad \text{et} \quad P(x, x-1) = \frac{1}{2} \min \left(1, \frac{ \pi(x-1)}{ \pi(x)} \right) $$
+\end{example}
+
+\begin{prop}
+    Si $Q$ est irréductible et 
+        $$ \forallQ(x,y) > 0 \iff Q(y,x) > 0 $$ 
+    et $ \pi(x) > 0$ 
+\end{prop}

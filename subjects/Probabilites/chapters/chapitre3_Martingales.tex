@@ -1,0 +1,51 @@
+
+\minitoc
+
+% ========================================================================================================
+% Introduction 
+
+Nous définissons dans ce chapitre un nouveau type de processus aléatoires plus théorique 
+que les chaînes de Markov. Ce sera un outil mathématique du fait de ses bonnes 
+propriétés de convergence. Nous appelerons ces processus des Martingales dont l'espérance 
+conditionnelle par rapport au passé restera constante. 
+
+\medskip 
+
+Dans tout ce chapitre, nous considérerons des processus aléatoires à valeurs dans $\R$. 
+
+% ========================================================================================================
+% Généralités
+
+\section{Généralités}
+
+\begin{definition}[Martingale]
+    Soit $( \Omega, \mathcal{A}, \mathcal{F}, \myP)$ un espace de probabilité filtré 
+    et $(X_n)_{n \in \N}$ un processus aléatoire intégrable. On dira que $(X_n)_{n \in \N}$ est 
+    \begin{enumerate}[label=\roman*)]
+        \item une \emph{martingale} par rapport à $ (\mathcal{F}_n)_{n \in \N}$ si : 
+            $$ \forall n \geqslant 1, \quad \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) = X_{n-1} $$
+        \item une \emph{sur-martingale} par rapport à $ (\mathcal{F}_n)_{n \in \N}$ si : 
+            $$ \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) \leqslant X_{n-1} $$
+        \item une \emph{sous-martingale} par rapport à $ (\mathcal{F}_n)_{n \in \N}$ si : 
+            $$ \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) \geqslant X_{n-1} $$
+    \end{enumerate}
+\end{definition}
+
+\begin{example}[Marche aléatoire simple]
+    Soit $( \varepsilon_n)_{n \in \N}$ une suite indépendantes de variables aléatoires 
+    à valeurs dans $(E, \mathcal{E})$ telles que $ \mathbb{E}( \varepsilon_n) = 0$ pour tout $n$. 
+    On définit une marche aléatoire sur $E$ comme la suite $(S_n)_{n \in \N}$ telle que : 
+        $$ S_0 = 0 \quad \forall n \geqslant 1, \; S_n = \sum_{k=1}^{n} \varepsilon_k $$ 
+    $(S_n)_(n \in \N)$ est une martingale pour la filtration $ \mathcal{F}_n = \sigma( \varepsilon_1, \dots, \varepsilon_n)$. 
+    En effet, on a : 
+        \begin{align*}
+            \mathbb{E}(S_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}(S_n + \mathcal{E}_{n+1} \mid \mathcal{F}_n) \\ 
+            &= \mathbb{E}(S_n \mid \mathcal{F}_n) + \mathbb{E}( \varepsilon_{n+1} \mid \mathcal{F}_n) 
+        \end{align*}
+    Or $ \varepsilon_{n+1} \perp \varepsilon_0, \dots, \varepsilon_n$ donc : 
+        $$ \mathbb{E}( S_n \mid \mathcal{F}_n) = \mathbb{E}(S_n) = S_n $$ 
+    c'est donc bien une martingale par définition. On peut remarquer que si $ \mathbb{E}(S_n) \geqslant 0$, alors 
+    $(S_n)_{n \in \N}$ est une sous-martingale. 
+\end{example}
+
+

@@ -1,10 +1,13 @@
 
 \minitoc
 
-
 % ========================================================================================================
 % Introduction 
 
+Dans ce court chapitre nous allons nous attarder sur la notion d'espérance. 
+Jusqu'ici, ce n'était qu'un outil pour décrire la tendance d'une série 
+de réalisations d'une variable aléatoire. Nous allons ici nous permettre de la conditionner 
+pour en déduire des informations sur notre variable de départ. 
 
 % ========================================================================================================
 % Espérances conditionnelles de variables aléatoires discrètes  
@@ -202,7 +205,7 @@ On peut étendre cette définition au cas $L^1$ grâce au théorème suivant.
     $\mathcal{F}$ une sous-tribu de $\mathcal{A}$. 
     Alors il existe une unique variable aléatoire $Z$, 
     mesurable par rapport à $\mathcal{F}$, telle que :
-    \begin{enumerate}
+    \begin{enumerate}[label=\roman*)]
         \item $\mathbb{E}(|Z|) < \infty$, 
         \item pour tout $W \in L^\infty(\Omega, \mathcal{F}, \mathbb{P})$, on a
         \[
@@ -252,7 +255,73 @@ On peut étendre cette définition au cas $L^1$ grâce au théorème suivant.
 % ========================================================================================================
 % Propriétés de l'espérance conditionnelle
 
-% \section{Propriétés de l'espérance conditionnelle}
+\section{Propriétés de l'espérance conditionnelle}
+
+Voyons à présent quelques propriétés de l'espérance conditionnelle. 
+Soit $( \Omega, \mathcal{A}, \myP)$ un espace de probabilités. 
+
+\begin{prop}[Calcul]
+    Soit $ \mathcal{F}$ une sous-tribu de $ \mathcal{A}$ et $X \in L^1( \mathcal{A}, \myP)$ une variable aléatoire. 
+    On a : 
+    \begin{enumerate}[label=\roman*)]
+        \item $\mathbb{E}( \bullet \mid \mathcal{F} ) $ est \emph{linéaire}. 
+        \item si $X \geqslant 0$ alors $ \mathbb{E}(X \mid \mathcal{F} ) \geqslant 0$ {presque sûrement}. 
+        \item si $X$ est $ \mathcal{F}$-mesurable alors $ \mathbb{E}(X \mid \mathcal{F} ) = X $ {presque sûrement}. 
+    \end{enumerate}  
+\end{prop}
+
+\begin{prop}[Indépendance]
+    Si $X$ est \emph{indépendante} de $ \mathcal{F}$ alors : 
+        $$ \mathbb{E}(X \mid \mathcal{F} ) = \mathbb{E}(X) $$   
+\end{prop}
+
+\begin{remark}
+    Soit $Y,X$ deux variables aléatoires sur $( \Omega, \mathcal{A}, \myP)$. 
+    On pose $ \mathcal{F} = \sigma(Y)$. Dire que $X$ \emph{est indépendante de} $ \mathcal{F} $
+    revient à dire que $X$ est indépendante de $Y$. On aura alors : 
+        $$ \mathbb{E}(X h(Y)) \overset{\perp}{=} \mathbb{E}(X) \mathbb{E}(h(Y)) = \mathbb{E}( \mathbb{E}(X) h(Y) ) $$    
+\end{remark}
+
+Les théorèmes de convergence (monotone et dominée) de l'intégration sont toujours valables pour l'espérance 
+conditionnelle. 
+
+\begin{theorem}[Convergence Monotone]
+    Soit $(X_n)_{n \in \N}$ une suite de variables aléatoires et $X$ dans $L^1( \mathcal{A}, \myP)$. 
+    Si $X_n \underset{n \to \infty}{\longrightarrow} X$ p.s en croissant, alors : 
+        $$ \boxed{\lim_{n \to \infty} \mathbb{E}(X_n \mid \mathcal{F}) = \mathbb{E}(X \mid \mathcal{F} )} \quad \text{p.s}  $$
+\end{theorem}
+
+\begin{theorem}[Convergence Dominée]
+    Soit $(X_n)_{n \in \N}$ une suite de variables aléatoires et $X$ dans $L^1( \mathcal{A}, \myP)$. 
+        $$ X_n \underset{n \to \infty}{\longrightarrow} X \; \text{p.s} \quad \text{{et}} \quad  \sup_n |X_n| \leqslant w \in L^1 $$ 
+        $$ \Longrightarrow \mathbb{E}(X_n \mid \mathcal{F} ) \underset{n \to \infty}{\longrightarrow} \mathbb{E}(X \mid \mathcal{F} ) $$
+\end{theorem}
+
+\begin{theorem}[Inégalité de Jensen]
+    Soit $g : \R \longrightarrow \R$ une fonction \emph{convexe} et $X \in L^1( \mathcal{A}, \myP)$. Alors : 
+        $$ \mathbb{E}(g(X) \mid \mathcal{F} ) \geqslant g( \mathbb{E}(X \mid \mathcal{F} ) ) $$ 
+\end{theorem}
+
+\begin{proposition}
+    Soient $X \in L^1( \mathcal{A}, \myP)$ et $ \mathcal{F}, \mathcal{G} $ deux sous-tribus de 
+    $ \mathcal{A}$. Alors : 
+    \begin{enumerate}[label={\roman*)}]
+        \item Si $ \mathcal{F} \subset \mathcal{G}$ (i.e $ \mathcal{G}$ contient plus d'informations 
+            que $ \mathcal{F}$) alors : 
+                $$ \mathbb{E}( \mathbb{E}(X \mid \mathcal{G} ) \mid \mathcal{F} ) = \mathbb{E}(X \mid \mathcal{F} )  $$
+            \emph{(Puisque $ \mathcal{F}$ contient moins d'information que $ \mathcal{G}$, projeter $X$ sur 
+            $ \mathcal{G}$ puis sur $ \mathcal{F}$ revient directement à projeter $X$ sur $ \mathcal{F}$)}. 
+        \item Si $ \mathcal{F}$ est indépendante de $ \mathcal{G}$ et $X \perp \mathcal{G}$, alors : 
+            $$ \mathbb{E}(X \mid \sigma( \mathcal{F}, \mathcal{G})) = \mathbb{E}(X \mid \mathcal{F}) $$ 
+        \emph{(Rajouter une information $ \mathcal{G}$ qui n'a rien à voir avec l'expérience ne permet pas 
+        d'améliorer la prédiction $ \mathbb{E}(X \mid \mathcal{F}))$}. 
+    \item Soit $Y$ une variable aléatoire mesurable par rapport à $ \mathcal{F}$ et que 
+        $ XY \in L^1( \mathcal{A}, \myP)$, alors : 
+            $$ \mathbb{E}(XY \mid \mathcal{F}) = Y \mathbb{E}(X \mid \mathcal{F}) $$
+        \emph{(Si $Y$ ne dépend que de l'information contenue dans $ \mathcal{F}$, alors 
+        sa meilleure estimation $ \mathbb{E}(Y \mid \mathcal{F})$ est elle-même.)}
+    \end{enumerate} 
+\end{proposition}
 
 % \subsection{Linéarité}
 
@@ -323,3 +392,83 @@ On peut étendre cette définition au cas $L^1$ grâce au théorème suivant.
 %     \]
 %     pour toute fonction bornée $h : \mathbb{R} \to \mathbb{R}$.
 % \end{remark}
+
+
+% ========================================================================================================
+% Processus Aléatoires
+
+\section{Processus aléatoires - Filtrations}
+
+Les seuls processus que nous avons vu jusqu'à présent sont des suites de variables aléatoires 
+indexées par le temps tels que les chaînes de Markov. 
+Nous allons ici essayer de généraliser cette notion en introduisant la notion de \emph{filtration}. 
+
+\begin{definition}[Filtration]
+    Soit $( \Omega, \mathcal{A}, \myP)$ un espace probabilisé. Une \emph{filtration} de cet espace 
+    est une suite \emph{croissante} de tribus $ ( \mathcal{F}_n)_{n \in \N}$ telles que : 
+        $$ \mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots \subset \mathcal{A} $$ 
+    Une filtration d'un processus sera donc l'information disponible jusqu'au temps $n$ 
+    de ce processus. Sa croissance vient du fait que le processus accumule de l'information 
+    au cours de son évolution. 
+
+    \medskip
+
+    On parlera ainsi d'espace de probabilité filtré, noté $ ( \Omega, \mathcal{A}, \mathcal{F}, \myP)$. 
+\end{definition}
+
+Dans le cadre précédent de l'études des chaînes de Markov, nous avons étudié des suites $(X_n)_{n \in \N}$ 
+à valeurs dans $ (\R, \mathcal{B}_\R)$. On se concentrera donc sur l'étude des filtrations de cet espace mesurable. 
+
+Nous pouvons bien sûr réexprimer les chaînes de Markov à l'aide des filtrations en définissant la notion de 
+\emph{filtration naturelle} d'une chaîne de Markov. 
+
+\begin{definition}[Filtration Naturelle]
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov sur $( \Omega, \mathcal{A}, \myP)$ valeurs dans $(E, \mathcal{E})$. Sa filtration naturelle est 
+    la suite croissante de sous-tribus $ \mathcal{F}_n$  de $ \mathcal{A}$ telles que : 
+        $$ \forall n \in \N, \quad \mathcal{F}_n = \sigma(X_0, \dots, X_n) $$ 
+    dans le cas où $E$ est discret, on aura donc que : 
+        $$ \forall n \in \N, \quad \mathcal{F}_n = \sigma(\{X_0 = x_0, \dots X_n = x_n \mid \forall x_0, \dots, x_n \in E\}) $$ 
+\end{definition}
+
+\begin{remark}
+    Soit $(X_n)_{n \in \N}$ une chaîne de Markov sur un espace d'états discret. On a donc définit 
+    sa filtration naturelle comme : 
+        $$ \forall n \in \N, \quad \mathcal{F}_n = \sigma(\{X_0 = x_0, \dots X_n = x_n \mid \forall x_0, \dots, x_n \in E\}) $$ 
+    D'où $ \forall B \in \mathcal{E}$, par propriété de Markov, on a : 
+        $$ \myP(X_{n+1} \in B \mid \mathcal{F}_n) = \myP(X_{n+1} \in B \mid X_n) $$ 
+    qui est une variable aléatoire à valeurs dans $ (\R, \mathcal{B}_\R)$ qui dépend des valeurs prises par $ X_n$ 
+    et dont la valeur est $\myP(X_{n+1} \in B \mid X_n = x_n)$ si $X_n = x_n$. 
+
+    De plus, pour toute fonction mesurable $h : (E, \mathcal{E}) \to (\mathbb{R}, \mathcal{B}_\mathbb{R})$, 
+    l'espérance conditionnelle de $h(X_{n+1})$ sachant $X_n$ est une variable aléatoire $\sigma(X_n)$-mesurable définie 
+    par :
+        $$ \mathbb{E}[h(X_{n+1}) \mid X_n] = g(X_n) $$
+    où la fonction $g : (E, \mathcal{E}) \to (\mathbb{R}, \mathcal{B}_\mathbb{R})$ est donnée, dans le cas discret, par :
+        $$ g(x_n) = \sum_{y \in E} h(y)\, \mathbb{P}(X_{n+1} = y \mid X_n = x_n) $$
+\end{remark}
+
+De même que précédement, on pourra dire qu'un processus est \emph{adapté} à une filtration... 
+
+\begin{definition}[Processus Adapté - Processus Prévisible]
+    Soit $( \Omega, \mathcal{A}, \myP)$ un espace de probabilité et $( \mathcal{F}_n)_{n \in \N}$ une filtration de cet espace. 
+    Soit $(Y_n)_{n \in \N}$ un processus à valeurs dans $(E, \mathcal{E})$. 
+    \begin{enumerate}[label={\roman*)}]
+        \item  On dira que le processus $(Y_n)_{n \in \N}$ est \emph{adapté} à la filtration 
+        $( \mathcal{F}_n)_{n \in \N}$ si pour tout $n \in \N$, $Y_n$ est $ \mathcal{F}_n$ mesurable. 
+                $$ \text{i.e} \quad \forall n \in \N, \quad \forall A \in \mathcal{E}, \quad Y_n^{-1}(A) \in \mathcal{F}_n $$
+        \item On dira que le processus $(Y_n)_{n \in \N}$ est \emph{prévisible} par la filtration 
+        $( \mathcal{F}_n)_{n \in \N}$ si pour tout $n \in \N$, $Y_n$ est $ \mathcal{F}_{n-1}$ mesurable. 
+            $$ \text{i.e} \quad \forall n \in \N, \quad \forall A \in \mathcal{E}, \quad Y_n^{-1}(A) \in \mathcal{F}_{n-1} $$
+        par convention, on dira que $ \mathcal{F}_{-1} = \{ \emptyset, \Omega\}$. 
+    \end{enumerate}
+    La notion de \emph{prévision} signifie que l'on peut connaître $Y_n$ avant le temps $n$ grâce 
+    aux informations contenues dans $ \mathcal{F}_{n_1}$. 
+\end{definition}
+
+La notion de filtration permet aussi de généraliser les temps d'arrêts. 
+
+\begin{definition}[Temps d'arrêt]
+    Un temps d'arrêt $T$ pour une filtration $ \mathcal{F}_n$ sur $( \Omega, \mathcal{A}, \myP)$ est une 
+    variable aléatoire à valeurs dans $(\N \cup \{ \infty\}, \mathcal{P}(\N))$ telle que : 
+        $$ \forall n \in \ N, \quad  \{T = n\} \text{ est } \mathcal{F}_n \text{ mesurable } $$  
+\end{definition}
