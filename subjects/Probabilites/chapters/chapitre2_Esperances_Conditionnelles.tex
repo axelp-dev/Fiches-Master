@@ -403,7 +403,7 @@ Les seuls processus que nous avons vu jusqu'à présent sont des suites de varia
 indexées par le temps tels que les chaînes de Markov. 
 Nous allons ici essayer de généraliser cette notion en introduisant la notion de \emph{filtration}. 
 
-\begin{definition}[Filtration]
+\begin{definition}[Filtration]\label{def:filtration}
     Soit $( \Omega, \mathcal{A}, \myP)$ un espace probabilisé. Une \emph{filtration} de cet espace 
     est une suite \emph{croissante} de tribus $ ( \mathcal{F}_n)_{n \in \N}$ telles que : 
         $$ \mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots \subset \mathcal{A} $$ 
@@ -425,7 +425,9 @@ Nous pouvons bien sûr réexprimer les chaînes de Markov à l'aide des filtrati
 \begin{definition}[Filtration Naturelle]
     Soit $(X_n)_{n \in \N}$ une chaîne de Markov sur $( \Omega, \mathcal{A}, \myP)$ valeurs dans $(E, \mathcal{E})$. Sa filtration naturelle est 
     la suite croissante de sous-tribus $ \mathcal{F}_n$  de $ \mathcal{A}$ telles que : 
-        $$ \forall n \in \N, \quad \mathcal{F}_n = \sigma(X_0, \dots, X_n) $$ 
+        \begin{equation}\label{def:filtration-naturelle}
+            \forall n \in \N, \quad \mathcal{F}_n = \sigma(X_0, \dots, X_n)
+        \end{equation} 
     dans le cas où $E$ est discret, on aura donc que : 
         $$ \forall n \in \N, \quad \mathcal{F}_n = \sigma(\{X_0 = x_0, \dots X_n = x_n \mid \forall x_0, \dots, x_n \in E\}) $$ 
 \end{definition}
@@ -469,6 +471,9 @@ La notion de filtration permet aussi de généraliser les temps d'arrêts.
 
 \begin{definition}[Temps d'arrêt]
     Un temps d'arrêt $T$ pour une filtration $ \mathcal{F}_n$ sur $( \Omega, \mathcal{A}, \myP)$ est une 
-    variable aléatoire à valeurs dans $(\N \cup \{ \infty\}, \mathcal{P}(\N))$ telle que : 
-        $$ \forall n \in \ N, \quad  \{T = n\} \text{ est } \mathcal{F}_n \text{ mesurable } $$  
+    variable aléatoire à valeurs dans $( \overline{\N}, \mathcal{P}( \overline{\N}))$ telle que : 
+        \begin{align*}
+            \forall n \in \ N, \quad  & \{T \leqslant n\} \in \mathcal{F}_n \\  
+        \end{align*} 
+    Pour être plus précis, cela revient à $ T^{-1} \{0, 1, 2, \dots, n\} = \{ \omega \in \Omega \mid T( \omega) \leqslant n\} \in \mathcal{F}_n$. 
 \end{definition}

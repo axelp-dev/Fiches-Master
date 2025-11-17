@@ -18,16 +18,24 @@ Dans tout ce chapitre, nous considérerons des processus aléatoires à valeurs 
 
 \section{Généralités}
 
+\subsection{Définition et exemples}
+
 \begin{definition}[Martingale]
     Soit $( \Omega, \mathcal{A}, \mathcal{F}, \myP)$ un espace de probabilité filtré 
     et $(X_n)_{n \in \N}$ un processus aléatoire intégrable. On dira que $(X_n)_{n \in \N}$ est 
     \begin{enumerate}[label=\roman*)]
         \item une \emph{martingale} par rapport à $ (\mathcal{F}_n)_{n \in \N}$ si : 
-            $$ \forall n \geqslant 1, \quad \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) = X_{n-1} $$
+            \begin{equation}\label{definition:martingale}
+                \forall n \geqslant 1, \quad \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) = X_{n-1}
+            \end{equation}
         \item une \emph{sur-martingale} par rapport à $ (\mathcal{F}_n)_{n \in \N}$ si : 
-            $$ \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) \leqslant X_{n-1} $$
+            \begin{equation}
+                \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) \leqslant X_{n-1}
+            \end{equation}
         \item une \emph{sous-martingale} par rapport à $ (\mathcal{F}_n)_{n \in \N}$ si : 
-            $$ \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) \geqslant X_{n-1} $$
+            \begin{equation}
+                \mathbb{E}(X_n \mid \mathcal{F}_{n-1}) \geqslant X_{n-1}
+            \end{equation}
     \end{enumerate}
 \end{definition}
 
@@ -36,16 +44,273 @@ Dans tout ce chapitre, nous considérerons des processus aléatoires à valeurs 
     à valeurs dans $(E, \mathcal{E})$ telles que $ \mathbb{E}( \varepsilon_n) = 0$ pour tout $n$. 
     On définit une marche aléatoire sur $E$ comme la suite $(S_n)_{n \in \N}$ telle que : 
         $$ S_0 = 0 \quad \forall n \geqslant 1, \; S_n = \sum_{k=1}^{n} \varepsilon_k $$ 
-    $(S_n)_(n \in \N)$ est une martingale pour la filtration $ \mathcal{F}_n = \sigma( \varepsilon_1, \dots, \varepsilon_n)$. 
+    $(S_n)_{n \in \N}$ est une martingale pour la filtration $ \mathcal{F}_n = \sigma( \varepsilon_1, \dots, \varepsilon_n)$. 
     En effet, on a : 
         \begin{align*}
             \mathbb{E}(S_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}(S_n + \mathcal{E}_{n+1} \mid \mathcal{F}_n) \\ 
             &= \mathbb{E}(S_n \mid \mathcal{F}_n) + \mathbb{E}( \varepsilon_{n+1} \mid \mathcal{F}_n) 
         \end{align*}
-    Or $ \varepsilon_{n+1} \perp \varepsilon_0, \dots, \varepsilon_n$ donc : 
-        $$ \mathbb{E}( S_n \mid \mathcal{F}_n) = \mathbb{E}(S_n) = S_n $$ 
+    Or $ \varepsilon_{n+1} \perp \varepsilon_0, \dots, \varepsilon_n$ donc $ \mathbb{E}( \varepsilon_{n+1} \mid \mathcal{F}_n) = 0 $ d'où 
+        $$ \mathbb{E}( S_{n+1} \mid \mathcal{F}_n) = \mathbb{E}(S_n) = S_n $$ 
     c'est donc bien une martingale par définition. On peut remarquer que si $ \mathbb{E}(S_n) \geqslant 0$, alors 
     $(S_n)_{n \in \N}$ est une sous-martingale. 
 \end{example}
 
 
+\begin{remark}
+    Si $ \mathbb{E}( \varepsilon_n) \geqslant 0, \forall n \in \N$ alors : 
+        $$ \mathbb{E}( S_{n+1} \mid \mathcal{F}_n) = S_n + \mathbb{E}( \varepsilon_{n+1}) \geqslant S_n $$ 
+    donc $(S_n)_{n \in \N}$ serait une sous-martingale. 
+\end{remark}
+
+\begin{example}[Multiplicatif]
+    Soit $( \varepsilon_i)_{i \in \N}$ une suite indépendante de variables aléatoires telles que $ \mathbb{E}( \varepsilon_i) = 1$ pour 
+    tout $ i \in \N$. Posons : 
+        $$ M_0 = 1 \quad \text{et} \quad \forall n \in \N, \; M_n = \prod_{i = 1}^{n} \varepsilon_i $$ 
+    et $ \mathcal{F}_n = \sigma ( \varepsilon_1, \dots, \varepsilon_n)$. Montrons que $(M_n)_{n \in \N}$ est une 
+    martingale. Pour tout $ n \in \N$, on a : 
+        \begin{align*}
+            \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) &= \mathbb{E} \left( \varepsilon_{n+1} \times M_n \mid \mathcal{F}_n\right) \\ 
+            &= M_n \times \mathbb{E}( \varepsilon_{n+1} \mid \mathcal{F}_n) \\
+            &= M_n \times \mathbb{E}( \varepsilon_{n+1}) \\ 
+            &= M_n 
+        \end{align*}
+    Par définition, $(M_n)_{n \in \N}$ est donc une martingale. 
+\end{example}
+
+\begin{example}[Lien avec les chaînes de Markov]
+    On peut généraliser les chaînes de Markov en tant que Martingales grâce à l'utilisation de fonctions harmoniques. 
+    Soit $(X_n)_{n \in \N}$ sur un espace d'états discret $E$ et de matrice de transition $P$. Une fonction 
+    harmonique $h : E \longrightarrow \R$ vérifie : 
+        $$ \forall x \in E, \quad h(x) = \sum_{y \in E} P(x,y)h(y) $$ 
+    c'est donc un \emph{vecteur propre à droite} pour $P$. Supposons de plus que $ \forall n \in \N, h(X_n) \in L^1(\R)$. 
+    Alors $(h(X_n))_{n \in \N}$ sera une martingale pour la filtration $( \mathcal{F}_n)_{n \in \N}$ associée à $(X_n)_{n \in \N}$. 
+    En effet, pour tout $ n \in \N$, on a : 
+        \begin{align*}
+            \mathbb{E}(h(X_{n+1}) \mid \mathcal{F}_n) &= \mathbb{E}(h(X_{n+1}) \mid X_n) \\ 
+            &= \sum_{y \in E} \mathbb{E}(h(X_{n+1}) \mathbbm{1}_{X_{n+1} = y} \mid X_n ) \\ 
+            &= \sum_{y \in E} \myP(X_{n+1} = y \mid X_n) \\ 
+            &= \sum_{y \in E} P(X_n,y) \\ 
+            &= h(X_n)
+        \end{align*}
+\end{example}
+
+\begin{proposition}[Généralisation de la définition]
+    Soit $(M_n)_{n \geqslant 0}$ une martingale pour une filtration $ \mathcal{F}_n$ alors : 
+        \begin{equation}\label{proposition:generalisation-definition}
+            \forall n \in \N, \forall k \geqslant 1, \quad \boxed{ \mathbb{E}(M_{n +k} \mid \mathcal{F}_n) = M_n}
+        \end{equation}
+\end{proposition}
+
+\begin{proof}
+    Par récurrence sur $k$, on a :
+    \begin{itemize}
+        \item \textbf{Initialisation} : pour $k = 1$ c'est la définition. 
+        \item \textbf{Hérédité} : soit $k \geqslant 1$ tel que : 
+            $$ \mathbb{E}(M_{n+k} \mid \mathcal{F}_n) = M_n$$ 
+        alors : 
+            \begin{align*}
+                \mathbb{E}(M_{n + k + 1} \mid \mathcal{F}_n) &= \mathbb{E}( \mathbb{E}(M_{n+k+1} \mid \mathcal{F}_n) \mid \mathcal{F}_n) \\ 
+                &= \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) = M_n 
+            \end{align*}
+    \end{itemize}
+\end{proof}
+
+\begin{remark}
+    La proposition précédente nous donne une relation de récurrence pour les espérances : 
+        $$ \forall n \in \N, \forall k \geqslant 1, \quad \mathbb{E}( \mathbb{E}(M_{n+k} \mid \mathcal{F}_n)) = \mathbb{E}(M_n) $$ 
+    or $ \mathbb{E}( \mathbb{E}(M_{n+k} \mid \mathcal{F}_n)) = \mathbb{E}(M_{n+k})$ d'où : 
+        $$ \mathbb{E}(M_{n+k}) = \mathbb{E}(M_n) $$ 
+        $$ \iff \boxed{ \mathbb{E}(M_n) = \mathbb{E}(M_0)} $$ 
+    Nous essaierons par la suite de généraliser cette proposition pour des temps aléatoires. 
+\end{remark}
+
+\subsection{Lien Martingale et sous-martingale}
+
+Pour rappel, une sous-martingale est un processus $(Y_n)$ adapté à la filtration $ \mathcal{F}_n$ tel que : 
+    $$ \mathbb{E}(Y_{n+1} \mid \mathcal{F}_n) \geqslant Y_n $$ 
+De plus, pour une fonction convexe $g : \R \longrightarrow \R$, pour $X \in L^1( \mathcal{A}, \myP)$
+et $ \mathcal{F}$ une sous-tribu de $ \mathcal{A}$, l'inégalité de Jensen nous donne 
+    $$ \mathbb{E}(g(X) \mid \mathcal{F}) \geqslant g( \mathbb{E}(X \mid \mathcal{F})) $$ 
+Nous pouvons donc faire le lien entre les martingales et les sous-martingales. 
+
+\begin{corollary}[Inégalité de Jensen]\label{corollary:inegalite-jensen}
+    Soit $(M_n)_{n \in \N}$ une martingale pour une filtration $ (\mathcal{F}_n)_{n \geqslant 0}$. 
+    Soit $g : \R \longrightarrow \R$ \emph{convexe} telle que $g(M_n) \in L^1$ pour tout $n \in \N$.
+    Alors $(g(M_n))_{n \in \N}$ est une sous-martingale. 
+\end{corollary}
+
+\begin{proof}
+    On a facilement $ \mathbb{E}(g(M_{n+1}) \mid \mathcal{F}_n) \geqslant g( \mathbb{E}(M_{n+1} \mid \mathcal{F}_n)) = g(M_n)$. 
+\end{proof}
+
+\begin{example}[Marche aléatoire]
+    Soit $( \varepsilon_i)_{i \geqslant 0}$ une suite idd de variables aléatoires telles que : 
+        $$ \forall i \in \N, \quad \mathbb{E}( \varepsilon_i) = 0 \; \text{ et } \; \varepsilon_i^2 \in L^1 $$ 
+    Posons $ S_n = \sum_{i=1}^{n} \varepsilon_i$ et $ \mathcal{F}_n = \sigma( \varepsilon_1, \dots \varepsilon_n)$. 
+    $(S_n)_{n \geqslant 0}$ est donc une martingale pour $ \mathcal{F}_n$ (voir exemple précédent). D'après le 
+    corollaire de l'inégalité de Jensen, $(S_n^2)_{n \geqslant 0}$ est une sous-martingale. On a donc : 
+        $$ \mathbb{E}(S_{n+1}^2 \mid \mathcal{F}_n) \geqslant \mathbb{E}(S_n^2) $$ 
+        $$ \iff \mathbb{E}(S_{n+1}^2) \geqslant \mathbb{E}(S_n^2) $$ 
+    On a donc une suite croissante d'espérances et : 
+        $$ \mathbb{E}(S_n^2) = \mathbb{E} \left( \left(\sum_{i=1}^{n} \varepsilon_i\right)^2 \right) = n \mathbb{E}( \varepsilon_1 ^2) $$ 
+    Essayons donc de construire une martingale en posant : 
+        $$ \forall n \in \N, \quad M_n = S_n^2 - \mathbb{E}(S_n^2) = S_n^2 - n \mathbb{E}( \varepsilon_1^2) $$ 
+    On a donc, par définition : 
+        $$ \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) = \mathbb{E}(S_{n+1}^2 \mid \mathcal{F}_n) - (n+1)\mathbb{E}( \mathbb{E} (\varepsilon_1^2) \mid \mathcal{F}_n) $$ 
+    or  
+        \begin{align*}
+            \mathbb{E}(S_{n+1}^2 \mid \mathcal{F}_n) &= \mathbb{E}\big[ ( S_n + \varepsilon_{n+1})^2 \mid \mathcal{F}_n \big] \\ 
+            &= \mathbb{E}(S_n^2 \mid \mathcal{F}_n) + 2\mathbb{E}(S_n \varepsilon_{n+1} \mid \mathcal{F}_n) + \mathbb{E}( \varepsilon_{n+1}^2 \mid \mathcal{F}_n) \\ 
+            &= S_n^2 + 2 S_n \mathbb{E}( \varepsilon_{n+1}) + \mathbb{E}( \varepsilon_{n+1}^2) \\ 
+            &= S_n^2 + \mathbb{E}( \varepsilon_1^2) 
+        \end{align*}
+    d'où : 
+        \begin{align*}
+            \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) = S_n^2 - n \mathbb{E}( \varepsilon_1^2) = M_n 
+        \end{align*}
+    On peut donc décomposer notre sous-martingale $S_n^2$ en une somme de martingale et ce que l'on appelera 
+    un processus croissant en $n$ : 
+        $$ S_n^2 = M_n + n \mathbb{E}( \varepsilon_1^2) $$ 
+\end{example}
+
+\begin{proposition}[Décomposition de Doob]
+    Soit $(X_n)_{n \geqslant 0}$ une sous-martingale par rapport à une filtration $ \mathcal{F}_n$. 
+    Alors il existe un unique couple de processus $(M_n)_{n \geqslant 0}$ et $(Z_n)_{n \geqslant 0}$ tels que: 
+    \begin{enumerate}[label=\roman*)]
+        \item $(M_n)_{n \geqslant 0}$ est une martingale pour $ \mathcal{F}_n$ 
+        \item $Z_0 = 0$ et $Z_{n+1} \geqslant Z_n$ et $(Z_n)_{n \geqslant 0}$ est prévisible pour $ (\mathcal{F}_n)_{n \geqslant 0}$. 
+    \end{enumerate}
+    et : 
+        \begin{equation}\label{eq:doob-inequality}
+            \forall n \in \N, \quad \boxed{X_n = M_n + Z_n}
+        \end{equation}
+\end{proposition}
+
+\begin{proof}
+    Soit $(X_n)_{n \in \N}$ une sous-martingale. par rapport à $( \mathcal{F}_n)_{n \geqslant 0}$. On définit les 
+    écarts : 
+        $$ \forall n \in \N, \quad \Delta_n = X_{n+1} - X_n $$ 
+    Posons $ M_0 = X_0$ et $Z_0 = 0$. On construit récursivement $(M_n)_{n \geqslant 0}$ et $(Z_n)_{n \geqslant 0}$ tels 
+    que :
+        $$ \forall n \in \N, \quad Z_n = \sum_{i=1}^{n} \mathbb{E}( \Delta_i \mid \mathcal{F}_{i-1}), \quad M_n = X_n - Z_n $$
+    Montrons que des deux processus vérifient les hypothèses : 
+    \begin{enumerate}[label=\roman*)]
+        \item Par contruction, pour tout $ n \in \N$, on a $X_n = M_n + Z_n$. 
+        \item Pour tout $i \in \llbracket 1, n \rrbracket$, $ \mathbb{E}( \Delta_i \mid \mathcal{F}_{i-1})$ est $ \mathcal{F}_{i-1}$ 
+            mesurable et $Z_n$ est une somme de $i$ variables $ \mathcal{F}_{i-1}$ mesurables. Donc $(Z_n)_{n \geqslant 0}$ est 
+            prévisible pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
+        \item Pour tout $n \in \N$, on a : 
+            \begin{align*}
+                Z_{n+1} - Z_n &= \mathbb{E}( \Delta_{n+1} \mid \mathcal{F}_n) \\ 
+                &= \mathbb{E}(X_{n+1} \mid \mathcal{F}_n) - \mathbb{E}(X_n \mid \mathcal{F}_n) \\ 
+                &= \mathbb{E}(X_{n+1} \mid \mathcal{F}_n) - X_n 
+            \end{align*}
+        or $X_n$ est une sous-martingale donc : 
+            $$ \mathbb{E}(X{n+1} \mid \mathcal{F}_n) \Longrightarrow Z_{n+1} \geqslant Z_n $$ 
+        Puisque $Z_0 = 0$, $(Z_n)_{n \in \N}$ est un processus croissant. 
+    \end{enumerate}
+    Montrons maintenant que $(M_n)_{n \in \N}$ est une martingale. 
+    \begin{align*}
+        \forall n \in \N, \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}(X_{n+1} \mid \mathcal{F}_n) - \mathbb{E}(Z_{n+1} \mid \mathcal{F}_n) \\ 
+        &= \mathbb{E}(X_{n+1} \mid \mathcal{F}_n) - Z_{n+1} \quad \\ 
+        &= \mathbb{E}(X_{n+1} \mid \mathcal{F}_{n}) - Z_n - \mathbb{E}( \Delta_{n+1} \mid \mathcal{F}_n) \\ 
+        &= \mathbb{E}(X_{n+1} \mid \mathcal{F}_{n}) - Z_n - (\mathbb{E}( \Delta_{n+1} \mid \mathcal{F}_n) - X_n) \\ 
+        &= X_n - Z_n = M_n
+    \end{align*}
+    L'unicité se montre par récurrence sur $n$. Nous ne la ferons pas ici.
+\end{proof}
+
+
+% ========================================================================================================
+% Stratégies et théorème d'arrêt
+
+\section{Stratégies et théorème d'arrêt}
+
+\begin{example}[Ruine du joueur]
+    Considérons un joueur lors d'un jeu aléatoire constitué de $N$ parties. Lors de la partie 
+    $n \leqslant N$, il mise une somme $ \Theta_n$ et il remporte la some $ \varepsilon_n \Theta_n$ où 
+    $ \varepsilon_n = -1$ s'il perd et $ \varepsilon_n = 2$ s'il gagne. 
+
+    \medskip
+
+    Les variables $( \varepsilon_n)_{n \geqslant 0}$ dépendent du jeu, donc on peut construire une filtration 
+    $ ( \mathcal{F}_n)_{n \geqslant 0}$ définie par $ \mathcal{F}_n = \sigma( \varepsilon_1, \dots \varepsilon_n)$. 
+    On peut considérer que $( \varepsilon_n)_{n \in \N}$ sont iid. Par construction, $\Theta_n$ est $\mathcal{F}_{n-1}$-mesurable, donc prévisible.
+    On définit alors le gain total du joueur après $n$ parties comme la variable : 
+        $$ \forall n \leqslant N, \quad S_n = S_0 + \sum_{k=1}^{n} \Theta_k \varepsilon_k $$ 
+\end{example}
+
+Dans cette section, nous allons essayer de généraliser cette structure au travers des stratégies. 
+
+\begin{proposition}
+    Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \geqslant 0}$, 
+    $ ( \Phi_n)_{n \geqslant 0}$ un processus prévisible et borné. le processus défini par :
+        \begin{equation}\label{eq:not-optimal-strategy}
+            X_0 = 0 \text{ et } \forall n \in \N, \quad X_n = \sum_{k=1}^{n} \Phi_k (M_k - M_{k-1})
+        \end{equation}
+    Alors $(X_n)_{n \in \N}$ est une martingale pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
+\end{proposition}
+
+Cette proposition est fondamentale dans l'interprétation des martingales en tant que stratégies de jeu. 
+En effet, elle nous montre que pour n'importe quel jeu initial d'espérance nulle $(M_n)_{n \in \N}$ (gain moyen), il n'existe 
+aucune stratégie $( \Phi_n)_{n \in \N}$ permettant de modifier le gain moyen. 
+Cette notion est traduite par le fait que $(X_n)_{n \in \N}$ reste une martingale. 
+
+\begin{remark}
+    Les martingales nous permettent de modéliser la plupart des stratégies. Par exemple, si l'on veut 
+    modéliser une stratégie du type "le joueur mise jusqu'à avoir accumulé une certaine somme $ \lambda$", 
+    alors on peut définir $T$ le temps d'arrêt tel que : 
+        $$ T = \inf \{n \in \N \mid S_n \geqslant \lambda\} $$ 
+    On posera donc : 
+        $$ \forall n \in \N, \forall k \in \llbracket 1, n \rrbracket, \quad \Phi_k = \mathbbm{1}_{k \geqslant \lambda} \quad \text{et} 
+        \quad X_n = \sum_{k=1}^{n} \Phi_k (M_k - M_{k-1}) $$  
+\end{remark}
+
+On souhaiterai aussi généraliser la notion de chaîne de Markov $(X_n)_{n \in \N}$ arrêtée par un temps d'arrêt $T$ 
+définie par : 
+    $$ 
+        \forall n \in \N, \quad X_n = 
+            \begin{cases}
+                X_n \quad \text{si } n \leqslant T \\ 
+                X_T \quad \text{sinon}  
+            \end{cases}
+    $$
+
+\begin{proposition}[Martingale arrêtée]
+    Ainsi, soit $(M_n)_{n \leqslant 0}$ une martingale pour la filtration $ \mathcal{F}_n$ $T$. 
+    Soit $T$ un temps d'arrêt. On pose : 
+        $$ \forall k \in \N, \quad \Phi_k = \mathbbm{1}_{\{T \geqslant n\}} $$ 
+    L'évènnement $\{T \leqslant n\}$ est mesurable par rapport à $ \mathcal{F}_{n-1}$ car il se décompose 
+    comme le complémentaire d'une intersection dénombrable d'évènnements $ \mathcal{F}_{n-1}$ mesurables : 
+        $$ \{T \leqslant n\} = \overline{\{T \geqslant n\}} = \bigcap_{k = 1}^{n-1} \{T \not = k\} $$ 
+    Le processus $ \Pi_k $ est donc prévisible pour la filtration $( \mathcal{F}_n)_{n \geqslant 0}$. 
+    D'après la proposition \ref{eq:not-optimal-strategy}, le processus défini comme : 
+        \begin{equation}\label{eq:martingale-arrete}
+            \boxed{
+                \forall n \in \N, \quad M_n = 
+            \begin{cases}
+                M_n \quad \text{si } n \leqslant T \\ 
+                M_T \quad \text{ sinon }  
+            \end{cases}
+            }
+        \end{equation}
+\end{proposition}
+
+\begin{theorem}[Arrêt (Doob)]\label{theorem:stop-doob-theorem}
+    Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \in \N}$.
+    Soit $T$ un temps d'arrêt pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
+    Si une des trois assertions suivante est vraie : 
+    \begin{enumerate}[label=\roman*)]
+        \item $T$ est borné p.s 
+        \item $ T < \infty$ p.s et $(M_n)_{n \in \N}$ est borné. 
+        \item Si $T \in L^1$ et : 
+            \begin{equation}\label{eq:third-stop-condition}
+                \sup_n \left| M_n - M_{n-1 }\right| = \sup_n \left| \Delta_{M_n}\right| \leqslant C \quad \text{p.s}  
+            \end{equation}
+    \end{enumerate}
+    Alors $\boxed{ \mathbb{E}(M_T) = \mathbb{E}(M_0)}$.
+\end{theorem}
+
+Ce théorème nous permet donc de généraliser aux temps d'arrêt la proposition de généralisation de la 
+définition des martingales \ref{proposition:generalisation-definition}.
