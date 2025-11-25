@@ -221,5 +221,181 @@ Or il peut être très lent dans certains cas.
 % ========================================================================================================
 % Mesures de Gibbs 
 
-\section{Mesures de Gibbs}
+\section{Mesures de Gibbs sur un espace d'états fini}
+
+Soit $E$ un espace d'états fini. On définit : 
+    \begin{equation}
+        H : E \longrightarrow \R
+    \end{equation}
+une fonction d'énergie sur $E$. En physique statistique, elle représenterait 
+l'énergie d'un état du système. 
+
+\begin{definition}[Mesure de Gibbs]
+    La mesure de Gibbs sur $E$ de température inverse $ \beta$ est la mesure 
+    de probabilité $ \mu_{ \beta}$ définie par : 
+        \begin{equation}
+            \mu_\beta = \frac{1}{z_\beta} e^{ \beta H(x) } 
+        \end{equation}
+    où $z_\beta = \sum_{x \in E} e^{ \beta H(x)}$. 
+\end{definition}
+
+Or lorsque $E$ est grand, simuler une variable aléatoire de loi $ \mu_\beta$ 
+est difficile pour plusieurs raisons : 
+\begin{itemize}
+    \item $z_\beta$ devient très grand : lors de l'approximation numérique, 
+    on peut donc avoir des valeurs de $ e^{ \beta H(x)}/z_\beta$ encodées
+    comme $0$. 
+    \item $z_\beta$ devient difficile à calculer du fait de la taille de $E$.
+\end{itemize}
+
+Les méthodes directes de simulation de mesure de Gibbs fonctionnent très mal. 
+Heureusement, on utilise alors l'algorithme de Metropolis-Hasting.
+
+\begin{remark}[Adaptationde l'algorithme]
+    Soit $Q$ la matrice de transition d'une chaîne de Markov irréductible 
+    sur $E$ telle que $Q(x,y) > 0 \iff Q(y,x) > 0$ pour tout $x,y \in E$.
+    Pour simuler la loi $ \mu_\beta$, on utilise la matrice de transition 
+    définie pour tout $x,y \in E$ par : 
+        \begin{align}
+            P_\beta (x,y) &= Q(x,y) \min \left( 1, \frac{ \mu_\beta (y) Q(y,x)}{ \mu_\beta(x) Q(x,y)}\right) \\ 
+            &= Q(x,y) \min \left( \frac{ \frac{e^{ \beta H(y)}}{ z_\beta} Q(y,x)}{ \frac{e^{ \beta H(x)}}{ z_\beta} Q(x,y)} \right) \\ 
+            &= Q(x,y) \min \left( 1, e^{\beta (H(y) - H(x))} \frac{Q(y,x)}{Q(x,y)}\right) \label{eq:calcul-annulation-gibbs}
+        \end{align}
+    On pourra donc appliquer l'algorithme sans problème d'approximation 
+    de très petites valeurs car $z_\beta$ n'apparaît plus.
+\end{remark}
+
+\begin{example}[Depinning Transition]
+    Soit l'espace d'états suivant : 
+        $$ E = \left\{ \text{chemins au plus proche voisin sur } \Z \text{ de longueur } n \right\} $$ 
+    Un élément de $E$ est donc une marche aléatoire sur $E$. On définit la fonctionnelle 
+    d'énergie $H$ sur $E$ telle que : 
+        $$ \forall s \in E, \quad H(s) = \text{Card}(\{0 \leqslant i \leqslant n \mid s_i = 0\}) $$ 
+    On souhaite simuler un élément de $E$ sous la loi $ \mu_\beta$. On peut proposer
+    différentes transformations pour une chemin de $E$ : 
+    \begin{enumerate} 
+        \item Si $s \in E$, on tire $i \in \llbracket 1, n \rrbracket$ on remplace 
+        ensuite le saut en $i$ par le saut opposé. 
+        \emph{(C'est une marché réversible).}
+        \item Si $s \in E$, on tire $i \in \llbracket 1, n \rrbracket$ et 
+        on remplace un schéma $ \bigvee $ en $i$ par un $ \bigwedge $ en $i$.
+         \emph{(Celle-ci n'est pas réversible.).}
+    \end{enumerate}
+    D'après \ref{eq:calcul-annulation-gibbs}, on peut donc définir l'algorithme suivant : 
+
+    \begin{lstlisting}[language=Python]
+def etapeP(x,b):
+    y = etapeQ(x)
+    if rand() < (Q(y,x) / Q(x,y)) * exp(b (H(y) - H(x))): 
+        return y
+    return x
+    \end{lstlisting}
+    
+    Le comportement de la chaîne ainsi produite sera donc déterminé par 
+    le paramètre $ \beta$. 
+    Si $ \beta$ sera faible (i.e température basse), la chaîne aura un comportement 
+    de marche aléatoire symétrique. En revanche, autour d'une certaine valeur 
+    de $ \beta$ appelée $ \beta_c$, dit critique, la chaîne orbitera autour 
+    de l'axe des abscisses. C'est ce que l'on appelle une \emph{transition de phase}.
+\end{example}
+
+\begin{remark}
+    Si $Q$ est une matrice \emph{réversible et symétrique} alors 
+        $$ \forall x,y \in E, P_\beta(x,y) = Q(x,y) \min \left(1, e^{\beta (H(y) - H(y))}\right)$$
+
+    Dans ce cas, plutôt que de tester \texttt{rand() < (Q(y,x) / Q(x,y)) * exp(b (H(y) - H(x)))}, 
+    on préfère tester \texttt{log(rand()) < b (H(y) - H(x))}. Qui sera moins 
+    sujet à provoquer des erreurs d'approximation (de valeurs infinies).
+\end{remark}
+
+% ========================================================================================================
+% Algorithme du recuit simulé
+
+\section{Algorithme du recuit simulé}
+
+On se place toujours dans un espace d'états $E$ fini et $H : E \longrightarrow \R$ 
+une fonction.
+On souhaite déterminer : 
+    $$ 
+        \begin{cases}
+            \max_E H \\ 
+            \text{argmax}_E H 
+        \end{cases}
+    $$
+La méthode du recuit simulé permet de déterminer un estimateur de ces quantités 
+pour un coût relativement faible par rapport à une exploration complète de l'espace 
+d'états. Elle est basée sur la remarque suivante.
+
+\begin{lemma}
+    Soit $E^*$ l'ensemble définit par : 
+        \begin{equation}
+            E^* := \{ e \in E \mid H(e) = \max_E H\}
+        \end{equation}
+    On a $\lim_{\beta \to \infty} \mu_\beta \sim \mathcal{U}(E^*)$.
+\end{lemma}
+
+\begin{proof}
+    Soit $ \delta > 0$ tel que $H(e) < \max H - \delta$ pour tout $e \not \in E^*$.
+    On a donc : 
+        $$ \sum_{e \in E^*} e^{ \beta H(e)} \leqslant z_\beta = \sum_{e \in E} e^{ \beta H(e)} 
+        = \sum_{e \in E^*} e^{ \beta H(e)} + \sum_{e \in E/E^*} e^{ \beta H(e)} $$ 
+        $$ \iff |E^*| e^{ \beta \max H} \leqslant z_\beta \leqslant |E^*| e^{\beta \max H} + |E| e^{ \beta(\max H - \delta)} $$ 
+    Donc pour $ e \in E^*$, on a :
+        \begin{align*}
+            & \mu_\beta (e) = \frac{e^{ \beta \max H}}{z_\beta} \\ 
+            \iff \frac{e^{ \beta \max H}}{e^{ \beta \max H} |E^*| + |E| e^{ \beta (\max H - \delta)}} \leqslant & \mu_\beta (e) \leqslant \frac{e^{ \beta \max H}}{e^{ \beta \max H} |E^*|} \\ 
+        \end{align*}
+    donc $ \frac{1}{ |E^*| + |E| e^{- \beta \delta}} \leqslant \mu_\beta (e) \leqslant \frac{1}{|E^*|}$. 
+    D'où $ \lim_{ \beta \to \infty} \mu_\beta(e) = 1/|E^*|$. 
+
+    De même pour $ e \in E/E^*$, on a : 
+        $$ \mu_\beta (e) \leqslant \frac{e^{ \beta (\max H - \delta)}}{ | E^*| e^{ \beta \max H}} \leqslant \frac{e^{- \beta \delta}}{|E^*|} \underset{\beta \to \infty}{\longrightarrow} 0 $$
+    d'où $ \mu_\beta (e) \underset{\beta \to \infty}{\longrightarrow} 1/|E^*| \mathbbm{1}_{e \in E^*}$. 
+\end{proof} 
+
+L'algorithme du recuit simulé consite donc à utiliser à chaque étape 
+l'algorithme de Metropolis-Hasting pour simuler $ \mu_\beta$ avec 
+$ \beta_n \underset{n \to \infty}{\longrightarrow} \infty$ assez lentement. 
+
+\begin{proposition}[Algorithme du recuit simulé]
+    On se donne \texttt{etape Q}, et une suite $( \beta_n)_{n \geqslant 0}$. 
+    On définit ensuite : 
+    \begin{lstlisting}[language=Python]
+
+def recuitSimule(x,n): 
+    y = etapeQ(x)
+        if rand() < exp(beta[n] (H(y) - H(x))) * (Q(y,x) / Q(x,y)): 
+            return y 
+        return x
+    \end{lstlisting}
+    La différence fondamentale de cet algorithme est que la probabilité de 
+    transition dépend maintenant de $n$.
+\end{proposition}
+
+\begin{theorem}[]
+    On note $(z_n)_{n \geqslant 0}$ la chaîne de Markov inhomogène (la chaîne dépend de l'état 
+    précédent et de la posittion dans le temps $n$) dans 
+    le temps de recuit simulé. Il existe $c_* > 0$ tel que pour tout $ c < c_*$ tel 
+    que en posant $ \beta_n := c \log n$, alors : 
+        \begin{equation}
+            \boxed{ \lim_{n \to \infty} z_n \in E^*} \quad \text{p.s} 
+        \end{equation}
+\end{theorem}
+
+
+\begin{remark}
+    Ce théorème nous assure que si l'on reffroidit lentement le système (i.e $ n \to \infty$), 
+    alors la chaîne tend à s'arrêter sur un maximum de $H$.
+    Dans cette situation, $ \hat{M}_n = \max_{k \leqslant n} H(z_k)$ et 
+    $ \hat{E}_n = \text{argmax}_{z \in \{z_k \mid k \in \N\}} H(z)$ sont des estimateurs 
+    fortement consistants de $\max H$ et $ \text{argmax } H$.
+    En pratique ces estimateurs convergent très lentement pour un tel choix de 
+    $ \beta$. On préfère donc faire tendre $ \beta$ vers $ \infty$ plus rapidement 
+    et simuler plusieurs chaînes partant de points différents de l'espace d'état.
+\end{remark}
+
+Cet algorithme est très performant en plusieurs dimensions puisque l'algorithme 
+ne dépend pas de la nature des données sur lequelles sont calculées $H$.
+En revanche, il est peu performant pour des fonctions $H$ trop périodiques.
+
 

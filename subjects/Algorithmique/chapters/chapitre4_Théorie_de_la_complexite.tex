@@ -1,0 +1,177 @@
+\minitoc
+
+% =======================================================================================================
+% Introduction 
+
+Dans ce chapitre, nous nous intéressons aux problèmes d'optimisation combinatoire "difficiles"
+pour lesquels nous n'avons pas de méthode explicite pour déterminer un solution. 
+Nous essayerons de "trier" ces problèmes en classes de complexité et nous verrons que 
+certains problèmes sont étrangement similaires les uns des autres.
+
+% =======================================================================================================
+% Généralités
+
+\section{Généralités}
+
+Un problème d'optimisation combinatoire est définit par plusieurs éléments. On définit 
+ainsi $ \mathcal{X}$ un ensemble de \emph{variables, d"éléments} ou \emph{d'objets}. 
+Il représente ainsi l'ensemble des paramètres. La résolution de ce problème vise à 
+trouver un \emph{groupement} ou des affectations de $ \mathcal{X}$ dont on $ \mathcal{E}$
+l'ensemble des solutions possibles. 
+
+Notre problème peut aussi être définit par un certain nombre de \emph{contraintes} d'où l'existence
+d'un ensemble $ \mathcal{S}$ regroupant toutes les solutions \emph{faisables} (i.e respectant les contraintes).
+
+\begin{remark}
+    On a donc en général $ \mathcal{S} \subset \mathcal{E}$. $ \mathcal{E}$, énumérer $ \mathcal{S}$ peut 
+    être impossible d'où la difficulté du problème. 
+\end{remark}
+
+Enfin, nous pouvons aussi définir une fonction de coùt $v : \mathcal{E} \longrightarrow \R$ définissant 
+une valeurs ou un coût pour chaque affectation de $ \mathcal{X}$ permettant ainsi d'ordonner les solutions 
+et d'en définir un \emph{optimale}.
+
+\begin{definition}[Instance]
+    Un \emph{instance} $I$ d'un problème d'optimisation combinatoire est donc un cas particulier 
+    de ces problèmes dans un contexte donnée. Elle est caractérisée par un ensemble d'objets/de variables 
+    $ \mathcal{X}$ et des paramètres.
+\end{definition}
+
+\begin{definition}[Problème d'optimisation combinatoire]
+    Ainsi, un \emph{problème d'optimisation combinatoire} noté $\Pi$ est définit par : 
+    \begin{itemize}
+        \item un ensemble d'instances $ \mathcal{I}$.
+        \item pour chaque $ I \in \mathcal{I}$, un ensemble de solutions faisables $ \mathcal{S}(I)$.
+        \item une fonction de coût/valeur.
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    La différence fondamentale entre une instance et un problème est qu'une instance s'applique dans un 
+    contexte donné et a une (ou plusieurs) solution(s) bien spécifique(s).
+    Un problème est plutôt la représentation théorique de ce genre de problèmes. 
+\end{remark}
+
+Pour un problème donné $ \Pi$ il est intéressant de connaître sa classe de complexité pour savoir comment 
+le résoudre et si c'est possible.
+
+Les classes de complexité nous permettront donc de réunir ensemble des problèmes d'optimisation combinatoire 
+ayant la même complexité temporelle (dans le pire des cas). 
+
+% =======================================================================================================
+% Problèmes de décisions, classes P, NP et NP-complet
+
+\section{Problèmes de décisions, classes P, NP et NP-complet}
+
+\subsection{Complexité temporelle}
+
+\begin{definition}[Problème de décision]
+    Un \emph{problème de décision} est un problème dans lequel on souhaite 
+    répondre par oui ou par non pour une instance d'un problème donné.
+
+    \medskip 
+
+    On dit qu'une instance d'un problème est \emph{positive} si la réponse au problème 
+    de décision est "oui".
+\end{definition}
+
+\begin{example}
+    Le problème les cliques dans un graphe est un problème de décision. En effet, on souhaite répondre par 
+    oui ou non à la question "Un graphe G contient-il un sous-graphe complet d'ordre $k \in \N$ ?
+\end{example}
+
+Pour différencier la difficulté de tels problèmes, nous nous intéressons à leur \emph{complexité temporelle}.
+
+\begin{definition}[Complexité temporelle]
+    Pour un algorithme donné $A$, on définit sa \emph{complexité temporelle} notée $ Time_A$
+    où $ Time_A(x)$ est le nombre d'instructions exécutées par $A$ pour une entrée $x$.
+\end{definition}
+
+\begin{proposition}
+    On souhaiterai ainsi définir la complexité d'un problème $ \Pi$ par la complexité temporelle 
+    de l'algorithme le plus efficace pour résoudre $ \Pi$. Or, il est impossible de dire qu'un algorithme 
+    est optimal et ne peut être amélioré. On parlera donc de complexité \emph{asymptotique}.
+\end{proposition}
+
+\begin{definition}[Ordre de complexité]
+    Soit $f : \R \longrightarrow \R$ une application. Soit $ \Pi$ un problème. On dit que la complexité 
+    temporelle de $ \Pi$ est d'ordre $ O(f)$ ssi il existe un algorithme $A$ résulvant $ \Pi$ et 
+    $n_0 \in \N, c \in \R$ tels que : 
+        \begin{equation}
+            \forall x, \quad |x| > n_0 \quad \Longrightarrow \quad Time_A(x) \leqslant c f(|x|)
+        \end{equation}
+\end{definition}
+
+\subsection{Classe P}
+
+Comme dit précédement, nous souhaitons regrouper des problèmes de même ordre de 
+complexité temporelle. Nous définissons donc le concept de classe. 
+
+\begin{definition}[Classes de complexité]
+    La classe de complexité $ TIME[f]$ est l'ensemble des problèmes de complexité temporelle $ O(f)$.
+    On a donc : 
+        $$ TIME[n] \subset TIME[n \log n] \subset TIME[n^2] \subset TIME[e^n] \subset TIME[2^n] $$
+\end{definition}
+
+\begin{definition}[Classe P]
+    On définit ainsi la classe $P$ comme l'ensemble des classes de problèmes de complexité polynomiale. 
+    D'où : 
+        \begin{equation}
+            \boxed{P = \bigcup_{k \geqslant 0} TIME[n^k] }
+        \end{equation}
+\end{definition}
+
+La classe $P$ est indépendante du modèle d'ordinateur considéré (machine de Turing ou à RAM). 
+Elle est aussi indépendante du langage utilisé pour l'algorithme ainsi que des structures de données 
+utilisées pour stocker les variables du problème.
+
+\begin{remark}
+    Un problème est donc dit polynomial si il peut être résolut par un algorithme de complexité temporelle 
+    polynomiale. Or pour de très grandes valeurs de $k$, cela revient à résoudre un problème de complexité 
+    exponentielle. En pratique, nous pourrons donc résoudre des problèmes de complexité $O(n^2), O(n^3)$ ou 
+    $O(n^4)$.
+\end{remark}
+
+\begin{rappel}[k-SAT]
+    Soit $k \in \mathbb{N}$. Un problème de $k$-SAT est un problème de 
+    \emph{satisfaisabilité booléenne} portant sur des formules booléennes en forme normale conjonctive (CNF).
+
+    Une formule est composée :
+    \begin{itemize}
+        \item de \emph{variables booléennes} $x_1, \dots, x_n$ ;
+        \item de \emph{littéraux}, qui sont soit une variable soit sa négation : $l \in \{x_i, \lnot x_i\}$ ;
+        \item de \emph{clauses}, qui sont des disjonctions de $k$ littéraux :
+        \[
+            C = l_1 \vee l_2 \vee \dots \vee l_k ;
+        \]
+        \item et d'une \emph{formule} CNF, qui est une conjonction de clauses :
+        \[
+            \varphi = \bigwedge_{j = 1}^m C_j .
+        \]
+    \end{itemize}
+
+    Le problème de $k$-SAT consiste à déterminer s'il existe une assignation de vérité des variables
+    qui rende la formule $\varphi$ vraie. Si une telle assignation existe, on dit que la formule est
+    \emph{satisfaisable}.
+\end{rappel}
+
+\begin{theorem}[SAT]
+    2-SAT $ \in P$.
+\end{theorem}
+
+\begin{definition}[Réduction polynomiale]
+    On dit qu'il existe une \emph{réduction polynomiale} entre deux problèmes $ \Pi_1$ et $ \Pi_2$ si il 
+    existe une fonction $f$ calculable en temps polynomial si, $x$ est une instance positive de $ \Pi_1$ 
+    ssi $f(x)$ est une instance positive de $ \Pi_2$. On note alors $ \Pi_1 \leqslant \Pi_2$.
+\end{definition}
+
+\begin{theorem}[Réduction]
+    2-COLORATION $ \leqslant$ 2-SAT.
+\end{theorem}
+
+
+\subsection{Vérifieurs et classe NP}
+
+
+
+

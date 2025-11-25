@@ -314,3 +314,235 @@ définie par :
 
 Ce théorème nous permet donc de généraliser aux temps d'arrêt la proposition de généralisation de la 
 définition des martingales \ref{proposition:generalisation-definition}.
+
+\begin{proof}
+    
+\end{proof}
+
+
+\begin{remark}
+    On ne peut pas généraliser ce théorème dans le cas général. Fournissons
+    un contre exemple. Soit $( \varepsilon_i)_{i \in \N}$ une suite de variables 
+    aléatoires iid telles que : 
+        $$ \forall i \in \N, \quad \myP( \varepsilon_i = -1) = \myP( \varepsilon_i = 1) = \frac{1}{2} $$ 
+    posons alors : 
+    $$ S_0 = 0, \quad \text{et} \quad S_n = \sum_{i=1}^{n} \varepsilon_i $$ 
+    Soit $T_1 = \inf \{n \geqslant 0 \mid S_n = 1\}$ le temps d'arrêt 
+    à l'état 1. Alors $(S_n^T) = S_{\min(n, T_1)}$ est une martingale arrêtée. 
+    On a alors : 
+        $$ \mathbb{E}(S_{\min(n,T_1)}) = \mathbb{E}(S_0) = 0 $$ 
+    Nous avions montré que $(S_n)_{n \geqslant 0}$ est une chaîne de Markov 
+    sur $\N$ irréductible récurrente nulle. Donc $T_1$ est fini p.s. 
+    On ne rentre donc dnas aucune des hypothèses du théorème. De plus : 
+        $$ \mathbb{E}(S_{T_1}) = 1 $$ 
+    car par définition, $S_{T_1} = 1$ p.s
+\end{remark}
+
+\begin{example}[Application - Modèle de Wright-Fisher]
+    On considère une population de $N$ individus dont chacun porte un allèle 
+    $A$ ou $a$. la suite $(X_n)_{n \in \N}$ compte le nombre d'individus portant l'allèle 
+    $A$ au temps $N$. À chaque itération, les individus de l'étape $n+1$ choisissent 
+    un parent uniformément dans le génération $n$ et prennent leur allèle. 
+    La propriété importante du modèle est : 
+        $$ \myP( \text{choisir un parent de type } A ) = \frac{X_n}{N} $$ 
+    On peut aussi voir l'évolution du modèle comme une chaîne de Markov.
+    Comme chaque descendant choisit un parent uniformément et indépendament 
+    dans la génération $n$, on a : 
+        $$ X_{n+1} \sim \mathcal{B} \left(n, \frac{X_n}{N} \right) $$ 
+    $(X_n)_{n \in \N}$ est donc une chaîne de Markov à valeurs dans $ \llbracket 1, N \rrbracket$
+    et $0$ et $N$ sont des points absorbants. L'état $0$ correspond à la disparition 
+    de l'allèle $A$ dans la population et $N$ correspond à la disparition de l'allèle $a$
+    dans la population (i.e fixation de l'allèle $A$).
+    On souhaiterait avoir des informations sur : 
+        $$ \tau = \inf (T_0, T_N) \quad \text{et} \quad \myP( \tau = T_0)$$ 
+    Or $(X_n)_{n \geqslant 0}$ est une martingale car : 
+        \begin{align*}
+            \mathbb{E}(X_{n+1} \mid \mathcal{F}_n) &= N \times \frac{X_n}{N} = X_n 
+        \end{align*}
+    $(X_n)_{n \in \N}$ est une martingale bornée sur un espace d'états fini. 
+    Donc $ \tau$ est fini p.s car c'est un temps d'atteinte d'une chaîne de Markov 
+    sur un espace discret.
+
+    \begin{quote}
+        \emph{On peut aussi remarquer que les états $\{1, \dots, N-1\}$ sont transiants 
+        (car on peut en sortir avec probas positive). En revanche, $0$ et $N$ 
+        sont récurrents.}
+    \end{quote}
+
+    On peut donc appliquer le théorème d'arrêt de Doob, on a donc que : 
+        $$ \mathbb{E}(X_\tau) = \mathbb{E}(X_0) $$ 
+    or $ \mathbb{E}(X_\tau) = 0 \times \myP( \tau = T_0) + N \myP( \tau = T_N)$ donc 
+    on en déduit que si $X_0 = i \in \llbracket 1, N \rrbracket$, alors : 
+        $$ i = N \myP( \tau = T_N) \iff \myP( \tau = T_N) = \frac{i}{N} $$ 
+\end{example}
+
+\begin{remark}
+    Les martingales permettent donc d'avoir facilement des informations sur des temps d'arrêts. 
+    En effet, le théorème d'arrêt nous donne le même résultat qu'une analyse à un pas.
+\end{remark}
+
+On peut également proposer une réciproque et théorème d'arrêt. Nous avons vu que pour 
+une martingale $(X_n)_{n \geqslant 0}$, on a $ \mathbb{E}(X_n) = \mathbb{E}(X_0)$. 
+On souhaiterai avoir une réciproque pour cela mais il va falloir rajouter des hypothèses 
+car il existe des contre-exemples.
+
+\begin{theorem}[Réciproque au théorème d'arrêt]
+    Soit $(X_n)_{n \in \N}$ un processus adpaté à une filtration $( \mathcal{F}_n)_{n \geqslant 0}$ 
+    tel que $ X_n \in L^1$ pour tout $n \in \N$. Si $(X_n)_{n \in \N}$ est une martingale pour 
+    $( \mathcal{F}_n)_{n \in \N}$ alors 
+        \begin{equation}
+            \mathbb{E}(X_T) = \mathbb{E}(X_0)
+        \end{equation}
+    pour tout temps d'arrêt $T$.
+\end{theorem}
+
+\section{Inégalités maximales}
+
+On souhaite contrôler le $\sup$ d'un processus sur une trajectoire 
+à partir de la valeur terminale du processus.
+
+On considère donc une sous-martingale $(M_n)_{n \in \N}$. Par définition, 
+elle vérifie : 
+    $$ \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) \geqslant M_n $$ 
+Soit $(M_n^*)_{n \in \N}$ le processus des $\sup$ des valeurs de $(M_n)_{n \in \N}$ 
+définit par : 
+    $$ \forall n \in \N, \quad M_n^* := \max \{M_k \mid 0 \leqslant k \leqslant n\} $$ 
+Il existe différentes inégalités pour avoir des informations sur ce processus. 
+
+\begin{proposition}[Inégalités Maximales]
+    Dans le même contexte que précedement, on a : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ {\displaystyle \forall c \geqslant 0, \quad \myP(M_n^* \geqslant c) \leqslant \frac{1}{c} \mathbb{E} \left( M_n \mathbbm{1}_{M_n^* \geqslant c} \right)} $
+        \item Soit $p > 1$ si $(M_n)_{n \in \N}$ est une sous-martingale \emph{positive} et $ M_n \in L^p$ 
+        pour tout $n \in \N$, alors : 
+            \begin{equation}
+                \| M_n^* \|_p \leqslant \frac{p}{p-1} \| M_n\|_p 
+            \end{equation}
+        où $ \| X \|_p = \mathbb{E}(|X|^p )^{1/p}$ pour toute variable aléatoire $X$.
+    \end{enumerate}
+\end{proposition}
+
+\begin{remark}
+    Si $(M_n)_{n \in \N}$ est une martingale dans $L^p$ alors $ (|M_n|)_{n \in \N}$ 
+    est une sous-martingale positive dans $L^p$. Les inégalités précédentes nous permettent 
+    de montrer que : 
+        $$ \mathbb{E} \left( \left( \sup_{0 \leqslant k \leqslant n} |M_n| \right)^p \right) \leqslant \left( \frac{p}{p-1}\right)^p \mathbb{E}(M_n^p) $$ 
+\end{remark}
+
+\section{Convergence des martignales}
+
+Dans cette section, nous nous intéressons à la convergence des martingales 
+lorsque $n \to \infty$. Nous essaierons d'énoncer des théorèmes similaires au TCL 
+dans le cadre des martingales. 
+
+\subsection{Critères de convergences dans $L^2$}
+
+\begin{rappel}
+    Une martingale $(M_n)_{n \in \N}$ est bornée dans $L^2$ si $\sup_n \mathbb{E}(M_n^2) < \infty$.
+\end{rappel}
+
+L'idée est donc d'exprimer une martingale comme une somme de variables 
+aléatoires. Pour cela, on posera : 
+    \begin{align*}
+        \forall n \in \N, \quad M_n - M_0 &= \sum_{k=1}^{n} M_k - M_{k-1} \\ 
+        &= \sum_{k=1}^{n} \Delta_{M_k}
+    \end{align*}
+On appelera les $\Delta_{M_k}$ les \emph{incréments} de la martingale.
+Pour rappel, le produit scalaire dans $L^2$ est de la forme : 
+    $$ \langle X,Y \rangle = \mathbb{E}(XY) $$ 
+Si $(M_n)_{n \in \N}$ est une martignale $L^2$, ses incréments sont centrés et orthogonaux 
+par rapport au produit scalaire de $L^2$. On a :
+    \begin{align}
+        \mathbb{E}( \Delta_{M_k}) &= \mathbb{E}(M_k - M_{k-1}) \\ 
+        &= \mathbb{E}( \mathbb{E}( M_k - M_{k-1} \mid \mathcal{F}_{k-1})) \\ 
+        &= \mathbb{E}( \mathbb{E}(M_k \mid \mathcal{F}_{k-1}) - M_{k-1}) = 0 \label{eq:calcul-prod}
+    \end{align}
+Montrons l'orthogonalité, soient $j,k \in \N, j < k$, on a : 
+    \begin{align*}
+        \mathbb{E}( \Delta_{M_j} \Delta_{M_k}) &= \mathbb{E}( \mathbb{E}( \Delta_{M_j} \Delta_{M_k} \mid \mathcal{F}_{k-1})) \\ 
+        &= \mathbb{E}( \Delta_{M_j} \mathbb{E}( \Delta_{M_k} \mid \mathcal{F}_{k-1})) \\ 
+        &= \mathbb{E}( \Delta_{M_j} \times 0) \quad \quad \text{(d'après \ref{eq:calcul-prod})} \\
+        &= 0 
+    \end{align*}
+En général, on suppose que $M_0 = 0$, on aura donc : 
+    \begin{align*}
+        \mathbb{E}(M_n^2) &= \mathbb{E} \left( \left( \sum_{k=1}^{n} \Delta_{M_k}\right)^2 \right) = \sum_{k=1}^{n} \mathbb{E} \left( \Delta_{M_k}^2\right)
+    \end{align*}
+Or $ \mathbb{E}(M_n^2)$ est une suite croissante en $n$ et si $M_n$ est bornée dans $L^2$, 
+cette suite est majorée, donc elle converge vers une quantité positive. 
+
+\begin{theorem}[Convergence]
+    Soit $(M_n)_{n \in \N}$ une martingale bornée dans $L^2$. Alors il existe une variable 
+    aléatoire $M_\infty \in L^2$ telle que : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \mathbb{E}((M_n - M_\infty)^2) \underset{n \to \infty}{\longrightarrow} 0 $
+        \item $ M_n \underset{n \to \infty}{\longrightarrow} M_\infty $
+    \end{enumerate}
+\end{theorem}
+
+Si $p \in [1,2]$ alors $ \| M_n - M_\infty \|_p \leqslant \|M_n = M_\infty\|_2$ donc 
+$ \mathbb{E}(| M_n - M_\infty|) \underset{n \to \infty}{\longrightarrow} 0$.
+
+\begin{example}
+    On peut considérer l'exemple d'une série de variables aléatoires : 
+        $$ M_n = \sum_{k=1}^{n} \frac{ \varepsilon_i}{i^\alpha} \quad \text{où } \varepsilon_i \sim \mathcal{U}([-1,1]) $$ 
+    Un telle série converge dès que $ \alpha > 1$ car : 
+        $$ M_n = \sum_{k=1}^{n} \frac{ \varepsilon_i}{i^\alpha} \leqslant \sum_{k=1}^{n} \frac{| \varepsilon_i|}{i^\alpha} \leqslant \sum_{i=1}^{n} i^{- \alpha} $$ 
+    \begin{itemize}
+        \item $(M_n)_{n \geqslant 0}$ est une martingale car : 
+            $$ \mathbb{E}(|M_n|) < \infty \quad \text{si} \quad \alpha > 1 $$ 
+            et : 
+            \begin{align*}
+                \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) &= \mathbb{E} \left( M_n + \frac{ \varepsilon_{n+1}}{(n+1)^\alpha} \mid \mathcal{F}_n\right) \\ 
+                &= M_n + \frac{ \mathbb{E}( \varepsilon_{n+1})}{(n+1)^\alpha} = M_n 
+            \end{align*} 
+        \item Montrons que les $(M_n)_{n \in \N}$ sont bornés dans $L^2$ : 
+             $$ \mathbb{E}(M_n^2) = \sum_{k=1}^{n} \mathbb{E} \left[ \left( \frac{ \varepsilon_k^2}{k^\alpha}\right)^2 \right] \leqslant \sum_{k=1}^{n} \frac{1}{k^{2\alpha}} < \infty $$ 
+    \end{itemize}
+    Donc dès que $ \alpha > 1/2$, $M_n$ est bornée dans $L^2$ donc elle converge 
+    vers $M_\infty \in L^2$.
+\end{example}
+
+\begin{proof}
+    \begin{enumerate}
+        \item \underline{Convergence dans $L^2$} : On sait que la suite $ \mathbb{E}(M_n^2)$ est croissante 
+        et majorée par hypothèse, donc elle converge. Montrons que cette suite est de Cauchy ce qui 
+        nous assureras qu'il exstera une variable aléatoire limite (si l'on suppose que $L^2$ est complet).
+        Pour tout $n,p \geqslant 0$, on a :
+            \begin{align*}
+                & \mathbb{E} \left( (M_{n+p} - M_n)^2\right) \\ 
+                &= \mathbb{E} \left( M_{n+p}^2 - 2 M_n M_{n+p} + M_n^2\right) \\ 
+                &= \mathbb{E}(M_{n+p}^2) + \mathbb{E}(M_n^2) - 2 \mathbb{E}( \mathbb{E}( M_n M_{n+p} \mid \mathcal{F}_n)) \\ 
+                &= \mathbb{E}(M_{n+p}^2) + \mathbb{E}(M_n^2) - 2 \mathbb{E}(M_n^2) \\ 
+                &= \mathbb{E}(M_{n+p}^2) - \mathbb{E}(M_n^2) \underset{n \to \infty}{\longrightarrow} 0
+            \end{align*}
+        \item \underline{Convergence presque sûre} : On souhaiterai utiliser le lemme de 
+        Borel-Cantelli. On souhaite donc montrer que : 
+            $$ \myP(\{A_n\}) = \myP \left( \sup_{k \geqslant n} | M_k - M_\infty | > \varepsilon \right) $$ 
+        Alors la $ \myP( \limsup A_n) = 0 \iff \myP(\liminf A_n^c) = 1$ d'où : 
+            $$ \myP( \exists n \in \N, \; \forall k \geqslant n, \; |M_k - M_\infty| \leqslant \varepsilon) = 1 $$
+        \begin{align*}
+            \myP( \sup_{k \geqslant n} |M_k - M_\infty| \geqslant \varepsilon) &\leqslant \frac{ \mathbb{E}(\sup_{k \geqslant n} |M_k - M_\infty|^2)}{ \varepsilon^2}  \\ 
+            & \leqslant \frac{1}{ \varepsilon^2} \left( \mathbb{E}( |M_n - M_\infty|^2) + \mathbb{E}(\sup_{k \geqslant n} \mid M_k - M_n)^2 \right)
+        \end{align*}
+        Par limite monotone : 
+            $$ \mathbb{E}( \sup_{k \geqslant n} | M_k - M_n|^2) = \lim_{n \to \infty} \mathbb{E} \left( \sup_{N \geqslant k \geqslant n} |M_k - M_n|^2\right) $$
+        or pour tout $k \geqslant n$, $X_k = |M_k - M_n|$ est une sous-martingale positive.
+        Alors, d'après l'inégalité maximale de Doob : 
+            \begin{align*}
+                \mathbb{E}(\sup_{N \geqslant k \geqslant n} | M_k - M_n|^2)^{1/2} \leqslant 2 \mathbb{E}(|M_N - M_n|^2)^{1/2} 
+            \end{align*}
+        Donc : 
+            \begin{align*}
+                \mathbb{E}(\sup_{k \geqslant n} |M_k - M_n|^2) &\leqslant 4 \lim_{N \to \infty} \mathbb{E}(|M_N - M_n|^2) \\ 
+                & \leqslant 4 \mathbb{E}( |M_\infty - M_n|^2) 
+            \end{align*}
+        En revenant à notre inégalité du départ, on a donc : 
+            $$ \myP(\sup_{k \geqslant n} |M_k - M_\infty|^2 \geqslant \varepsilon) \leqslant \frac{c}{ \varepsilon^2} \mathbb{E}(|M_\infty - M_n|^2) \underset{n \to \infty}{\longrightarrow} 0 $$
+        Quitte à extraire, on peut construire une suite $ n_L \to \infty$ telle que $\sum \mathbb{E}(|M_\infty - M_{n_L}|^2) < \infty$.
+        Le théorème de Borel-Cantelli nous donne donc que : 
+            $$ \myP(\limsup_{n_L} A_{n_L}) = 0 $$
+            $$ \iff \myP(\liminf_{n_L} A_{n_L}^c) = 1 $$
+        ce qui suffit à donner la convergence presque sûre.
+    \end{enumerate}
+\end{proof}

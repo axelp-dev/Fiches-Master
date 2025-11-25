@@ -1,0 +1,154 @@
+% ========================================================================================================
+% Introduction 
+
+\minitoc 
+
+Dans ce second chapitre, nous allons nous intéresser aux problème d'optimisation avec contraintes. 
+Ces problèmes sont plus génériques que ceux vu précédement et demandent l'utilisation de nouveaux 
+outils pour les traiter. Voyons-en un exemple. 
+
+\begin{example}
+    Reprenons un problème d'optimisation classique, auxquel on rajoute une condition : 
+        \begin{mini}|l|
+                {}{f(x) = x^2}{}{}
+                \addConstraint{x}{ \geqslant 1}
+                \addConstraint{x}{\in \mathcal{\R}}
+        \end{mini}
+    
+    La solution évidente de ce problème est bien $x = 1$. Or la première condition nécessaire d'optimalité 
+    vue précédement n'est plus valable. En effet, $f'(1) = 1 \not = 0$. 
+    Nous devons donc en définir de nouvelles.
+\end{example}
+
+Soient $f : \R^n \longrightarrow \R$ et $C \subseteq \R^n$.
+Dans ce chapitre, nous traiterons donc des problèmes nommés $ (\mathcal{P})$ de la forme :
+
+    \begin{mini*}|l|
+        {}{f(x)}{}{}
+        \addConstraint{x}{ \in C}
+    \end{mini*}
+
+% ========================================================================================================
+% Conditions d'optimalité
+
+\section{Conditions d'optimalité}
+
+\subsection{CN et CNS}
+
+Commençons par un analogue at principe de Fermat. 
+
+\begin{theorem}[CN d'optimalité du second ordre]
+    Soit $f : \R^n \longrightarrow \R$ une application et $C \subset \R^n$ \emph{convexe}.
+    Alors tout solution $ \overline{x} \in C$ de $ ( \mathcal{P})$ safisfait la condition nécessaire 
+    d'optimalité du second ordre : 
+        \begin{equation}
+            \forall x \in C, \quad \langle \nabla f( \overline{x}), \overline{x} - x \rangle \geqslant 0 
+        \end{equation}
+\end{theorem}
+
+Dans le cas particulier où $C$ et $f$ sont convexes, cette condition nécessaire est aussi suffisante. 
+
+\begin{theorem}[CNS d'optimalité du second ordre]
+    Soit $f : \R^n \longrightarrow \R$ une fonction convexe différentiable et $C \subset \R^n$ convexe. 
+    Alors $ \overline{x} \in C$ est une solution de $( \mathcal{P})$ ssi : 
+        \begin{equation}
+            \forall x \in C, \quad \langle \nabla f( \overline{x}), \overline{x} - x \rangle \geqslant 0 
+        \end{equation}
+\end{theorem}
+
+\subsection{Optimalité non qualifiée}
+
+Attardons nous maintenant sur les problèmes d'optimisation $(\mathcal{P})$ de la forme suivante : 
+
+    \begin{mini*}|l|
+        {}{f(x)}
+        \addConstraint{g(x)}{ \leqslant 0}
+        \addConstraint{f(x)}{ = 0}
+    \end{mini*}
+
+où $f : \R^n \longrightarrow \R$, $ h : \R^n \longrightarrow \R^m$ et $ g : \R^n \longrightarrow \R^p$.
+
+
+\begin{theorem}[F. John, 1948]
+    Soient $f,g,h \in \mathcal{C}^2(\R^n)$. Soit $ \overline{x}$ une solution de $ (\mathcal{P})$.
+    Il existe alors $ \mu_0 \in \R$ et $ \mu \in \R^p$, $ \lambda \in \R^m$ vérifiants des conditions 
+    dites \emph{non qualifiées} suivantes :
+        \begin{enumerate}[label=\roman*)]
+            \item $ \mu_0 \nabla f( \overline{x}) + \displaystyle\sum_{i=1}^{p} \mu_i \nabla g_i( \overline{x}) + \sum_{j=1}^{m} \lambda_i \nabla h_i( \overline{x}) = 0 $
+            \item $ \mu_0 \geqslant 0 $ 
+            \item $ \forall i \in \llbracket 1, p \rrbracket, \quad \mu_i \geqslant 0 $
+            \item $ \forall i \in \llbracket 1, p \rrbracket, \quad \mu_i g_i( \overline{x}) = 0 $
+        \end{enumerate}
+\end{theorem}
+
+\begin{remark}
+    \begin{itemize}
+        \item Les réels $ \lambda_i $ et $ \mu_i$ sont appelés \emph{multiplicateurs de Lagrange} du problème. 
+        \item Un vecteur $x \in \R^n$ est dit \emph{réalisable} ou \emph{admissible} pour $ ( \mathcal{P})$ s'il 
+        satisfait les contraintes $ g(x) \leqslant 0$ et $h(x) = 0$.
+        \item La condition iv) est appelée \emph{complémentarité}.
+    \end{itemize}
+\end{remark}
+
+\subsection{Qualification des contraintes}
+
+Une contrainte d'inégalité $ g(x) \leqslant 0$ est dite \emph{active} $y \in \R^n$ si $g(y) = 0$. 
+On note $ \mathcal{J}(x)$ l'ensemble des indices des contraintes actives en $x$ : 
+    $$ \mathcal{J}(x) := \{i \in \llbracket 1, p \rrbracket \mid g_i(x) = 0\} $$ 
+
+\begin{definition}[Conditions de qualification de Mangasarian-Fromovitz]
+    Un vecteur $ y \in \R^n$ satisfait les conditions de qualification de Mangasarian-Fromovitz (MF) pour 
+    le problème $( \mathcal{P})$ si : 
+    \begin{enumerate}[label=\roman*)]
+        \item $x$ est \emph{admissible} en $ h(x) = 0$ et $g(x) = 0$. 
+        \item les $m$ vecteurs $ \nabla h_i(x)$ sont \emph{linéairement indépendants}.
+        \item il existe $d \in \R^n / \{0\}$ tel que : 
+            \begin{equation}
+                \forall j \in \llbracket 1, m \rrbracket \quad \langle \nabla h_j(x), d \rangle = 0 
+            \end{equation}
+            et : 
+            \begin{equation}
+                \forall k \in \mathcal{J}(x), \quad \langle \nabla g_k(x),d \rangle = < 0 
+            \end{equation}
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[Conditions de qualification 2]
+    On dit que $x \in \R^n$ satisfait les conditions de qualifications (CQ2) pour les contraintes 
+    correspondant à $g$ et $h$ si : 
+    \begin{enumerate}[label=\roman*)]
+        \item $x$ esr admissible.
+        \item la famille de vecteurs : 
+            \begin{equation}
+                \{ \nabla h_j(x) \mid j \in \llbracket 1, m \rrbracket\} \cup \{ \nabla g_k(x) \mid k \in \mathcal{J}(x)\}
+            \end{equation}
+            est linéairement indépendante.
+    \end{enumerate}
+\end{definition}
+
+\begin{proposition}
+    Dans le contexte actuel, un vecteur vérifiant CQ2 verifie aussi MF. D'où $ \text{CQ2} \Longrightarrow \text{MF}$.
+\end{proposition}
+
+\begin{theorem}[Karush-Kuhn-Tucker]
+    Soient $f,g,h \in \mathcal{C}^2(\R^n)$. Soit $ \overline{x} \in \R^n$ une solution de notre problème. 
+    Si $overline{x}$ satsifait MF, alors il existe $ \mu \in \R^p$ et $ \lambda \in \R^m$ tels que : 
+        \begin{enumerate}[label=\roman*)]
+            \item $ \mu_0 \nabla f( \overline{x}) + \displaystyle\sum_{i=1}^{p} \mu_i \nabla g_i( \overline{x}) + \sum_{j=1}^{m} \lambda_i \nabla h_i( \overline{x}) = 0 $
+            \item $ \forall i \in \llbracket 1, p \rrbracket, \quad \mu_i \geqslant 0 $
+            \item $ \forall i \in \llbracket 1, p \rrbracket, \quad \mu_i g_i( \overline{x}) = 0 $
+        \end{enumerate}
+\end{theorem}
+
+\begin{definition}[Lagrangien]
+    Le lagrangien du problème $( \mathcal{P})$ est la fonction définie sur $ \R^n \times \R^p \times \R^m$ par : 
+        \begin{align}
+            L(x, \mu, \lambda) &= f(x) + \sum_{i=1}^{p} \mu_i g_i(x) \sum_{i=1}^{m} \lambda_i h_i(x) \\ 
+            &= f(x) + \langle \mu, g(x) \rangle + \langle \lambda, h(x) \rangle
+        \end{align}
+\end{definition}
+
+\subsection{Suffisance dans le cas convexe}
+
+
+

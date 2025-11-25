@@ -8,19 +8,19 @@ On s'intéresse ici à optimisation dite \emph{continue}. On peut alors formuler
 
 \begin{center}    
     \begin{minipage}{0.45\textwidth}
-        \begin{mini*}|l|
+        \begin{mini}|l|
             {}{f(x)}{}{}
             % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
             \addConstraint{        x }{\in \mathcal{C}}
-        \end{mini*}
+        \end{mini}
     \end{minipage}
     \hfill 
     \begin{minipage}{0.45\textwidth}
-        \begin{mini*}|s|
+        \begin{mini}|s|
             {}{f(x)}{}{}
             % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
             \addConstraint{        x }{\in \mathcal{C}}
-        \end{mini*}
+        \end{mini}
     \end{minipage}
 \end{center}
 
@@ -44,11 +44,11 @@ Résoudre un tel problème signifie trouver $ \overline{x} \in C \subset \R^n$ t
 
 Dans cette section, nous nous intéressons aux problèmes de la forme suivante : 
 
-\begin{mini*}|s|
+\begin{mini}|s|
     {}{f(x)}{}{}
     % \addConstraint{g_{j}(x)}{\le 0, j = 1, \hdots, m}
     \addConstraint{        x }{\in \R^n}
-\end{mini*}
+\end{mini}
 où $f : \R^n \longrightarrow \R$. Nous commencerons par aborder l'optimalité locale puis nous passerons, grâce 
 à la convexité, à l'optimalité globale. 
 
@@ -59,27 +59,33 @@ où $f : \R^n \longrightarrow \R$. Nous commencerons par aborder l'optimalité l
 \begin{theorem}[CN1 - Principe de Fermat]
     Soit $f : \R^n \longrightarrow \R$ et $ \overline{x} \in \R^n$ un minimum local de $f$. 
     Si $f$ est \emph{différentiable} alors : 
-        \[ \nabla f( \overline{x} ) = 0 \]  
+        \begin{equation}\label{eq:principe-fermat}
+            \nabla f( \overline{x} ) = 0
+        \end{equation}
 \end{theorem}
 
 \begin{definition}[Matrice définie positive]
     Soit $A \in \mathcal{M}_{n,n}(\R)$ une matrice symétrique, on dit que $A$ est \emph{définie positive} si 
-        \[ \forall x \in \R^n \setminus \{0\}, \quad ^t x A x > 0  \]
-        \[ \iff Sp(A) \subset R_+^* \] 
+        \begin{equation}\label{eq:def-definie-positive}
+            \boxed{\forall x \in \R^n \setminus \{0\}, \quad ^t x A x > 0} \quad \iff Sp(A) \subset R_+^*
+        \end{equation}  
     On note alors $ A \succ 0$ 
 \end{definition}
 
 \begin{definition}[Matrice semi-définie positive]
     Soit $A \in \mathcal{M}_{n,n}(\R)$ une matrice symétrique, on dit que $A$ est \emph{semi-définie positive} si 
-        \[ \forall x \in \R^n \setminus \{0\}, \quad ^t x A x \geqslant 0  \]
-        \[ \iff Sp(A) \subset R_+ \] 
+        \begin{equation}\label{eq:def-semi-definie-positive}
+            \boxed{\forall x \in \R^n \setminus \{0\}, \quad ^t x A x \geqslant 0} \quad \iff Sp(A) \subset R_+
+        \end{equation}
     On note alors $ A \succeq 0$ 
 \end{definition}
 
 \begin{theorem}[CN2]
     Soit $f : \R^n \longrightarrow \R$ une fonction quelconque et soit $ \overline{x} \in \R^n$ un minimum 
     local de $f$. Si $f$ est \emph{deux fois différentiable en} $ \overline{x}$ alors : 
-        \[ \nabla^2 f( \overline{x}) \succeq 0 \] 
+        \begin{equation}\label{eq:CN-optimalite-second-ordre}
+            \nabla^2 f( \overline{x}) \succeq 0
+        \end{equation}
     (i.e ssi la hessienne de $f$ est semi-définie positive). 
     On appelle cette condition la \emph{condition d'optimalité du second ordre}. 
 \end{theorem}
@@ -126,7 +132,9 @@ considérablement la recherche de solutions.
 
 \begin{definition}[Fonction Coercive]
     Une fonction $f : \R^n \longrightarrow \R$ est dite \emph{coercive} si : 
-        $$ \forall x \in \R^n \text{ tq } || x || \longrightarrow \infty \quad \text{alors} \quad f(x) \longrightarrow \infty $$ 
+        \begin{equation}\label{eq:def-coercive}
+            \forall x \in \R^n \text{ tq } || x || \longrightarrow \infty \quad \text{alors} \quad f(x) \longrightarrow \infty
+        \end{equation}
     Intuitivement, cela signifie que $f$ "repousse" les points qui s’éloignent à l’infini : la fonction ne peut pas 
     être minimisée à l’extérieur d’un compact.
 \end{definition}
@@ -134,7 +142,9 @@ considérablement la recherche de solutions.
 \begin{theorem}[Weierstrass]
     Soit $f : \R^n \longrightarrow \R$. Si $f$ est \emph{continue} et \emph{coercive} alors elle admet un 
     minimum global sur $\R^n$.
-        $$ \text{i.e} \quad \exists x^* \in \R^n \quad \text{ tel que } \quad f(x^*) = \inf_{x \in \R^n}f(x) $$ 
+        \begin{equation}\label{eq:weierstrass-theorem}
+            \text{i.e} \quad \exists x^* \in \R^n \quad \text{ tel que } \quad f(x^*) = \inf_{x \in \R^n}f(x)
+        \end{equation}
 \end{theorem}
 
 \begin{corollary}[Minimum Global]
@@ -157,7 +167,9 @@ La notion de "descente" se formalise par la construction d'une suite $(u_n)_{n \
 \begin{definition}[Direction de descente]
     Soit $f : \R^n \longrightarrow \R$ une application différentiable et $x,d \in \R^n$. 
     Le vecteur $d$ est \emph{la direction de descente de $f$ en $x$} si : 
-        $$ \langle \nabla f(x), d \rangle < 0 $$ 
+        \begin{equation}\label{eq:direction-descente}
+            \langle \nabla f(x), d \rangle < 0
+        \end{equation}
 \end{definition}
 
 Pour l'algorithme de descente, ce vecteur $d$ nous donnera le "sens" dans lequel il faut descendre 
@@ -168,9 +180,13 @@ savoir "de combien" faut-il descendre.
     Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x,d \in \R^n$ tels que 
     $ \nabla f(x) \not = 0$. Si $d$ est une direction de descente de $f$ en $x$, alors il existe $ \mu > 0$ 
     tel que : 
-        $$ \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x)} $$ 
+        \begin{equation}
+            \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x)}
+        \end{equation} 
     De plus, pour tout $ \beta < 1$, il existe $ \mu > 0$ tel que : 
-        $$ \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x) \alpha \beta \langle \nabla f(x), d \rangle} $$ 
+        \begin{equation}
+            \boxed{\forall \alpha \in ]0, \mu[, \quad f(x + \alpha d) < f(x) \alpha \beta \langle \nabla f(x), d \rangle}
+        \end{equation} 
     On appelera $ \alpha$ le \emph{pas} de l'itération. 
 \end{theorem}
 
@@ -218,7 +234,9 @@ Nous choissirons donc au début la direction $ d = - \nabla f(x)$.
 \begin{theorem}[Gradient comme direction]
     Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x \in \R^n$ alors 
     pour tout $d \in \R^n$ tel que $ ||d|| = || - \nabla f(x) ||$ on a : 
-        $$ \langle \nabla f(x), - \nabla f(x) \rangle \leqslant \langle \nabla f(x), d \rangle $$ 
+        \begin{equation}
+            \langle \nabla f(x), - \nabla f(x) \rangle \leqslant \langle \nabla f(x), d \rangle
+        \end{equation} 
     On diras alors que $d^* = - \nabla f(x)$ est \emph{la direction de plus profonde descente}. 
 \end{theorem}
 
@@ -262,7 +280,9 @@ la décroissance de notre fonction objectif.
     Soit $f : \R^n \longrightarrow \R$ une application différentiable. Soient $x_k \in \R^n$ 
     et $d_k \in \R^n$ une direction de descente de $f$ en $x_k$ et $ \alpha_k > 0$. 
     On dit que la fonction $f$ \emph{diminue suffisament} en $x_k + \alpha_k d_k$ par rapport à $x_k$ si : 
-        $$ {f(x_k + \alpha_k d_k) < f(x_k) + \alpha_k \beta \langle \nabla f(x_k), d_k \rangle} $$
+        \begin{equation}
+            {f(x_k + \alpha_k d_k) < f(x_k) + \alpha_k \beta \langle \nabla f(x_k), d_k \rangle}
+        \end{equation}
     avec $ \beta \in ]0,1[$. 
 \end{definition}
 
@@ -279,8 +299,10 @@ de Wolfe).
     $d_k \in \R^n$ une direction de descente de $f$ en $x_k$ et $ \alpha_k > 0$. 
     On dira que le point $x_k + \alpha_k d_k$ \emph{apporte une progression suffisante} par rapport 
     à $x_k$ si : 
-        $$ \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle \geqslant \beta \langle \nabla f(x_k), d_k \rangle $$ 
-        $$ \iff \frac{ \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle}{\langle \nabla f(x_k), d_k \rangle} \geqslant \beta $$ 
+        \begin{align}
+            & \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle \geqslant \beta \langle \nabla f(x_k), d_k \rangle \\[1em]
+            \iff & \frac{ \langle \nabla f(x_k + \alpha_k d_k), d_k \rangle}{\langle \nabla f(x_k), d_k \rangle} \geqslant \beta
+        \end{align}
 \end{definition}
 
 Les algorithmes de \emph{recherche linéaire} nous permettrons d'identifier un pas qui satisfait les deux conditions de Wolfe. 
@@ -359,7 +381,9 @@ définit par $g(x) = 0$ où $ g : \R^n \longrightarrow \R^n$. Elle consiste
 à construire une suite de points $(x_k)_{n \in \N}$ où à chaque étape on cherche un $d \in \R^n$ tel que :
     $$ \forall k \in \N, \quad g(x_k + d) = 0 $$ 
 Or, en remplaçcant $g$ par son approximation linéaire : 
-    $$ g(x_k + d) \simeq g(x_k) + J(x_k)d $$ 
+    $$
+        g(x_k + d) \simeq g(x_k) + J(x_k)d
+    $$
 La recherche de $d$ tel que $g(x_k + d) = 0$ est alors équivalente à la recherche d'un $d$ tel que : 
     \begin{align*}
         & g(x_k) + J(x_k)d = 0 \\ 
@@ -372,9 +396,13 @@ L'itéré suivant est alors $x_{k+1} = x_k + d$. On s'arrête lorsque $\| g(x_k)
     On cherche donc à obtenir une condition d'optimalité de la forme $g(x) = \nabla f(x) = 0$. Dans le 
     cadre précédent, on a donc $g(x) = \nabla f(x)$ et $ J(x) = H_f(x)$. Ici, l'approximation de $f$ 
     par un développement de Taylor de la forme : 
-        $$ f(x) \simeq f(x_k) + \langle \nabla f(x_k), d \rangle + \frac{1}{2} \langle d, H_f(x_k) d \rangle $$ 
+        \begin{equation}
+            f(x) \simeq f(x_k) + \langle \nabla f(x_k), d \rangle + \frac{1}{2} \langle d, H_f(x_k) d \rangle
+        \end{equation}
     est minimisée si $ H_f(x_k)$ est définie positive. Autrement dit, lorsque le gradient de $g$ est nul soit : 
-        $$ \nabla f(x_k) + H_f(x_k)d = 0 $$ 
+        \begin{equation}
+            \nabla f(x_k) + H_f(x_k)d = 0
+        \end{equation}
 \end{proposition}
 
 On utilisera donc l'algorithme suivant : 
@@ -454,12 +482,14 @@ où $M_k$ ou $W_k$ sont des matrices construires grâce à des \emph{formules de
     Soient 
         \[ s_k = x_{k+1} - x_k, \quad y_k = \nabla f(x_{k+1}) - \nabla f(x_k) \] 
     la mise à jour de $W_k$ pour obtenir $W_{k+1}$ est donnée par :
-
-    \[ \boxed{ W_{k+1} = \Big(I - \frac{s_k y_k^\top}{y_k^\top s_k}\Big) W_k \Big(I - \frac{y_k s_k^\top}{y_k^\top s_k}\Big) + \frac{s_k s_k^\top}{y_k^\top s_k}} \]
-
+        \begin{equation}
+            \boxed{ W_{k+1} = \Big(I - \frac{s_k y_k^\top}{y_k^\top s_k}\Big) W_k \Big(I - \frac{y_k s_k^\top}{y_k^\top s_k}\Big) + \frac{s_k s_k^\top}{y_k^\top s_k}}
+        \end{equation}
     Cette formule garantit que $W_{k+1}$ reste symétrique et définie positive à condition que $y_k^\top s_k > 0$.
     La direction de descente est alors simplement :
-        \[ \boxed{d_k = - W_k \nabla f(x_k)} \]
+        \begin{equation}
+            \boxed{d_k = - W_k \nabla f(x_k)}
+        \end{equation}
 \end{proposition}
 
 \begin{algorithm}[H]
@@ -493,9 +523,9 @@ où $M_k$ ou $W_k$ sont des matrices construires grâce à des \emph{formules de
 
 Dans cette section, nous nous intéressons maintenant à des problèmes d'optimisation dits \emph{quadratiques} de la forme : 
 
-    \begin{mini*}|s|
+    \begin{mini}|s|
         {}{f(x) = \frac{1}{2} \langle x, Qx \rangle + \langle b, x \rangle + c}{}{}
-    \end{mini*}
+    \end{mini}
 
 où $Q $ est symétrique définie positive, $b \in \R^n$ et $c \in \R$. On remarque tout de suite que : 
 \begin{itemize}
