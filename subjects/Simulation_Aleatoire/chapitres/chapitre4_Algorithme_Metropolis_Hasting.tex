@@ -12,7 +12,7 @@ sélectif de certains de ses pas en une nouvelle chaîne admettant une mesure in
 
     Soit $f : E \times [0,1] \longrightarrow E$ une fonction qui génère un candidat $y = f(x,U)$ à partir d'un état $x \in E$ et d'une variable uniforme $U$.  
 
-    On définit la chaîne $(Y_n)_{n \ge 0}$ de Metropolis-Hastings par :
+    On définit la chaîne $(Y_n)_{n \geqslant 0}$ de Metropolis-Hastings par :
         \[
             Y_0 \in E, \quad
             Y_{n+1} =
@@ -234,10 +234,24 @@ l'énergie d'un état du système.
     La mesure de Gibbs sur $E$ de température inverse $ \beta$ est la mesure 
     de probabilité $ \mu_{ \beta}$ définie par : 
         \begin{equation}
-            \mu_\beta = \frac{1}{z_\beta} e^{ \beta H(x) } 
+            \mu_\beta(x) = \frac{1}{z_\beta} e^{ \beta H(x) } 
         \end{equation}
     où $z_\beta = \sum_{x \in E} e^{ \beta H(x)}$. 
 \end{definition}
+
+\begin{proposition}[Fondamentale]
+    Par construction de la mesure de Gibbs, lorsque $\beta$ est petit (le système a beaucoup d'énergie),
+    la mesure a tendence à s'uniformiser sur $E$. Or, lorsque $ \beta$ est petit (i.e le système a peu d'énergie), 
+    alors $ \mu_\beta$ ne charge plus que l'ensemble $ \mathcal{M} = \{x \in E \mid \mu_\beta(x) = \mu_0\}$ où 
+    $ \mu_0$ est le maximum de $ \mu_\beta$. 
+
+    \medskip 
+
+    L'algorithme du recuit simulé, que nous verrons plus tard, cherche donc à déterminer de telles solutions en 
+    simulant une marche aléatoire sur $E$ de loi $ \mu_\beta$. En reffroidissant le système petit à petit (i.e en augmentant 
+    $ \beta$), la marche se stabilisera sur un maximum. Mais pour cela, nous devons savoir simuler $ \mu_\beta$. 
+    Pour cela, on utilisera l'algorithme de Metropolis-Hastings.
+\end{proposition}
 
 Or lorsque $E$ est grand, simuler une variable aléatoire de loi $ \mu_\beta$ 
 est difficile pour plusieurs raisons : 
@@ -251,7 +265,7 @@ est difficile pour plusieurs raisons :
 Les méthodes directes de simulation de mesure de Gibbs fonctionnent très mal. 
 Heureusement, on utilise alors l'algorithme de Metropolis-Hasting.
 
-\begin{remark}[Adaptationde l'algorithme]
+\begin{remark}[Adaptation de l'algorithme]
     Soit $Q$ la matrice de transition d'une chaîne de Markov irréductible 
     sur $E$ telle que $Q(x,y) > 0 \iff Q(y,x) > 0$ pour tout $x,y \in E$.
     Pour simuler la loi $ \mu_\beta$, on utilise la matrice de transition 
@@ -262,7 +276,7 @@ Heureusement, on utilise alors l'algorithme de Metropolis-Hasting.
             &= Q(x,y) \min \left( 1, e^{\beta (H(y) - H(x))} \frac{Q(y,x)}{Q(x,y)}\right) \label{eq:calcul-annulation-gibbs}
         \end{align}
     On pourra donc appliquer l'algorithme sans problème d'approximation 
-    de très petites valeurs car $z_\beta$ n'apparaît plus.
+    de très petites valeurs, car $z_\beta$ n'apparaît plus.
 \end{remark}
 
 \begin{example}[Depinning Transition]
@@ -272,11 +286,11 @@ Heureusement, on utilise alors l'algorithme de Metropolis-Hasting.
     d'énergie $H$ sur $E$ telle que : 
         $$ \forall s \in E, \quad H(s) = \text{Card}(\{0 \leqslant i \leqslant n \mid s_i = 0\}) $$ 
     On souhaite simuler un élément de $E$ sous la loi $ \mu_\beta$. On peut proposer
-    différentes transformations pour une chemin de $E$ : 
+    différentes transformations pour un chemin de $E$ : 
     \begin{enumerate} 
         \item Si $s \in E$, on tire $i \in \llbracket 1, n \rrbracket$ on remplace 
         ensuite le saut en $i$ par le saut opposé. 
-        \emph{(C'est une marché réversible).}
+        \emph{(C'est une marche réversible).}
         \item Si $s \in E$, on tire $i \in \llbracket 1, n \rrbracket$ et 
         on remplace un schéma $ \bigvee $ en $i$ par un $ \bigwedge $ en $i$.
          \emph{(Celle-ci n'est pas réversible.).}
@@ -372,30 +386,43 @@ def recuitSimule(x,n):
     transition dépend maintenant de $n$.
 \end{proposition}
 
-\begin{theorem}[]
+\begin{theorem}[Convergence de l'algorithme du recuit simulé]
     On note $(z_n)_{n \geqslant 0}$ la chaîne de Markov inhomogène (la chaîne dépend de l'état 
     précédent et de la posittion dans le temps $n$) dans 
-    le temps de recuit simulé. Il existe $c_* > 0$ tel que pour tout $ c < c_*$ tel 
-    que en posant $ \beta_n := c \log n$, alors : 
+    le temps de recuit simulé. Il existe $c_* > 0$ tel que pour tout $ c < c_*$,
+    en posant $ \beta_n := c \log n$, alors : 
         \begin{equation}
             \boxed{ \lim_{n \to \infty} z_n \in E^*} \quad \text{p.s} 
         \end{equation}
+    \emph{
+        Ici, la suite $(\beta_n)_{n \geqslant 0}$ est la suite des températures inverses que nous utilisons pour simuler 
+        le reffroidissement du système lors de l'exécution de l'algorithme.
+        Ce théorème nous assure donc qu'il existe une courbe de reffroidissement optimale qui permet la 
+        convergence de l'algorithme.
+    }
 \end{theorem}
 
 
 \begin{remark}
-    Ce théorème nous assure que si l'on reffroidit lentement le système (i.e $ n \to \infty$), 
+    Ce théorème nous assure que si l'on refroidit petit à petit le système (i.e $ n \to \infty$), 
     alors la chaîne tend à s'arrêter sur un maximum de $H$.
     Dans cette situation, $ \hat{M}_n = \max_{k \leqslant n} H(z_k)$ et 
     $ \hat{E}_n = \text{argmax}_{z \in \{z_k \mid k \in \N\}} H(z)$ sont des estimateurs 
     fortement consistants de $\max H$ et $ \text{argmax } H$.
+
+    \medskip 
+
     En pratique ces estimateurs convergent très lentement pour un tel choix de 
-    $ \beta$. On préfère donc faire tendre $ \beta$ vers $ \infty$ plus rapidement 
+    $ \beta$. On préfèrera donc faire tendre $ \beta$ vers $ \infty$ plus rapidement 
     et simuler plusieurs chaînes partant de points différents de l'espace d'état.
+
+    \medskip 
+
+    Cet algorithme est très performant en plusieurs dimensions puisque l'algorithme 
+    ne dépend pas de la nature des données sur lequelles sont calculées $H$.
+    En revanche, il est peu performant pour des fonctions $H$ trop périodiques.
 \end{remark}
 
-Cet algorithme est très performant en plusieurs dimensions puisque l'algorithme 
-ne dépend pas de la nature des données sur lequelles sont calculées $H$.
-En revanche, il est peu performant pour des fonctions $H$ trop périodiques.
+
 
 

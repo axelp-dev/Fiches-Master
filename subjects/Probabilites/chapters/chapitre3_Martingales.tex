@@ -245,11 +245,11 @@ Dans cette section, nous allons essayer de généraliser cette structure au trav
 
 \begin{proposition}
     Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \geqslant 0}$, 
-    $ ( \Phi_n)_{n \geqslant 0}$ un processus prévisible et borné. le processus défini par :
+    $ ( \Phi_n)_{n \geqslant 0}$ un processus prévisible et borné. Le processus défini par :
         \begin{equation}\label{eq:not-optimal-strategy}
             X_0 = 0 \text{ et } \forall n \in \N, \quad X_n = \sum_{k=1}^{n} \Phi_k (M_k - M_{k-1})
         \end{equation}
-    Alors $(X_n)_{n \in \N}$ est une martingale pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
+    Est une martingale pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
 \end{proposition}
 
 Cette proposition est fondamentale dans l'interprétation des martingales en tant que stratégies de jeu. 
@@ -265,40 +265,41 @@ Cette notion est traduite par le fait que $(X_n)_{n \in \N}$ reste une martingal
     On posera donc : 
         $$ \forall n \in \N, \forall k \in \llbracket 1, n \rrbracket, \quad \Phi_k = \mathbbm{1}_{k \geqslant \lambda} \quad \text{et} 
         \quad X_n = \sum_{k=1}^{n} \Phi_k (M_k - M_{k-1}) $$  
+    Où $(M_n)_{n \in \N}$ représente, comme précédement, le jeu initial.
+    On souhaiterai aussi généraliser la notion de chaîne de Markov $(X_n)_{n \in \N}$ arrêtée par un temps d'arrêt $T$ 
+    définie par : 
+        $$ 
+            \forall n \in \N, \quad X_n = 
+                \begin{cases}
+                    X_n \quad \text{si } n \leqslant T \\ 
+                    X_T \quad \text{sinon}  
+                \end{cases}
+        $$
 \end{remark}
 
-On souhaiterai aussi généraliser la notion de chaîne de Markov $(X_n)_{n \in \N}$ arrêtée par un temps d'arrêt $T$ 
-définie par : 
-    $$ 
-        \forall n \in \N, \quad X_n = 
-            \begin{cases}
-                X_n \quad \text{si } n \leqslant T \\ 
-                X_T \quad \text{sinon}  
-            \end{cases}
-    $$
-
-\begin{proposition}[Martingale arrêtée]
-    Ainsi, soit $(M_n)_{n \leqslant 0}$ une martingale pour la filtration $ \mathcal{F}_n$ $T$. 
+\begin{definition}[Martingale arrêtée]
+    Ainsi, soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $ (\mathcal{F}_n)_{n \geqslant 0}$.
     Soit $T$ un temps d'arrêt. On pose : 
         $$ \forall k \in \N, \quad \Phi_k = \mathbbm{1}_{\{T \geqslant n\}} $$ 
-    L'évènnement $\{T \leqslant n\}$ est mesurable par rapport à $ \mathcal{F}_{n-1}$ car il se décompose 
-    comme le complémentaire d'une intersection dénombrable d'évènnements $ \mathcal{F}_{n-1}$ mesurables : 
+    L'évènement $\{T \leqslant n\}$ est mesurable par rapport à $ \mathcal{F}_{n-1}$ car il se décompose 
+    comme le complémentaire d'une intersection dénombrable d'évènements $ \mathcal{F}_{n-1}$ mesurables : 
         $$ \{T \leqslant n\} = \overline{\{T \geqslant n\}} = \bigcap_{k = 1}^{n-1} \{T \not = k\} $$ 
-    Le processus $ \Pi_k $ est donc prévisible pour la filtration $( \mathcal{F}_n)_{n \geqslant 0}$. 
+    Le processus $ (\Phi_k)_{k \geqslant 0} $ est donc prévisible pour la filtration $( \mathcal{F}_n)_{n \geqslant 0}$. 
     D'après la proposition \ref{eq:not-optimal-strategy}, le processus défini comme : 
         \begin{equation}\label{eq:martingale-arrete}
             \boxed{
-                \forall n \in \N, \quad M_n = 
+                \forall n \in \N, \quad M_n^T = 
             \begin{cases}
                 M_n \quad \text{si } n \leqslant T \\ 
                 M_T \quad \text{ sinon }  
             \end{cases}
             }
         \end{equation}
-\end{proposition}
+    Est donc aussi une martingale pour $ (\mathcal{F}_{n})_{n \in \N}$ appelé \emph{martingale arrêtée}.
+\end{definition}
 
 \begin{theorem}[Arrêt (Doob)]\label{theorem:stop-doob-theorem}
-    Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \in \N}$.
+    Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \geqslant \N}$.
     Soit $T$ un temps d'arrêt pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
     Si une des trois assertions suivante est vraie : 
     \begin{enumerate}[label=\roman*)]
@@ -320,12 +321,12 @@ définition des martingales \ref{proposition:generalisation-definition}.
 \end{proof}
 
 
-\begin{remark}
-    On ne peut pas généraliser ce théorème dans le cas général. Fournissons
+\begin{remark}[Limites]
+    Ce théorème n'est pas vrai dans le cas général. Fournissons
     un contre exemple. Soit $( \varepsilon_i)_{i \in \N}$ une suite de variables 
     aléatoires iid telles que : 
         $$ \forall i \in \N, \quad \myP( \varepsilon_i = -1) = \myP( \varepsilon_i = 1) = \frac{1}{2} $$ 
-    posons alors : 
+    Posons alors : 
     $$ S_0 = 0, \quad \text{et} \quad S_n = \sum_{i=1}^{n} \varepsilon_i $$ 
     Soit $T_1 = \inf \{n \geqslant 0 \mid S_n = 1\}$ le temps d'arrêt 
     à l'état 1. Alors $(S_n^T) = S_{\min(n, T_1)}$ est une martingale arrêtée. 
@@ -333,9 +334,9 @@ définition des martingales \ref{proposition:generalisation-definition}.
         $$ \mathbb{E}(S_{\min(n,T_1)}) = \mathbb{E}(S_0) = 0 $$ 
     Nous avions montré que $(S_n)_{n \geqslant 0}$ est une chaîne de Markov 
     sur $\N$ irréductible récurrente nulle. Donc $T_1$ est fini p.s. 
-    On ne rentre donc dnas aucune des hypothèses du théorème. De plus : 
+    On ne rentre donc dans aucune des hypothèses du théorème. De plus : 
         $$ \mathbb{E}(S_{T_1}) = 1 $$ 
-    car par définition, $S_{T_1} = 1$ p.s
+    car par définition, $S_{T_1} = 1$ p.s.
 \end{remark}
 
 \begin{example}[Application - Modèle de Wright-Fisher]
@@ -351,7 +352,7 @@ définition des martingales \ref{proposition:generalisation-definition}.
         $$ X_{n+1} \sim \mathcal{B} \left(n, \frac{X_n}{N} \right) $$ 
     $(X_n)_{n \in \N}$ est donc une chaîne de Markov à valeurs dans $ \llbracket 1, N \rrbracket$
     et $0$ et $N$ sont des points absorbants. L'état $0$ correspond à la disparition 
-    de l'allèle $A$ dans la population et $N$ correspond à la disparition de l'allèle $a$
+    de l'allèle $A$ dans la population et l'état $N$ correspond à la disparition de l'allèle $a$
     dans la population (i.e fixation de l'allèle $A$).
     On souhaiterait avoir des informations sur : 
         $$ \tau = \inf (T_0, T_N) \quad \text{et} \quad \myP( \tau = T_0)$$ 
@@ -359,7 +360,7 @@ définition des martingales \ref{proposition:generalisation-definition}.
         \begin{align*}
             \mathbb{E}(X_{n+1} \mid \mathcal{F}_n) &= N \times \frac{X_n}{N} = X_n 
         \end{align*}
-    $(X_n)_{n \in \N}$ est une martingale bornée sur un espace d'états fini. 
+    Elle est même bornée par $N$ sur un espace d'états fini. 
     Donc $ \tau$ est fini p.s car c'est un temps d'atteinte d'une chaîne de Markov 
     sur un espace discret.
 
@@ -376,12 +377,10 @@ définition des martingales \ref{proposition:generalisation-definition}.
         $$ i = N \myP( \tau = T_N) \iff \myP( \tau = T_N) = \frac{i}{N} $$ 
 \end{example}
 
-\begin{remark}
-    Les martingales permettent donc d'avoir facilement des informations sur des temps d'arrêts. 
-    En effet, le théorème d'arrêt nous donne le même résultat qu'une analyse à un pas.
-\end{remark}
+Les martingales permettent donc d'avoir facilement des informations sur des temps d'arrêts. 
+En effet, le théorème d'arrêt nous donne le même résultat qu'une analyse à un pas.
 
-On peut également proposer une réciproque et théorème d'arrêt. Nous avons vu que pour 
+On peut également proposer une réciproque au théorème d'arrêt. Nous avons vu que pour 
 une martingale $(X_n)_{n \geqslant 0}$, on a $ \mathbb{E}(X_n) = \mathbb{E}(X_0)$. 
 On souhaiterai avoir une réciproque pour cela mais il va falloir rajouter des hypothèses 
 car il existe des contre-exemples.
@@ -400,7 +399,6 @@ car il existe des contre-exemples.
 
 On souhaite contrôler le $\sup$ d'un processus sur une trajectoire 
 à partir de la valeur terminale du processus.
-
 On considère donc une sous-martingale $(M_n)_{n \in \N}$. Par définition, 
 elle vérifie : 
     $$ \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) \geqslant M_n $$ 
@@ -410,7 +408,7 @@ définit par :
 Il existe différentes inégalités pour avoir des informations sur ce processus. 
 
 \begin{proposition}[Inégalités Maximales]
-    Dans le même contexte que précedement, on a : 
+    Dans le même contexte que précédement, on a : 
     \begin{enumerate}[label=\roman*)]
         \item $ {\displaystyle \forall c \geqslant 0, \quad \myP(M_n^* \geqslant c) \leqslant \frac{1}{c} \mathbb{E} \left( M_n \mathbbm{1}_{M_n^* \geqslant c} \right)} $
         \item Soit $p > 1$ si $(M_n)_{n \in \N}$ est une sous-martingale \emph{positive} et $ M_n \in L^p$ 
@@ -444,8 +442,7 @@ dans le cadre des martingales.
 L'idée est donc d'exprimer une martingale comme une somme de variables 
 aléatoires. Pour cela, on posera : 
     \begin{align*}
-        \forall n \in \N, \quad M_n - M_0 &= \sum_{k=1}^{n} M_k - M_{k-1} \\ 
-        &= \sum_{k=1}^{n} \Delta_{M_k}
+        \forall n \in \N, \quad M_n - M_0 &= \sum_{k=1}^{n} M_k - M_{k-1} = \sum_{k=1}^{n} \Delta_{M_k}
     \end{align*}
 On appelera les $\Delta_{M_k}$ les \emph{incréments} de la martingale.
 Pour rappel, le produit scalaire dans $L^2$ est de la forme : 

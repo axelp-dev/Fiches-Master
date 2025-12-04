@@ -1,0 +1,553 @@
+\minitoc 
+
+% ========================================================================================================
+% Cadre Général
+
+\section{Cadre Général}
+
+Dans ce chapitre, nous allons présenter un algorithme permettant de déterminer les solutions de l'équation :
+    $$ h( \theta) = 0 $$ 
+pour une fonction $h$ lorsqu'on peut écrire $ h ( \theta) = \mathbb{E}(g( \theta,Y))$. 
+Par exemple, chercher $ \theta$ tel que : 
+    \begin{align*}
+        &\int_{\R_+} (x - \theta) e^{-x^3} \; dx = 0 \\ 
+        \iff & \int_{\R_+} x e^{-x^3} \; dx - \theta \int_{\R_+} e^{-x^3} \; dx = 0 \\ 
+        \iff & \theta = \frac{ \int_{\R_+} x e^{-x^3} \; dx }{ \int_{\R_+} e^{-x^3} \; dx }
+    \end{align*}
+
+% \begin{example}
+%     \begin{itemize} 
+%         \item si $g( \theta, Y) = \theta - Y$ alors $ h( \theta) = 0 \iff \theta = \mathbb{E}(Y)$.
+%         \item $g( \theta, Y) = \alpha - \mathbbm{1}_{ Y \leqslant \theta}$ alors $h( \theta) = 0 $ 
+%         ssi $ \theta$ est le quantile d'ordre $ \alpha$ de la loi $Y$.   
+%     \end{itemize}
+% \end{example}
+
+\begin{proposition}[Algorithme]
+    On se fixe une suite $ ( \gamma_n)_{n \in \N} \in (\R_+^*)^\N$ telle que 
+    $ \sum_{n \geqslant 0} \gamma_n = \infty$ mais $ \sum_{n \geqslant 0} \gamma_n^2 < \infty$. 
+    On définit par récurrence : 
+        \begin{equation}
+            \boxed{\theta_{n+1} = \theta_n - \gamma_n g ( \theta_n, Y_{n+1})}
+        \end{equation}
+    où les $(Y_n)_{n \in \N}$ sont des variables aléatoires idd de même loi que $Y$.
+    Sous de bonnes conditions, $ (\theta_n)_{n \in \N}$ converge vers une solution $ \theta$ de 
+    $ h( \theta) = 0$.
+\end{proposition}
+
+\begin{example}
+    Supposons que $ g( \theta, Y) = \theta - Y$ et $ \gamma_n = \frac{1}{n+1}$.
+    La solution de $h( \theta) = 0$ est exactement $ \theta = \mathbb{E}(Y)$.
+    On remarque que : 
+        \begin{align*}
+            \theta_{n+1} &= \theta_n - \frac{1}{n+1} \left( \theta_n - Y_{n+1} \right) \\ 
+            &= \frac{n}{n+1} \theta_n + \frac{1}{n+1} Y_{n+1} 
+        \end{align*}
+    Donc $ (n+1) \theta_{n+1} - n \theta_n = Y_{n+1}$, d'où $ n \theta_n = Y_1 + \dots + Y_n$.
+    Soit $ \theta_n = \frac{1}{n } \sum_{i=1}^{n} Y_i$. On a bien $ \lim_{n \to \infty} \theta_n = \mathbb{E}(Y)$ 
+    d'après la loi des grands nombres.
+\end{example}
+
+% \subsection{Cas d'une fonction déterministe $h$}
+
+% On suppose ici que l'on connaît la fonction $ h : \R \longrightarrow \R$ que l'on 
+% sait calculer. On souhaite aussi que $h \in \mathcal{C}^1(\R)$.
+
+% \begin{proposition}[Dichotomie]
+%     Pour trouver les solutions de l'équation $h ( \theta) = 0$, on peut essayer une 
+%     méthode par dichotomie. On calcule plusieurs valeurs de $h$ jusqu'à trouver une valeur 
+%     positive et une négative. Par continuité, on sait que la fonction s'annule entre les deux. 
+%     Or cette méthode fonctionne que sur $\R$ et nous devons définir des points de départ 
+%     pour l'algorithme.
+% \end{proposition}
+
+% \begin{proposition}
+%     Nous pouvons aussi considérer une méthod de Newton de la forme : 
+%         \begin{equation}
+%             \forall n \in \N, \quad x_{n+1} = x_n - \frac{g(x_n)}{g'(x_n)}
+%         \end{equation}
+%     Nous devons, ici aussi, être capable de très bien calculer $g$ pour des valeurs très 
+%     proches pour estimer des valeurs de $g'$. On peut donc proposer une autre méthode : 
+%         \begin{equation}
+%             \forall n \in \N, \quad x_{n+1} = x_n - \alpha_n g(x_n) 
+%         \end{equation}
+%     où $ \sum_{i \geqslant 1} \alpha_n = \infty$ et $ \sum_{i \geqslant 1} \alpha_x^2 < \infty$.
+%     Alors, la suite $(x_n)_{n \in \N}$ converge bien vers une solution de $g( \theta) = 0$.
+% \end{proposition}
+
+% \subsection{Cas d'une fonction non déterministe (cas stochastique)}
+
+% On a donc l'équation de la forme : 
+%     \begin{equation}\label{eq:equation-espe}
+%         h( \theta) = \mathbb{E}(g( \theta, Y)) = 0
+%     \end{equation} 
+% On pose donc l'itéré suivant : 
+%     $$ \theta_{n+1} = \theta_n - \alpha_n H( \theta_n, Y_{n+1}) $$
+% Alors, par construction, $( \theta_n)_{n \in \N}$ est une chaîne de Markov inhomogène 
+% dans le temps. On va donc exhiber des conditions sur $H$ pour que $( \theta_n)_{n \in \N}$ 
+% converge p.s vers une solution $ \theta^*$ de \ref{eq:equation-espe}.
+
+% \medskip 
+
+% On note donc $ \mathcal{F}_n = \sigma( \theta_0, Y_1, \dots, Y_n)$ la filtration adaptée à 
+% $( \theta_n)_{n \in \N}$. On a donc : 
+%     \begin{align*}
+%         \mathbb{E}( \theta_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}( \theta_n - \alpha_n H( \theta_n, Y_{n+1}) \mid \mathcal{F}_n) \\ 
+%         &= \theta_n - \alpha_n \mathbb{E}(H( \theta_n, Y_{n+1}) \mid \mathcal{F}_n) \\ 
+%         &= \theta_a - \alpha_n h( \theta_n)
+%     \end{align*}
+
+% Donc, conditionnellement à $ \mathcal{F}_n$, $ \mathbb{E}( \theta_{n+1})$ est exactement 
+% l'itéré définit par la méthode de Newton. C'est le même principe que l'algorithme de Robbins 
+% Monro. On a donc : 
+%     \begin{equation}
+%         \theta_{n+1} = \theta_n - \alpha_n h( \theta_n) + \alpha_n \Delta M_n 
+%     \end{equation}
+% où $ \Delta M_n = h( \theta_n) - H( \theta_n, Y_{n+1})$ est une variable centrée 
+% indépendante de $\mathcal{F}_n$.
+
+Dans le cas déterministe, on suppose ggg connue et calculable, ce qui permet d’utiliser des méthodes comme Newton. 
+Cependant, en pratique, ggg est souvent inconnue (définie par une espérance) ou bruitée (observations aléatoires). 
+L’algorithme de Robbins-Monro résout ce problème en remplaçant $ g( \theta) $ par une estimation 
+$ H(\theta, Y)$, tout en garantissant la convergence vers la solution de $h(\theta) = 0$ sous des conditions
+sur les pas $(\alpha_n)$.
+
+% ========================================================================================================
+% Convergence de l'algorithme
+
+\section{Convergence de l'algorithme}
+
+Toute cette section est consacrée à la démonstration de la convergence de l'algorithme. Pour cela, nous allons introduire 
+un théorème très important dans l'étude des algorithmes stochastiques : le théorème de Robbins-Sigmund. 
+
+\subsection{Théorème de Robbins-Sigmund}
+
+Nous allons étudier ce théorème sous la forme suivante : 
+
+\begin{theorem}[Robbins-Sigmund]
+    Soient quatre suites $(z_n)_{n \in \N}, ( \alpha_n)_{n \in \N}, ( \beta_n)_{n \in \N} $ et $ ( \gamma_n)_{n \in \N}$
+    adaptées pour une filtration $( \mathcal{F}_n)_{n \in \N}$. Supposons qu'elles vérifient : 
+        \begin{enumerate}[label=\roman*)]
+            \item $ \displaystyle \sum_{n \geqslant 0} \alpha_n = \infty $ p.s
+            \item $ \displaystyle \sum_{n \geqslant 0} \beta_n < \infty $ p.s 
+            \item $ \displaystyle \sum_{n \geqslant 0} \gamma_n < \infty $ p.s
+            \item $ \displaystyle \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n + \beta_n) z_n + \gamma_n$
+        \end{enumerate}
+    
+    \medskip
+    
+    Alors : 
+        \begin{equation}
+            \lim_{n \to \infty} z_n = 0 \text{ ps}  
+        \end{equation}
+\end{theorem}
+
+Dans notre situation, nous pouvons considérer que $ \beta_n = 0$ pour tout $n \in \N$. 
+En effet, nous cherchons à modifier l'hypothèse $\mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n + \beta_n) z_n + \gamma_n$ 
+en : 
+    $$ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n) z_n + \gamma_n $$ 
+
+\begin{lemma}
+    Réduisons le théorème au cas $ \beta_n = 0$.
+\end{lemma}
+
+\begin{proof}
+    Supposons donc que : 
+    \begin{enumerate}[label=\roman*]
+        \item $ \sum_{n \geqslant 0} \alpha_n = \infty $ p.s
+        \item $ \sum_{n \geqslant 0} \beta_n < \infty $ p.s 
+        \item $ \sum_{n \geqslant 0} \gamma_n < \infty $ p.s
+        \item $ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n) z_n + \gamma_n$
+    \end{enumerate}
+    Montrons que si $ \beta_n = 0$, alors $ z_n \underset{n \to \infty}{\longrightarrow} 0$ aussi.
+    Pour cela, posons, pour tout $n \in \N$ : 
+        $$ Y_n = \frac{z_n}{ \prod_{j=1}^n (1 + \beta_j)} $$ 
+    On a les égalités suivantes : 
+        \begin{align*}
+            \mathbb{E} \left( \frac{z_{n+1}}{ \prod_{j=1}^{n+1} (1 + \beta_j)} \mid \mathcal{F}_n\right) &= \frac{ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n)}{\prod_{j=1}^{n+1} (1 + b_j)} \\ 
+            & \leqslant \frac{ (1 - \alpha_n + \beta_n) z_n}{ \prod_{j=1}^{n+1} (1 + \beta_j)} + \frac{ \gamma_n}{ \prod_{j=1}^{n+1} (1 + \beta_j)} \\
+            &= \frac{1 - \alpha_n + \beta_n}{1 + \beta_{n+1}} \frac{z_n}{\prod_{j=1}^{n} (1 + \beta_j)} + \frac{ \gamma_n}{ \prod_{j=1}^{n+1} (1 + \beta_j)}
+        \end{align*}
+    Or, pour $n$ grand, on a : 
+        $$ \frac{1 - \alpha_n + \beta_n}{1 + \beta_n} \sim_\infty 1 - \alpha_n $$ 
+    D'où : 
+        $$ \mathbb{E} \left( Y_{n+1} \mid \mathcal{F}_n\right) \leqslant (1 - \alpha_n') Y_n + \gamma_n' $$ 
+    Avec : 
+        $$ Y_{n} = \frac{z_n}{ \prod_{j=1}^{n} (1 + \beta_j)}, \quad \alpha_n' = \frac{ \alpha_n}{1 + \beta_n} \quad \text{et} \quad \gamma_n' = \frac{ \gamma_n}{\prod_{j=1}^{n} (1 + \beta_j)} $$
+    On souhaite maintenant appliquer le theorème de Robbins-Sigmund à la suite $(Y_n)_{n \geqslant 0}$. Pour cela, vérifions 
+    les hypothèses du théorème : 
+    \begin{enumerate}[label=\roman*]
+        \item Pour $ \alpha_n'$, on a que $ \alpha_n' = \frac{ \alpha_n}{1 + \beta_n} $ donc $ \alpha_n' \sim_\infty \alpha_n$. 
+        Par comparaison : 
+            $$ \sum_{n \geqslant 0} \alpha_n < \infty \text{ p.s } \quad \Longrightarrow \quad \sum_{n \geqslant 0} \alpha_n' < \infty \text{ p.s } $$ 
+        \item Pour $ \gamma_n'$, on a : 
+            $$ \sum_{n \geqslant 0} \gamma_n' = \sum_{n \geqslant 0} \frac{ \gamma_n}{ \prod_{j=1}^{n} (1 + \beta_j)} < \sum_{n \geqslant 0} \gamma_n < \infty $$ 
+    \end{enumerate}
+    On peut donc appliquer le théorème d'où : 
+        $$ \lim_{n \to \infty} Y_n = 0 \text{ p.s} $$ 
+    De plus, par construction de $Y_n$, on a : 
+        $$ \lim_{n \to \infty} z_n = \lim_{n \to \infty} Y_n \underbrace{\prod_{j=1}^{n} (1 + \beta_j)}_{< \infty} \quad
+            \implies \quad \lim_{n \to \infty} z_n = 0 $$
+    Le théorème est donc valable avec ce nouveau jeu d'hypothèses.\qed
+\end{proof}
+
+Nous pouvons désormais passer à la démonstration du théorème de Robbins-Sigmund.
+
+\begin{proof}
+    La démonstration de ce résultat est basée sur la construction d'une sur-martingale et de l'utilisation 
+    du théorème de convergence des martingales pour conclure. Nous commençons donc avec les hypothèses suivantes : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \sum_{n \geqslant 0} \alpha_n = \infty $ p.s
+        \item $ \sum_{n \geqslant 0} \beta_n < \infty $ p.s 
+        \item $ \sum_{n \geqslant 0} \gamma_n < \infty $ p.s
+        \item $ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n) z_n + \gamma_n$
+    \end{enumerate}
+    Montrons que $ z_n \underset{n \to \infty}{\longrightarrow} 0$.
+    
+    \medskip
+
+    \emph{1. Construction de la sur-martingale}. 
+    Posons : 
+        $$ \forall n \in \N, \quad S_n = z_n + \sum_{k=0}^{n-1} \alpha_k z_k - \sum_{k=0}^{n-1} \gamma_k $$ 
+    Montrons que $(S_n)_{n \geqslant 0}$ est une sur-martingale. 
+    \begin{align*}
+        \mathbb{E}(S_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) + \sum_{k=0}^{n} \mathbb{E}(\alpha_k z_k \mid \mathcal{F}_n)
+            - \sum_{k=0}^{n} \mathbb{E}( \gamma_k \mid \mathcal{F}_n) \\ 
+        &= \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) + \sum_{k=0}^{n} \alpha_k z_k - \sum_{k=0}^{n} \gamma_k \\ 
+        &\leqslant (1 - \alpha_n) z_n + \gamma_n + \sum_{k=0}^{n} \alpha_k z_k - \sum_{k=0}^{n} \gamma_k \\
+        &= \sum_{k=0}^{n-1} \alpha_k z_k - \sum_{k=0}^{n-1} \gamma_k + z_n = S_n 
+    \end{align*}
+    Par définition, $(S_n)_{n \geqslant 0}$ est bien une sur-martingale pour la filtration $ (\mathcal{F}_n)_{n \geqslant 0}$.
+
+    \medskip
+
+    \emph{2. Convergence de la sur-martingale. } Soit $ \tau_c$ le temps d'arrêt suivant : 
+        $$ \tau_c = \inf \left\{ n \in \N \mid \sum_{k=0}^{n} \gamma_k \geqslant  \right\} $$ 
+    Soit la martingale arrêtée par $ \tau_C$ $(S_{n \wedge \tau_c})_{n \geqslant 0}$, elle est bornée inférieurement par $-C$ car : 
+        $$ S_{n \wedge \tau_C} \geqslant - \sum_{k=0}^{ \tau_C -1} \gamma_k \geqslant - C $$ 
+    Par théorème, elle converge donc presque sûrement vers une limite finie $W_C$. 
+    Puisque $ \sum_{k \geqslant 1} \gamma_k < \infty$ p.s, il existe $C > \sum_{k \geqslant 1} \gamma_k $ tel que 
+    $ \tau_c= \infty$ p.s. Donc sur l'évènnement $\{ \tau_c = \infty\}$, on a $S_n = S_{n \wedge \tau_C}$ pour tout $n$, donc :
+        $$ \lim_{n \to \infty} S_n = W_c \text{ p.s} $$ 
+    Or $S_n = z_n + \sum_{k=0}^{n-1} \alpha_k z_k - \sum_{k=0}^{n-1} \gamma_k$, et comme $ \sum_{k \geqslant 1} \gamma_k $ converge, 
+    la convergence de $S_n$ implique celle de : 
+        $$ z_n + \sum_{k=0}^{n-1} \alpha_k z_k $$
+    mais $ \sum_{k \geqslant 1} \alpha_k = \infty$ donc nécessairement $ \sum_{k \geqslant1} \alpha_k z_k < \infty$. 
+    Finalement : 
+        $$ z_n \underset{n \to \infty}{\longrightarrow} 0 \text{ p.s} $$
+    \qed 
+\end{proof}
+
+\subsection{Convergence de l'algorithme de Robbins-Monro}
+
+% Maintenant que nous avons tous les outils nécessaires, nous pouvons passer à l'étude 
+% de la convergence de cet algorithme. 
+
+% Pour rappel, on souhaite déterminer les solutions de l'équation $ h( \theta) = 0$ où $h$ peut s'écrire sous la forme : 
+%     $$ h( \theta) = \mathbb{E}[H(Y, \theta)] $$ 
+% où $Y$ est une variable aléatoire quelconque que l'on sait simuler. 
+% L'algorithme de Robbins-Monro approche la solution $ \theta^*$ par les itérés suivants : 
+%     $$ \forall n \geqslant 0, \quad \theta_{n+1} = \theta_n - \gamma_n H(Y_{n+1}, \theta_n) $$ 
+% où $(Y_n)_{n \geqslant 0}$ est une suite de variables idd de même loi que $Y$. 
+% Le théorème suivant nous assure sa convergence sous de bonnes hypothèses : 
+
+% \begin{theorem}[Conditions suffisantes de convergence]
+%     Avec les mêmes notations que précédement : 
+%     \begin{enumerate}[label=\roman*)]
+%         \item (Coercivité) S'il existe $ \theta^*$ tel que $h( \theta) ( \theta - \theta^*) \geqslant \mu \| \theta - \theta^* \|^2$, 
+%         \item S'il existe $A, B > 0$ tels que $ \| h( \theta_n) \| ^2 \leqslant A + B \| \theta_n \|^2$, 
+%         \item (Contrôle du bruit) Et que $ \mathbb{E}( \| h( \theta) - H( \theta, Y) \|^2) \leqslant K$.
+%     \end{enumerate}
+%     Alors $\lim_{n \to \infty} \theta_n = \theta^*$ p.s.
+% \end{theorem}
+
+% \begin{proof}
+%     La démonstration de cette convergence utilise la construction récursive de l'algorithme ainsi 
+%     que le théorème de Robbins-Sigmund. 
+%     Soit $( \mathcal{F}_n) = \sigma ( \theta_0, \dots, \theta_n, Y_0, \dots, Y_n)$ la filtration associée 
+%     au $n$-ième itéré de l'algorithme. L'idée est de séparer l'incrément de l'algorithme en deux valeurs : 
+%         $$ \Delta M_n = \underbrace{h( \theta_n)}_{\text{partie déterministe}} - \underbrace{H( \theta_n, Y_(n+1))}_{\text{partie stochastique}} $$
+%     noté $\Delta M_n$ et appelée l'incrément de martingale. On aura donc l'algorithme suivant : 
+%         $$ \theta_{n+1} = \theta_n - \gamma_n h( \theta_n) + \gamma_n \Delta M_n  $$
+%     On utilisera plus tard le fait que $(M_n)_{n \geqslant 0}$ est une martingale d'espérance nulle : 
+%         \begin{align*}
+%             \mathbb{E}( \Delta M_n \mid \mathcal{F_n}) &= \mathbb{E}(h( \theta_n) \mid \mathcal{F}_n) - \mathbb{E}(H( \theta_n, Y_{n+1}) \mid \mathcal{F}_n) \\ 
+%             &= \mathbb{E}(H( \theta_n, Y_{n+1}) \mid \mathcal{F}_n) - \mathbb{E}(H( \theta_n, Y_{n+1}) \mid \mathcal{F}_n) = 0
+%         \end{align*}
+%     Pour l'étude de la convergence, nous étudierons les distances quadratiques des itérés : 
+%         $$ z_n = \| \theta_n - \theta^* \|^2 $$ 
+%     ainsi que l'égalité suivante : 
+%         $$ \| a b + c \|^2 = \|a\|^2 + \|b\|^2 + \|c\|^2 + 2 \langle a,b \rangle + 2 \langle a, c \rangle + 2 \langle b , c \rangle $$ 
+%     On a donc : 
+%         \begin{align*}
+%             \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}( \| \theta_n - \theta^* \|^2 \mid \mathcal{F}_n) \\ 
+%             &= \mathbb{E}( \| \theta_n - \gamma_n h( \theta_n) + \gamma_n \Delta M_n - \theta^*\|^2 \mid \mathcal{F}_n) \\ 
+%             &= \mathbb{E}( \| \underbrace{\theta_n - \theta^*}_{a} \underbrace{- \gamma_n h( \theta_n)}_{b} + \underbrace{\gamma_n \Delta M_n}_{c} \|^2 \mid \mathcal{F}_n) \\ 
+%             &= \| \theta_n - \theta^* \| + \gamma_n^2 \| h( \theta_n) \|^2 + \gamma_n^2 \mathbb{E}(\| \Delta M_n \|^2 \mid \mathcal{F}_n) \\
+%             & \quad \quad + 2 \gamma_n ( \theta_n - \theta^*)( \Delta M_n - H( \theta_n, Y_{n+1})) - 2 \gamma_n^2 h( \theta_n) \underbrace{\mathbb{E}( \Delta M_n \mid \mathcal{F}_n)}_{ = 0} \\ 
+%             &= z_n + \gamma_n^2 \| h( \theta_n) \|^2 + \gamma_n^2 \mathbb{E}( \| \Delta M_n \|^2 \mid \mathcal{F}_n) - 2 \gamma_n ( \theta_n - \theta^*) h( \theta_n) \\
+%             & \leqslant z_n + \gamma_n^2 (1 + B \| \theta_n \|^2) + \gamma_n^2 \mathbb{E}( \| \Delta M_n \|^2 \mid \mathcal{F}_n) - 2 \gamma_n \mu \| \theta_n - \theta^*\|^2 \\ 
+%             & \leqslant \| \theta_n - \theta^*\|^2 (1 - \underbrace{ 2 \gamma_n \mu}_{ = \alpha_n'}) + \underbrace{\gamma_n^2 ( K + A + B \| \theta_n \|^2)}_{( = \gamma_n')}
+%         \end{align*}
+%     Et l'on peut conclure grâce au théorème de Robbins-Sigmund.\qed
+% \end{proof}
+
+
+Maintenant que nous avons tous les outils nécessaires, nous pouvons passer à l'étude
+de la convergence de cet algorithme.
+Pour rappel, on souhaite déterminer les solutions de l'équation $h(\theta) = 0$ où $h$ peut s'écrire sous la forme :
+    \[ h(\theta) = \mathbb{E}[H(Y, \theta)], \]
+où $Y$ est une variable aléatoire quelconque que l'on sait simuler.
+L'algorithme de Robbins-Monro approche la solution $\theta^*$ par les itérés suivants:
+    \[ \forall n \geq 0, \quad \theta_{n+1} = \theta_n - \gamma_n H(Y_{n+1}, \theta_n),\]
+où $(Y_n)_{n \geq 0}$ est une suite de variables i.i.d.\ de même loi que $Y$.
+
+Le théorème suivant nous assure sa convergence sous de bonnes hypothèses :
+
+\begin{theorem}[Conditions suffisantes de convergence]
+    Avec les mêmes notations que précédemment :
+    \begin{enumerate}[label=\roman*)]
+        \item (Coercivité) Il existe $\theta^*$ tel que $h(\theta)(\theta - \theta^*) \geq \mu \|\theta - \theta^*\|^2$ pour un certain $\mu > 0$,
+        \item (Croissance de $h$) Il existe $A, B > 0$ tels que $\|h(\theta)\|^2 \leq A + B \|\theta\|^2$,
+        \item (Contrôle du bruit) $\mathbb{E}(\|h(\theta) - H(\theta, Y)\|^2) \leq K$ pour un certain $K > 0$.
+    \end{enumerate}
+    Alors, si $\sum_{n \geq 0} \gamma_n = \infty$ et $\sum_{n \geq 0} \gamma_n^2 < \infty$, on a :
+        \[ \lim_{n \to \infty} \theta_n = \theta^* \quad \text{p.s.}\]
+\end{theorem}
+
+\begin{proof}
+    La démonstration de cette convergence utilise la construction récursive de l'algorithme ainsi que le théorème de Robbins-Siegmund.
+    Soit $\mathcal{F}_n = \sigma(\theta_0, \dots, \theta_n, Y_0, \dots, Y_n)$ la filtration associée au $n$-ième itéré de l'algorithme.
+    L'idée est de séparer l'incrément de l'algorithme en deux parties :
+    \[
+    \Delta M_n = h(\theta_n) - H(\theta_n, Y_{n+1}),
+    \]
+    appelée incrément de martingale. On peut donc réécrire l'algorithme comme suit :
+    \[
+    \theta_{n+1} = \theta_n - \gamma_n h(\theta_n) + \gamma_n \Delta M_n.
+    \]
+
+    Montrons que $(M_n)_{n \geq 0}$ est une martingale :
+    \[
+    \begin{aligned}
+        \mathbb{E}(\Delta M_n \mid \mathcal{F}_n) &= \mathbb{E}(h(\theta_n) - H(\theta_n, Y_{n+1}) \mid \mathcal{F}_n) \\
+        &= h(\theta_n) - \mathbb{E}(H(\theta_n, Y_{n+1}) \mid \mathcal{F}_n) \\
+        &= h(\theta_n) - h(\theta_n) = 0.
+    \end{aligned}
+    \]
+
+    Pour étudier la convergence, nous considérons la distance quadratique des itérés :
+    \[
+    z_n = \|\theta_n - \theta^*\|^2.
+    \]
+    ainsi que l'égalité suivante : 
+        $$ \| a + b + c \|^2 = \|a\|^2 + \|b\|^2 + \|c\|^2 + 2 \langle a,b \rangle + 2 \langle a, c \rangle + 2 \langle b , c \rangle. $$
+    On a donc : 
+        \[
+            \begin{aligned}
+                \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}(\|\theta_{n+1} - \theta^*\|^2 \mid \mathcal{F}_n) \\
+                &= \mathbb{E}(\|\theta_n - \gamma_n h(\theta_n) + \gamma_n \Delta M_n - \theta^*\|^2 \mid \mathcal{F}_n) \\
+                &= \|\theta_n - \theta^*\|^2 + \gamma_n^2 \|h(\theta_n)\|^2 + \gamma_n^2 \mathbb{E}(\|\Delta M_n\|^2 \mid \mathcal{F}_n) \\
+                &\quad - 2\gamma_n \langle \theta_n - \theta^*, h(\theta_n) \rangle + 2\gamma_n \langle \theta_n - \theta^*, \Delta M_n \rangle \\
+                &\quad - 2\gamma_n^2 \langle h(\theta_n), \Delta M_n \rangle.
+            \end{aligned}
+        \]
+
+    Comme $\mathbb{E}(\Delta M_n \mid \mathcal{F}_n) = 0$, les termes croisés $\langle \theta_n - \theta^*, \Delta M_n \rangle$ et $\langle h(\theta_n), \Delta M_n \rangle$ disparaissent en espérance conditionnelle. On obtient donc:
+    \[
+        \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant z_n + \gamma_n^2 \|h(\theta_n)\|^2 + \gamma_n^2 \mathbb{E}(\|\Delta M_n\|^2 \mid \mathcal{F}_n) - 2\gamma_n \langle \theta_n - \theta^*, h(\theta_n) \rangle.
+    \]
+
+    En utilisant les hypothèses du théorème :
+    \[
+    \begin{aligned}
+        \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) & \leqslant z_n + \gamma_n^2 (A + B \|\theta_n\|^2) + \gamma_n^2 K - 2\gamma_n \mu \|\theta_n - \theta^*\|^2 \\
+        & \leqslant z_n (1 - 2\gamma_n \mu) + \gamma_n^2 (A + K + B \|\theta_n\|^2).
+    \end{aligned}
+    \]
+
+    Comme $\|\theta_n\|^2 \leqslant 2\|\theta_n - \theta^*\|^2 + 2\|\theta^*\|^2$, on peut écrire :
+    \[
+        \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant z_n (1 - 2\gamma_n \mu + 2B\gamma_n^2) + \gamma_n^2 (A + K + 2B\|\theta^*\|^2).
+    \]
+
+    En posant $\alpha_n = 2\gamma_n \mu - 2B\gamma_n^2$ et $\beta_n = \gamma_n^2 (A + K + 2B\|\theta^*\|^2)$, on obtient :
+    \[
+        \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n) z_n + \beta_n.
+    \]
+
+    Sous les hypothèses $\sum \gamma_n = \infty$ et $\sum \gamma_n^2 < \infty$, on a $\sum \alpha_n = \infty$ et $\sum \beta_n < \infty$. On peut donc appliquer le théorème de Robbins-Siegmund pour conclure que:
+    \[
+        \lim_{n \to \infty} z_n = 0 \quad \text{p.s.},
+    \]
+    c'est-à-dire $\lim_{n \to \infty} \theta_n = \theta^*$ p.s.
+    \qed
+\end{proof}
+
+
+
+
+% \begin{theorem}[Robbins-Siegmund]
+%     Soient $(z_n)_{n \in \N}, ( \alpha_n)_{n \in \N}, ( \beta_n)_{n \in \N}$ et 
+%     $ ( \gamma_n)_{n \in \N}$ des processus stochastiques adaptés pour une filtration 
+%     $ (\mathcal{F}_n)_{n \in \N}$ tels que : 
+%     \begin{enumerate}[label=\roman*)]
+%         \item $ \sum_{n \geqslant 1} \alpha_n = \infty $ p.s 
+%         \item $ \sum_{n \geqslant 1} \beta_n < \infty $ p.s 
+%         \item $ \sum_{n \geqslant 1} \gamma_n < \infty $ p.s 
+%     \end{enumerate}
+%     et 
+%         $$ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n + \beta_n) z_n + \gamma_n $$ 
+%     alors $ \lim_{n \to \infty} z_n = 0$.
+% \end{theorem}
+
+% \begin{proposition}
+%     Soit $( \alpha_n)_{n \in \N}$ et $ ( \gamma_n)_{n \in \N}$ sont deux suites positives tells 
+%     que : 
+%         $$ \sum_{n \geqslant 0} = \infty \quad \text{et} \quad \sum_{n \geqslant 0} \gamma_n < \infty $$ 
+%     et si $(z_n)_{n \in \N}$ est une suite positive vérifiant : 
+%         $$ z_{n+1} \leqslant (1 - \alpha_n)z_n + \gamma_n $$ 
+%     alors $ z_n \longrightarrow 0$. 
+% \end{proposition}
+
+% \begin{proof}
+%     On a pour tout $n \in \N$:
+%         $$ z_{n+1} - z_n \leqslant \gamma_n \alpha_n z_n $$ 
+%     Par télescopage, on obtient : 
+%         \begin{align*}
+%             & z_{n} - z_0 \leqslant \sum_{k=0}^{n-1} \gamma_k - \sum_{k=0}^{n-1} \alpha_k z_k \\ 
+%             \iff & \sum_{k=1}^{n-1} \alpha_k z_k \leqslant \sum_{k=0}^{n-1} \gamma_k + z_0 - z_n \\
+%             & \leqslant \leqslant \sum_{k=0}^{n-1} \gamma_k + z_0 \leqslant \sum_{k=0}^{ \infty} \gamma_k + z_0 
+%         \end{align*}
+%     Par conséquent, la série $\sum \alpha_k z_k$ converge donc $ z_k \longrightarrow 0$.
+% \end{proof}
+
+% \begin{lemma}
+%     Sans perdre de généralité, on peut considérer $ \beta_n = 0$ pour 
+%     tout $n \in \N$.
+% \end{lemma}
+
+% \begin{proof}
+%     On a : 
+%         \begin{align*}
+%             \mathbb{E} \left( \frac{z_{n+1}}{ \prod_{j=1}^{n} (1 + \beta_j)} \mid \mathcal{F}_n\right) &= \frac{ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n)}{ \prod_{j=1}^{n} (1 + \beta_n)} \\ 
+%             & \leqslant \frac{(1 + \beta_n - \alpha_n)}{  \prod_{j=1}^{n} (1 + \beta_j) } z_n + \frac{ \gamma_n}{ \prod_{j=1}^{n} (1 + \beta_j)} \\ 
+%             &= \left(1 - \frac{ \alpha_n}{ 1 + \beta_n}\right) \frac{z_n}{ \prod_{j=1}^{n} (1 + \beta_j)} - \frac{ \gamma_n}{ \prod_{j=1}^{n} (1 + \beta_j)}
+%         \end{align*}
+%     Donc : 
+%         $$ \mathbb{E}(Y_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n') Y_n + \gamma_n' $$ 
+%     où $ Y_n = \displaystyle\frac{z_n}{ \prod_{j=1}^{n} (1 + \beta_j)}, \alpha_n' = \displaystyle\frac{ \alpha_n}{1 + \beta_n}$ 
+%     et $ \gamma_n' = \displaystyle\frac{ \gamma_n}{ \prod_{j=1}^{n} (1 + \beta_j)}$.
+    
+%     De plus, $ \sum \alpha_n' = \infty $ p.s car $ \beta_n \longrightarrow 0$ p.s donc $ \alpha_n' \sim \alpha_n$. 
+%     D'autre part, $ \sum \gamma_n' < \infty$ p.s car $ \gamma_n' < \gamma_n$.
+%     On a alors $ z_n = Y_n  \prod_{j=1}^{n} (1 + \beta_j) $.
+%     donc 
+%         $$ \lim_{n \to \infty} z_n = \lim_{n \to \infty} Y_n  \underbrace{\prod_{j=1}^{n} (1 + \beta_j) }_{ < \infty}$$
+% \end{proof}
+
+% \begin{proof}[Preuve - EXAMEN !!!]
+%     On suppose que :
+%         $$ \mathbb{E}(z_n \mid \mathcal{F}_n) \leqslant ( 1 - \alpha_n) z_n + \gamma_n $$ 
+%     On souhaite construire une sur-margingale positive pour étudier notre problème. 
+%     Posons donc : 
+%         $$ \forall n \in \N, \quad S_n = Z_n + \sum_{k=0}^{n-1} \alpha_k z_k - \sum_{k=0}^{n-1} \gamma_k $$
+%     On a : 
+%         \begin{align*}
+%             \mathbb{E}(S_{n+1} \mid \mathcal{F}_n) &= \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) 
+%                 + \mathbb{E} \left( \sum_{k=0}^{n} \alpha_k z_k \mid \mathcal{F}_n \right)
+%                 - \mathbb{E} \left( \sum_{k=0}^{n} \gamma_k \mid \mathcal{F}_n \right) \\ 
+%             &= \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) + \sum_{k=0}^{n} \alpha_k z_k - \sum_{k=0}^{n} \gamma_k \\ 
+%             & \leqslant z_n - \alpha_n z_n + \gamma_n + \sum_{k=0}^{n} \alpha_k z_k - \sum_{k=0}^{n} \gamma_k \\ 
+%             & \leqslant z_n \sum_{k=0}^{n-1} \alpha_k z_k - \sum_{k=0}^{n-1} \gamma_k = S_n
+%         \end{align*}
+%     C'est donc bien une surmartingale par hypothèse. Posons : 
+%         $$ \tau_C = \inf_{n \in \N} \left\{ \sum_{k=1}^{n} \gamma_k > C \right\} $$
+%     c'est un temps d'arrêt pour $ (\mathcal{F}_n)_{n \in \N}$. De plus, 
+%     $(S_{n \wedge \tau_C})_{n \in \N}$ est une surmatingale et : 
+%         $$ S_{n \wedge \tau_C} \geqslant - \sum_{k=0}^{n \wedge \tau_c - 1} \gamma_k \geqslant - \sum_{k=0}^{\tau_c - 1} \gamma_k \geqslant - C $$
+%     D'où $(S_{n \wedge \tau_C})_{n \in \N}$ est une surmartingale positive. Donc 
+%     $(S_{n \wedge \tau_C} + C)_{n \in \N}$ converge p.s.
+    
+%     Pour tout $ C > 0$, on a : 
+%     $$ \lim_{n \to \infty} S_{n \wedge \tau_C} = W_C \quad \text{p.s} $$
+%     Or $\{ \tau_C = \infty\} = \left\{ \sum_{k=1}^{\infty} \gamma_k \leqslant C \right\}$ et 
+%     $ \sum_{k=1}^\infty \gamma_k < \infty$ p.s donc, presque sûrement, il existe $C \in \R$
+%     tel que $ \tau_C = \infty$ et sur $\{ \tau_c = \infty\}$, on a $\lim_{n \to \infty} S_n = W_C$. 
+%         $$ \{ \tau_n = \infty \} \subset \{ \omega \in \Omega \mid \lim S_n \text{ existe} \} $$
+%     Donc $ \myP(\lim S_n \text{ existe} ) = 1$.
+
+%     Par conséquent $ \left( S_n + \sum_{k=0}^{n-1} \gamma_k \right)_{n \in \N}$ converge, donc 
+%     $ \left(z_n + \sum_{k=0}^{n-1} \alpha_k z_k \right)_{n \in \N}$ converge. Or 
+%     $ \sum_{k=0}^{\infty} \alpha_k = \infty $ p.s et $ \sum_{k=0}^{\infty} \alpha_k z_k < \infty$ p.s 
+%     donc $ \lim_{n \to \infty} z_n = 0 $ p.s.
+% \end{proof}
+
+% \subsection{Conditions suffisantes pour la convergence de l'algorithme de RM} 
+
+% Pour rappel, on a posé : 
+%     $$ \theta_{n+1} = \theta_n - \alpha_n h( \theta_n) + \alpha_n \Delta M_n $$ 
+% où $ \Delta M_n = h( \theta_n) - H( \theta_n, Y_{n+1})$ et $h( \theta) = \mathbb{E}(H( \theta, Y))$. 
+% Sous de bonnes hypothèses sur $H$, on a : 
+%     $$ \lim_{n \to \infty} \theta_n = \theta^* \quad \text{p.s} $$  
+%     $$ \lim_{n \to \infty} \frac{ \theta_n - \theta^*}{ \sqrt{ \alpha_n}} = \mathcal{N}(0, \sigma^2) \quad \text{en loi} $$ 
+
+% \begin{theorem}[Conditions suffisantes]
+%     Si il existe $ \theta^*$ tel que $h( \theta) ( \theta - \theta^*) \geqslant \mu \| \theta - \theta^* \|^2$ 
+%     (coercivité). Si il existe $A, B > 0$ tels que $ \| h( \theta_n) \| ^2 \leqslant A + B \| \theta_n \|^2$ et que 
+%     $ \mathbb{E}( \| h( \theta) - H( \theta, Y) \|^2) \leqslant K$ (contrôle du bruit).
+
+%     Alors $\lim_{n \to \infty} \theta_n = \theta^*$ p.s.
+% \end{theorem}
+
+% \begin{proof}
+%     Calculons : 
+%         \begin{align*}
+%             & \mathbb{E}( \| \varepsilon_{n+1} - \theta^* \|^2 \mid \mathcal{F}_n) \\ 
+%             &= \mathbb{E}( \| \theta_n - \alpha_n h( \theta_n) + \alpha_n \Delta M_n - \theta^* \|^2 \mid \mathcal{F}_n) \\ 
+%             &= \mathbb{E}( \| \theta_n - \theta^*\|^2 + \alpha_n^2 h( \theta_n)^2 + \alpha_n^2 \| \Delta M_n \|^2 \\
+%             & \quad - 2 \alpha_n ( \theta_n - \theta^*) . h( \theta_n) + 2 \alpha_n ( \theta_n - \theta^*) . \nabla M_n - \alpha_n^2 h( \theta_n) . \Delta M_n \mid \mathcal{F}_n) \\ 
+%             &= \| \theta_n - \theta^* \|^2 + \alpha_n^2 \| h( \theta_n) \|^2 + \alpha_n^2 \mathbb{E}( \Delta M_n \mid \mathcal{F}_n) - 2 \alpha_n ( \theta_n - \theta^*) . h( \theta_n) 
+%         \end{align*}
+%     On obtient donc : 
+%         \begin{align*}
+%             \mathbb{E}( \| \theta_{n+1} - \theta^*\|^2 \mid \mathcal{F}_n) & \leqslant \| \theta_n - \theta^* \|^2 (1 - 2 \alpha_n \mu) + \alpha_n^2 [ K + A + B \| \theta_n - \theta^*\|^2]
+%         \end{align*}
+%     En posant $ z_n = || \theta_n - \theta^*\|^2$, on a : 
+%         \begin{itemize}
+%             \item $ " \alpha_n" = 2 \alpha_n \mu$ 
+%             \item $ " \beta_n" = \alpha_n^2 \beta_n$ 
+%             \item $ " \gamma_n" = \alpha_n^2 (A + K)$ 
+%         \end{itemize}
+%     Donc 
+%         $$ \mathbb{E}(z_{n+1} \mid \mathcal{F}_n) \leqslant (1 - \alpha_n + \beta_n) z_n + \gamma_n $$
+%     et on applique le résultat précédent. 
+% \end{proof}
+
+% \section{Cas pratique}
+
+% \subsection{Descente de gradient stochastique}
+
+% On souhaite déterminer le point $x \in \R$ qui minimise la fonction $V(x) = \frac{1}{K} \sum_{k=1}^{K} f_k(x)$.
+
+% L'algorithme du gradient nous donne : 
+% \begin{itemize}
+%     \item On part de $x_0$. 
+%     \item On calcule $ \nabla V(x_0)$. 
+%     \item On pose $x_1 = x_0 - \alpha_0 \nabla V(x_0)$.
+% \end{itemize}
+
+% Algorithme stochastique : 
+% \begin{itemize}
+%     \item On part de $x_0$ 
+%     \item A chaque étape : 
+%         \begin{itemize}
+%             \item On tire $I \sim \mathcal{U}( \llbracket 1, K \rrbracket)$. 
+%             \item On pose $x_{n+1} = x_n - \alpha_n \nabla f_I(x_n) $.
+%         \end{itemize}
+% \end{itemize}
+
+% C'est un algorithme de type Robbins Monro.
+
+% \subsection{Régression "inline"}
+
