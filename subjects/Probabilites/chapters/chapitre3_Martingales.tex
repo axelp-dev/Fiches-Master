@@ -5,9 +5,10 @@
 % Introduction 
 
 Nous définissons dans ce chapitre un nouveau type de processus aléatoires plus théorique 
-que les chaînes de Markov. Ce sera un outil mathématique du fait de ses bonnes 
-propriétés de convergence. Nous appelerons ces processus des Martingales dont l'espérance 
-conditionnelle par rapport au passé restera constante. 
+que les chaînes de Markov : les martingales. 
+Celles-ci possèdent de bonnes propriétés calculatoires et de convergence. Elles ont donc beaucoup 
+d'application, que ce soit dans la finance, ou pour l'étude de la convergence d'algorithme 
+d'apprentissage.
 
 \medskip 
 
@@ -40,7 +41,7 @@ Dans tout ce chapitre, nous considérerons des processus aléatoires à valeurs 
 \end{definition}
 
 \begin{example}[Marche aléatoire simple]
-    Soit $( \varepsilon_n)_{n \in \N}$ une suite indépendantes de variables aléatoires 
+    Soit $( \varepsilon_n)_{n \in \N}$ une suite indépendante de variables aléatoires 
     à valeurs dans $(E, \mathcal{E})$ telles que $ \mathbb{E}( \varepsilon_n) = 0$ pour tout $n$. 
     On définit une marche aléatoire sur $E$ comme la suite $(S_n)_{n \in \N}$ telle que : 
         $$ S_0 = 0 \quad \forall n \geqslant 1, \; S_n = \sum_{k=1}^{n} \varepsilon_k $$ 
@@ -105,8 +106,8 @@ Dans tout ce chapitre, nous considérerons des processus aléatoires à valeurs 
 \begin{proof}
     Par récurrence sur $k$, on a :
     \begin{itemize}
-        \item \textbf{Initialisation} : pour $k = 1$ c'est la définition. 
-        \item \textbf{Hérédité} : soit $k \geqslant 1$ tel que : 
+        \item \emph{Initialisation} : pour $k = 1$ c'est la définition. 
+        \item \emph{Hérédité} : soit $k \geqslant 1$ tel que : 
             $$ \mathbb{E}(M_{n+k} \mid \mathcal{F}_n) = M_n$$ 
         alors : 
             \begin{align*}
@@ -122,17 +123,19 @@ Dans tout ce chapitre, nous considérerons des processus aléatoires à valeurs 
     or $ \mathbb{E}( \mathbb{E}(M_{n+k} \mid \mathcal{F}_n)) = \mathbb{E}(M_{n+k})$ d'où : 
         $$ \mathbb{E}(M_{n+k}) = \mathbb{E}(M_n) $$ 
         $$ \iff \boxed{ \mathbb{E}(M_n) = \mathbb{E}(M_0)} $$ 
-    Nous essaierons par la suite de généraliser cette proposition pour des temps aléatoires. 
+    Attention, la réciproque est fausse. En effet, n'importe quel processus d'espérance constante n'est pas 
+    nécessairement une martingale. 
+    Nous essaierons par la suite de généraliser cette remarque pour des temps aléatoires. 
 \end{remark}
 
-\subsection{Lien Martingale et sous-martingale}
+\subsection{Inégalité de Jensen et Décomposition de Doob}
 
-Pour rappel, une sous-martingale est un processus $(Y_n)$ adapté à la filtration $ \mathcal{F}_n$ tel que : 
+Pour rappel, une sous-martingale est un processus $(Y_n)$ adapté à une filtration $ ( \mathcal{F}_n)_{n \geqslant 0}$ tel que : 
     $$ \mathbb{E}(Y_{n+1} \mid \mathcal{F}_n) \geqslant Y_n $$ 
 De plus, pour une fonction convexe $g : \R \longrightarrow \R$, pour $X \in L^1( \mathcal{A}, \myP)$
-et $ \mathcal{F}$ une sous-tribu de $ \mathcal{A}$, l'inégalité de Jensen nous donne 
-    $$ \mathbb{E}(g(X) \mid \mathcal{F}) \geqslant g( \mathbb{E}(X \mid \mathcal{F})) $$ 
-Nous pouvons donc faire le lien entre les martingales et les sous-martingales. 
+et $ \mathcal{F}$ une sous-tribu de $ \mathcal{A}$, l'inégalité de Jensen nous donne :
+    $$ \mathbb{E}(g(X) \mid \mathcal{F}) \geqslant g( \mathbb{E}(X \mid \mathcal{F})).$$ 
+Elle nous permet donc faire le lien entre les martingales et les sous-martingales. 
 
 \begin{corollary}[Inégalité de Jensen]\label{corollary:inegalite-jensen}
     Soit $(M_n)_{n \in \N}$ une martingale pour une filtration $ (\mathcal{F}_n)_{n \geqslant 0}$. 
@@ -150,8 +153,7 @@ Nous pouvons donc faire le lien entre les martingales et les sous-martingales.
     Posons $ S_n = \sum_{i=1}^{n} \varepsilon_i$ et $ \mathcal{F}_n = \sigma( \varepsilon_1, \dots \varepsilon_n)$. 
     $(S_n)_{n \geqslant 0}$ est donc une martingale pour $ \mathcal{F}_n$ (voir exemple précédent). D'après le 
     corollaire de l'inégalité de Jensen, $(S_n^2)_{n \geqslant 0}$ est une sous-martingale. On a donc : 
-        $$ \mathbb{E}(S_{n+1}^2 \mid \mathcal{F}_n) \geqslant \mathbb{E}(S_n^2) $$ 
-        $$ \iff \mathbb{E}(S_{n+1}^2) \geqslant \mathbb{E}(S_n^2) $$ 
+        $$ \mathbb{E}(S_{n+1}^2 \mid \mathcal{F}_n) \geqslant \mathbb{E}(S_n^2) \iff \mathbb{E}(S_{n+1}^2) \geqslant \mathbb{E}(S_n^2) $$ 
     On a donc une suite croissante d'espérances et : 
         $$ \mathbb{E}(S_n^2) = \mathbb{E} \left( \left(\sum_{i=1}^{n} \varepsilon_i\right)^2 \right) = n \mathbb{E}( \varepsilon_1 ^2) $$ 
     Essayons donc de construire une martingale en posant : 
@@ -169,14 +171,13 @@ Nous pouvons donc faire le lien entre les martingales et les sous-martingales.
         \begin{align*}
             \mathbb{E}(M_{n+1} \mid \mathcal{F}_n) = S_n^2 - n \mathbb{E}( \varepsilon_1^2) = M_n 
         \end{align*}
-    On peut donc décomposer notre sous-martingale $S_n^2$ en une somme de martingale et ce que l'on appelera 
-    un processus croissant en $n$ : 
-        $$ S_n^2 = M_n + n \mathbb{E}( \varepsilon_1^2) $$ 
+    On peut donc décomposer notre sous-martingale $S_n^2$ en une somme de martingale et ce que l'on appellera 
+    un processus croissant en $n$ tel que $ S_n^2 = M_n + n \mathbb{E}( \varepsilon_1^2) $.
 \end{example}
 
-\begin{proposition}[Décomposition de Doob]
+\begin{theorem}[Décomposition de Doob]
     Soit $(X_n)_{n \geqslant 0}$ une sous-martingale par rapport à une filtration $ \mathcal{F}_n$. 
-    Alors il existe un unique couple de processus $(M_n)_{n \geqslant 0}$ et $(Z_n)_{n \geqslant 0}$ tels que: 
+    Alors, il existe un unique couple de processus $(M_n)_{n \geqslant 0}$ et $(Z_n)_{n \geqslant 0}$ tels que : 
     \begin{enumerate}[label=\roman*)]
         \item $(M_n)_{n \geqslant 0}$ est une martingale pour $ \mathcal{F}_n$ 
         \item $Z_0 = 0$ et $Z_{n+1} \geqslant Z_n$ et $(Z_n)_{n \geqslant 0}$ est prévisible pour $ (\mathcal{F}_n)_{n \geqslant 0}$. 
@@ -185,7 +186,12 @@ Nous pouvons donc faire le lien entre les martingales et les sous-martingales.
         \begin{equation}\label{eq:doob-inequality}
             \forall n \in \N, \quad \boxed{X_n = M_n + Z_n}
         \end{equation}
-\end{proposition}
+    
+    \emph{
+        Une sous-martingale se décompose donc en une somme d'une martingale et 
+        d'un processus croissant prévisible pour la même filtration.
+    }
+\end{theorem}
 
 \begin{proof}
     Soit $(X_n)_{n \in \N}$ une sous-martingale. par rapport à $( \mathcal{F}_n)_{n \geqslant 0}$. On définit les 
@@ -242,6 +248,8 @@ Nous pouvons donc faire le lien entre les martingales et les sous-martingales.
 \end{example}
 
 Dans cette section, nous allons essayer de généraliser cette structure au travers des stratégies. 
+Nous donnerons des outils pour étudier la convergence de la suite $(S_n)_{n \geqslant 0}$ et nous généraliserons la 
+proposition \ref{proposition:generalisation-definition} grâce au théorème d'arrêt.
 
 \begin{proposition}
     Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \geqslant 0}$, 
@@ -263,16 +271,16 @@ Cette notion est traduite par le fait que $(X_n)_{n \in \N}$ reste une martingal
     alors on peut définir $T$ le temps d'arrêt tel que : 
         $$ T = \inf \{n \in \N \mid S_n \geqslant \lambda\} $$ 
     On posera donc : 
-        $$ \forall n \in \N, \forall k \in \llbracket 1, n \rrbracket, \quad \Phi_k = \mathbbm{1}_{k \geqslant \lambda} \quad \text{et} 
+        $$ \forall n \in \N, \forall k \in \llbracket 1, n \rrbracket, \quad \Phi_k = \mathbbm{1}_{T \geqslant k} \quad \text{et} 
         \quad X_n = \sum_{k=1}^{n} \Phi_k (M_k - M_{k-1}) $$  
     Où $(M_n)_{n \in \N}$ représente, comme précédement, le jeu initial.
-    On souhaiterai aussi généraliser la notion de chaîne de Markov $(X_n)_{n \in \N}$ arrêtée par un temps d'arrêt $T$ 
-    définie par : 
+    On souhaiterait aussi généraliser la notion de chaîne de Markov $(X_n)_{n \in \N}$ arrêtée par un temps d'arrêt $T$. Pour cela, 
+    on considèrera la martingale suivante :
         $$ 
             \forall n \in \N, \quad X_n = 
                 \begin{cases}
                     X_n \quad \text{si } n \leqslant T \\ 
-                    X_T \quad \text{sinon}  
+                    X_T \quad \text{sinon.}  
                 \end{cases}
         $$
 \end{remark}
@@ -295,10 +303,14 @@ Cette notion est traduite par le fait que $(X_n)_{n \in \N}$ reste une martingal
             \end{cases}
             }
         \end{equation}
-    Est donc aussi une martingale pour $ (\mathcal{F}_{n})_{n \in \N}$ appelé \emph{martingale arrêtée}.
+    est donc aussi une martingale pour $ (\mathcal{F}_{n})_{n \in \N}$ appelé \emph{martingale arrêtée}.
 \end{definition}
 
-\begin{theorem}[Arrêt (Doob)]\label{theorem:stop-doob-theorem}
+Cette définition des martingales arrêtées nous permet donc d'énoncer un des théorèmes phares de ce chapitre. 
+Celui-ci permet de généraliser la proposition \ref{proposition:generalisation-definition} au temps d'arrêts 
+pour les martingales. 
+
+\begin{theorem}[Arrêt - Doob]\label{theorem:stop-doob-theorem}
     Soit $(M_n)_{n \geqslant 0}$ une martingale pour la filtration $( \mathcal{F}_n)_{n \geqslant \N}$.
     Soit $T$ un temps d'arrêt pour $( \mathcal{F}_n)_{n \geqslant 0}$. 
     Si une des trois assertions suivante est vraie : 
@@ -379,20 +391,12 @@ définition des martingales \ref{proposition:generalisation-definition}.
 
 Les martingales permettent donc d'avoir facilement des informations sur des temps d'arrêts. 
 En effet, le théorème d'arrêt nous donne le même résultat qu'une analyse à un pas.
-
-On peut également proposer une réciproque au théorème d'arrêt. Nous avons vu que pour 
-une martingale $(X_n)_{n \geqslant 0}$, on a $ \mathbb{E}(X_n) = \mathbb{E}(X_0)$. 
-On souhaiterai avoir une réciproque pour cela mais il va falloir rajouter des hypothèses 
-car il existe des contre-exemples.
+On peut également proposer en une réciproque au théorème d'arrêt.
 
 \begin{theorem}[Réciproque au théorème d'arrêt]
     Soit $(X_n)_{n \in \N}$ un processus adpaté à une filtration $( \mathcal{F}_n)_{n \geqslant 0}$ 
-    tel que $ X_n \in L^1$ pour tout $n \in \N$. Si $(X_n)_{n \in \N}$ est une martingale pour 
-    $( \mathcal{F}_n)_{n \in \N}$ alors 
-        \begin{equation}
-            \mathbb{E}(X_T) = \mathbb{E}(X_0)
-        \end{equation}
-    pour tout temps d'arrêt $T$.
+    tel que $ X_n \in L^1$ pour tout $n \in \N$. Si, \emph{pour tout temps d'arrêt borné} T, on 
+    a $ \mathbb{E}(X_T) = \mathbb{E}(X_0)$, alors $(X_n)_{n \in \N}$ est une \emph{martingale}.
 \end{theorem}
 
 \section{Inégalités maximales}

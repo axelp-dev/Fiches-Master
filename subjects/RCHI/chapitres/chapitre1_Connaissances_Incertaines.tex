@@ -1,0 +1,403 @@
+\minitoc
+
+% ========================================================================================================
+% Introduction 
+
+\section{Introduction}
+
+\subsection{Motivations} 
+
+En 2011, Daniel Kahneman publie un livre intitulé \emph{Système 1 / Système 2 : Les deux vitesses de la pensée} 
+dans lequel il présente deux modes de pensée : les systèmes 1 et 2 (S1 et S2). 
+Le Système 1 est comparable à l'intuition. Il ne repose pas sur des bases théoriques complexes et 
+est difficilement explicable. Il résulte d'un long apprentissage et d'expérimentations. 
+Le Système 2, quant à lui, est constitué d'un raisonnement construit pas à pas et suivant 
+une logique connue. Il est, de fait, plus lent que le Système 1, mais explicable. 
+
+L'Intelligence Artificielle actuelle, notamment les réseaux de neuronnes, peuvent être vus comme des 
+Systèmes 1. En effet, ils sont entraînés sur beaucoup de données étiquetées (les expériences)
+et leur fonctionnement est difficilement explicable lors de la phase d'inférence. 
+
+L'objectif de ce cours et de développer une logique propositionnelle permettant de formaliser 
+de tels raisonnements et les rendre explicables. Plus globablement, l'enjeu de ce domaine de 
+recherche est de développer une IA hybride mélangeant système 1 et 2. 
+
+\subsection{Différentes imperfections de l'information}
+
+Les informations disponibles sur un système (météo, population animale, etc...) sont généralement 
+imparfaites. Nous devons donc être capables de définir cette imperfection. L'objectif de ce cours est 
+donc de quantifier cette imperfection et de présenter différents formalismes de représentation de cette 
+imperfection. 
+
+On distingue ainsi 4 natures d'imperfection de l'information : 
+
+\begin{itemize}
+    \item \textbf{L'incohérence} : des connaissances contradictoires. 
+    \item \textbf{L'imprécision} : des connaissances mal définies pour lesquelles on donnera un degré 
+    de vérité. Cela peut aussi être des disjonctions ou des connaissances incomplètes.
+    \item \textbf{L'incertitude} : des connaissances dont on a un doute sur la source. 
+    \item \textbf{La non-pertinence} : les informations données ne sont pas en lien avec le sujet traité. 
+\end{itemize}
+
+\begin{example}
+    Soit la question et les réponses suivantes : 
+    \begin{quote}
+        \emph{Où avez-vous perdu votre téléphone ? }
+
+        \begin{enumerate}
+            \item "Près de l'amphi Maxwell." (imprécis/vague)
+            \item "Je suis presque certain que c'est en B08." (incertain)
+            \item "Soit dans Maxwell, soit dans B08." (imprécis)
+            \item "Je crois que c'est près de Maxwell." (incertain/vague)
+        \end{enumerate}
+    \end{quote}
+\end{example}
+
+Il y a une relation entre incertain et imprécis : moins on est précis, plus on est certain. 
+
+\begin{remark}
+    La théorie des probabilités permet de quantifier mathématiquement cette incertitude. 
+    Une bonne connaissance de celle-ci s'apparente à connaître la loi de tous les évènnements possibles.
+    En revanche, pour la connaître, il est nécessaire de pouvoir répéter un certain nombre de fois 
+    l'expérience aléatoire, ce qui n'est pas toujours le cas. 
+\end{remark}
+
+% ========================================================================================================
+% Mesures d'incertitude
+
+\section{Mesures d'incertitude}
+
+Nous allons ici étendre la théorie des probabilités en définissant des mesures d'incertitudes. 
+Nous nous plaçons ici dans une situation où il n'est, a priori, pas possible de répéter 
+plusieurs fois l'expérience aléatoire. Nous devons donc nous contenter de \emph{connaissances incertaines}.
+
+\subsection{Élicitation des probabilités par les paris}
+
+Soit $ \Omega$ un univers et $ u : \Omega \longrightarrow \R$ définissant l'utilité d'être dans un 
+état pour un agent prenant les décisions $f$. On définit $ \forall s, s' \in \Omega, s' = f(s)$ le changement 
+d'état entre $s'$ et $s$. On suppose qu'il existe une distribution de probabilités 
+$ \myP : \Omega \longrightarrow [0,1]$. 
+
+\begin{definition}[Utilité Espérée]
+    L'intérêt d'une décision $f$ est définie par la somme des utilités de ses conséquences
+    pondérées par la probabilité que chaque état se réalise : 
+        \begin{equation}
+            UE(f) = \sum_{ \omega \in \Omega} \myP(s) u(f(s)) 
+        \end{equation}
+\end{definition}
+
+Or ici, on suppose l'existence d'une probabilité. Définissons la notion de papi pour nous 
+permettre de la retrouver. 
+
+\begin{definition}[Pari]
+    Soit $A \subset \Omega$ un évènnement et $y,x \in \R$. On définit le pari $yAx$ comme 
+    "on gagne $y$ si $A$ et $x$ sinon. 
+
+    L'utilité espérée d'un pari $yAx$ est définie par : 
+        $$ UE(yAx) = u(y) \myP(A) + u(x) \myP( \overline{A}). $$ 
+\end{definition}
+
+Soient $A,B \subset \Omega$ et $ y \in \R$. Dire qu'un agent croit plus en $A$ qu'en $B$ 
+revient à dire qu'il préfère parier $yA0$ plutôt que $yB0$. Autrement dit : 
+    \begin{align*}
+       & UE(yA0) > UE(yB0) \\ 
+       \iff & u(y) \myP(A) u(0) > u(y) \myP(B) u(0) \\ 
+       \iff & \myP(A) > \myP(B) 
+    \end{align*}
+
+On cherche maintenant à estimer la valeur numérique de $ \myP(A)$. Pour cela, on demande à un agent 
+"Quelle somme $x$ accepterais-tu de payer pour renoncer au pari $yA0$ ?"
+Lorsque l'agent hésite, on a : 
+    $$ u(x) = UE(yA0) = \myP(A) u(y) $$ 
+    $$ \iff \myP(A) = \frac{u(x)}{u(y)} $$ 
+Ainsi la probabilité d'un évènnement $A$ peut être estimée par le rapport des utilités entre ce que l'agent 
+est prêt à engager $x$ et ce qu'il peut gagner $y$. 
+
+La \emph{probabilité subjective} est donc la somme relative que l'on est prêt à parier. 
+
+\subsection{Probabilités imprécises}
+
+Ce nouveau modèle n'est en revanche pas suffisant. 
+
+\begin{proposition}[Paradoxe d'Ellsberg]
+    Soit une urne contenant 90 boules dont 30 rouges et 60 noires ou jaunes. 
+    On ne sait pas quelle est la proportion de boules noire parmi les noires et jaunes. 
+    On effectue le tirage d'une boule et on définit différents paris : 
+    \begin{itemize}
+        \item Option A : recevoir 100 euros si la boule est rouge, rien sinon.
+        \item Option B : recevoir 100 euros si la boule est noire, rien sinon. 
+        \item Option C : recevoir 100 euros si la boule est rouge ou jaune, rien sinon. 
+        \item Option D : recevoir 100 euros si la boule noire ou jaune, rien sinon. 
+    \end{itemize}
+    On constate que les agents préfèrent parier sur Rouge ($ \myP = 1/3$) plutôt que sur Noir (de probabilité inconnue). 
+    Dans le même temps, ils préfèrent parier sur "Noir ou Jaune" plutôt que sur "Rouge ou Jaune", ce qui constitue 
+    une incohérence. 
+    Il n'existe donc aucune distribution de probabilité unique capable d'expliquer ces choix simultanés via l'UE.
+\end{proposition}
+
+Ainsi le modèle de l'utilité espérée ne suffit pas toujours à décrire le comportement humain face à une ignorance 
+totale. 
+Lorsque l'information est incomplète (comme dans le paradoxe d'Ellsberg), il est impossible de définir une probabilité 
+unique $P$. On travaille alors avec un ensemble $\mathfrak{F}$ de mesures de probabilité compatibles avec 
+l'information disponible.
+
+\begin{definition}[Famille de probabilités]
+    On définit $ \mathcal{F}$ comme l'ensemble des mesures de probabilités $p$ compatibles 
+    avec l'expérience aléatoire (i.e avec les données de l'énoncé). 
+\end{definition}
+
+\begin{example}[Urnes d'Ellsberg]
+    Dans notre exemple précédent, cet ensemble est défini par : 
+        $$ \mathcal{F} := {p : \Omega \longrightarrow [0,1] \mid p(R) = 1/2, p(N) + p(J) = 2/3} $$
+\end{example}
+
+\begin{definition}[Mesures infra et supra-probabilistes]
+    Soit $\mathfrak{F}$ un ensemble de distributions de probabilité. 
+    Pour tout événement $A \subseteq \Omega$, on définit :
+    \begin{itemize}
+        \item \textbf{La probabilité inférieure :} $P_*(A) = \inf_{p \in \mathfrak{F}} P(A)$.
+        \item \textbf{La probabilité supérieure :} $P^*(A) = \sup_{p \in \mathfrak{F}} P(A)$.
+    \end{itemize}
+\end{definition}
+
+Face à l'imprécision, le critère de décision consiste à maximiser l'\emph{utilité espérée minimale} (approche pessimiste) 
+définie par : 
+\begin{equation}
+    UE_*(f) = \inf_{p \in \mathfrak{F}} UE(f)
+\end{equation}
+
+\begin{prop}[Mesures infra/supra-probabilistes]
+    Ces probabilités vérifient :
+    \begin{itemize}
+        \item \textbf{Encadrement :} $\forall A, P_*(A) \le P(A) \le P^*(A)$.
+        \item \textbf{Dualité :} $P_*(A) = 1 - P^*(\overline{A})$.
+        \item \textbf{Super-additivité :} $P_*$ est super-additive : $P_*(A \cup B) \ge P_*(A) + P_*(B)$ (pour $A, B$ disjoints).
+        \item \textbf{Sub-additivité :} $P^*$ est sub-additive : $P^*(A \cup B) \le P^*(A) + P^*(B)$ (pour $A, B$ disjoints).
+    \end{itemize}
+\end{prop}
+
+\begin{remark}
+    Cette approche permet de différencier la notion d'ignorance de l'équiprobabilité. 
+    En probabilités classiques, lorsque l'on ne connaît pas les données de l'expérience aléatoire, on suppose que 
+    l'on se trouve en situation d'équiprobabilité. L'exemple des urnes nous en montre la faiblesse. 
+    Les mesures définies ci-dessus permettent donc de palier à ce problème et de différencier des deux notions. 
+\end{remark}
+
+\begin{example}[Urnes d'Ellsberg]
+    Soit $ \mathcal{F}$ une famille de probabilités pour ce problème. On choisira maintenant la décision 
+    $f$ qui maximise $UE_*(f) = \inf_{p \in \mathcal{F}} UE(f)$. On aura donc : 
+        \begin{align*}
+            UE_*(100\{\text{Rouge}\}0) &= u(100) \times \myP(\{ \text{Rouge} \}) = \frac{1}{3} u(100) \\ 
+            UE_*(100 \{ \text{Noir} \}0) &= \min_{p \in \mathcal{F}} p(\{ \text{Noir} \}) \times u(100) = 0 \\
+            UE_*(100 \{ \text{Rouge, Jaune} \} 0) &= \min_{p \in \mathcal{F}} p(\{ \text{Rouge, Jaune} \}) u(100) = \frac{1}{3} u(100) \\ 
+            UE_*(100 \{ \text{Jaune, Noir} \} 0) &=  \min_{p \in \mathcal{F}} p(\{ \text{Noir, Jaune} \}) u(100) = \frac{2}{3} u(100)
+        \end{align*}
+    On a donc : 
+        $$ UE_*(100\{\text{Rouge}\}0) > UE_*(100 \{ \text{Noir} \}0) $$ 
+        $$ UE_*(100 \{ \text{Rouge, Jaune} \} 0) > UE_*(100 \{ \text{Jaune, Noir} \} 0). $$ 
+    Ce qui concorde avec les choix "humains". 
+\end{example}
+
+\subsection{Fonction de croyance - Théorie de Dempster-Shafer}
+
+Pour respecter ce nouveau cadre, nous devons donc définir une nouvelle structure probabiliste. 
+Celle-ci s'appuiera sur les \emph{fonctions de masse}. 
+
+\begin{definition}[Fonction de masse]
+    Soit $ \Omega$ un univers. On définit une fonction de masse sur $ \Omega$ comme une application : 
+        \begin{equation}
+            m = \mathcal{P}( \Omega) \longrightarrow [0,1] 
+        \end{equation}
+    qui vérifie : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ m(\emptyset) = 0 $ 
+        \item $ \displaystyle \sum_{A \in \mathcal{P}( \Omega)} m(A) = 1$
+    \end{enumerate}
+    Cette application définit la probabilité que l'ensemble $A$ soit l'état actuel. Lors que $m(A) > 0$, on dit 
+    que $A$ est un \emph{élément focal}. 
+\end{definition}
+
+\begin{definition}[Croyance et Plausibilité]
+    Soit $ \Omega$ un univers. On définit deux applications : 
+    \begin{itemize}
+        \item \textbf{La croyance} $Bel$ définie par : 
+            \begin{equation}
+                Bel : 
+                    \begin{cases}
+                        \mathcal{P}( \Omega) \longrightarrow \R \\ 
+                        A \longmapsto \sum_{B \in \mathcal{P}( \Omega) \mid B \subset A} m(B) 
+                    \end{cases}
+            \end{equation}
+            qui estime dans quelle mesure une évènnement $A$ est certain. 
+        \item \textbf{La plausibilité} $pl$ définie par : 
+            \begin{equation}
+                pl : 
+                    \begin{cases}
+                        \mathcal{P}( \Omega) \longrightarrow \R \\ 
+                        A \longmapsto \sum_{B \in \mathcal{P}( \Omega) \mid B \cap A \not = 0} m(B).
+                    \end{cases}
+            \end{equation}
+            qui détermine en quelle mesure $A$ est plausible. 
+    \end{itemize}
+\end{definition}
+
+\begin{prop}[Croyance et Plausibilité]
+    Ces deux applications vérifient : 
+    \begin{equation}
+        \forall A \in \mathcal{P}( \Omega), \quad pl(A) = 1 - Bel( \overline{A}) 
+    \end{equation}
+    et : 
+    \begin{equation}
+        \forall A \in \mathcal{P}( \Omega), \quad Bel(A) \leqslant pl(A)
+    \end{equation}
+    Un évènnement est donc toujours plus plausible que certain. 
+\end{prop}
+
+Ces deux nouvelles notions nous permettent de détailler la différence entre équiprobabilité et 
+ignorance. 
+
+\begin{example}
+    Soient trois chevaux $c_1, c_2$ et $c_3$. On veut savoir lequel des trois gagnera une course. 
+    Deux experts donnent leur avis sur son issue : 
+    \begin{itemize} 
+        \item Expert 1 : "Chacun des trois chevaux a la même chance de gagner."
+        \item Expert 2 : "Je n'en sais rien." 
+    \end{itemize}
+    En théorie des probabilités classiques, on aurait donc : 
+    \begin{itemize} 
+        \item Expert 1 : $ \myP(c_1) = \myP(c_2) = \myP(c_3) = 1/3$ 
+        \item Expert 2 : $ \myP(c_1) = \myP(c_2) = \myP(c_3) = 1/3$ 
+    \end{itemize}
+    Mais en théorie de fonction de croyance : 
+    \begin{itemize} 
+        \item Expert 1 : $ m_1(c_1) = m_1(c_2) = m_1(c_3) = 1/3$ et 
+            $$ 
+                \begin{cases}
+                    pl(\{"c_1 \text{ gagne}\}) = Bel(\{"c_1 \text{ gagne}\}) = 1/3 \\ 
+                    pl(\{"c_2 \text{ gagne}\}) = Bel(\{"c_2 \text{ gagne}\}) = 1/3 \\ 
+                    pl(\{"c_3 \text{ gagne}\}) = Bel(\{"c_3 \text{ gagne}\}) = 1/3 \\ 
+                \end{cases}
+            $$ 
+        \item Expert 2 : $ m_2(\{c_1, c_2, c_3\}) = 1$ et 
+            $$ 
+                \begin{cases}
+                    pl(\{"c_1 \text{ gagne}\}) = 1, Bel(\{"c_1 \text{ gagne}\}) = 0 \\ 
+                    pl(\{"c_2 \text{ gagne}\}) = 1, Bel(\{"c_2 \text{ gagne}\}) = 0 \\ 
+                    pl(\{"c_3 \text{ gagne}\}) = 1, Bel(\{"c_3 \text{ gagne}\}) = 0 \\ 
+                \end{cases}
+            $$
+    \end{itemize}
+\end{example}
+
+\begin{remark}
+    Les mesures de probabilités sont un cas particulier des mesures de croyance. En effet, si tous les éléments 
+    focaux de $ \mathcal{P}( \Omega)$ sont des singletons, on retrouve une telle mesure. 
+\end{remark}
+
+\begin{proposition}
+    En réalité, les foncions de croyance pl et Bel sont des manières compactes de représenter 
+    une famille de probabilités. On a ainsi : 
+    \begin{itemize}
+        \item $Bel$ correspond exactement à la probabilité inférieure $ \myP_*$ sur $ \mathcal{F}$. 
+        \item $pl$ correspond aussi à la probabilité inférieure $ \myP^*$ sur $ \mathcal{F}$. 
+    \end{itemize}
+    La famille $ \mathcal{F}$ peut donc être réécrite : 
+        $$ \mathcal{F} = \{p \mid \forall A \in \mathcal{P}( \Omega), \quad Bel(A) \leqslant p(A) \leqslant Pl(A)\} $$
+\end{proposition}
+ 
+On peut donc définir plus formellement l'utilité pessimiste. 
+
+\begin{definition}[Utilité pessimiste]
+    L'utilité pessimiste d'une décision $f$ est définie par :
+    \begin{equation}
+        U_{pes}(f) = \sum_{A \subseteq \Omega} m(A) \cdot \min_{s \in A} u(f(s))
+    \end{equation}
+\end{definition}
+
+\begin{remark}
+    Cette approche permet de retrouver les résultats du paradoxe d'Ellsberg de manière directe en utilisant les masses $m(\{Rouge\}) = 1/3$ et $m(\{Noir, Jaune\}) = 2/3$.
+\end{remark}
+
+\subsection{Théorie des possibilités}
+
+La théorie des possibilités est particulièrement adaptée lorsque les connaissances sont représentées par des ensembles 
+emboîtés ($E_1 \subseteq E_2 \subseteq \dots \subseteq E_n$). Elle repose sur une distribution de
+possibilité $\pi$.
+
+\begin{definition}[Distribution de possibilité]
+    Soit $\pi : \Omega \longrightarrow [0,1]$ une application où $\pi(s)$ estime dans quelle mesure il est 
+    possible que $s$ soit l'état réel.
+    \begin{itemize}
+        \item $\pi(s) = 1$ signifie que l'état $s$ est tout à fait possible (non surprenant).
+        \item $\pi(s) = 0$ signifie que l'état $s$ est jugé impossible.
+        \item $E_1 = \{s \mid \pi(s) = 1\}$ est le \textbf{noyau} de $\pi$.
+        \item $E_n = \{s \mid \pi(s) > 0\}$ est le \textbf{support} de $\pi$.
+    \end{itemize}
+\end{definition}
+
+Pour évaluer la confiance en un événement $A \subseteq \Omega$, on définit deux mesures duales :
+
+\begin{definition}[Mesures de Possibilité et de Nécessité]
+    \begin{itemize}
+        \item \textbf{La mesure de possibilité $\Pi(A)$} s'appuie sur le cas le plus favorable à $A$ :
+            \begin{equation}
+                \Pi(A) = \sup_{s \in A} \pi(s)
+            \end{equation}
+        \item \textbf{La mesure de nécessité $N(A)$} s'appuie sur le cas le plus favorable de l'événement contraire :
+            \begin{equation}
+                N(A) = 1 - \Pi(\overline{A}) = 1 - \sup_{s \notin A} \pi(s)
+            \end{equation}
+    \end{itemize}
+\end{definition}
+
+\begin{prop}[Axiomes caractéristiques]
+    Contrairement aux probabilités, ces mesures ne sont pas additives, mais respectent les règles suivantes :
+    \begin{itemize}
+        \item $\Pi(A \cup B) = \max(\Pi(A), \Pi(B))$.
+        \item $N(A \cap B) = \min(N(A), N(B))$.
+    \end{itemize}
+\end{prop}
+
+\begin{remark}[Lien avec Dempster-Shafer]
+    La théorie des possibilités est un cas particulier des fonctions de croyance où les éléments focaux sont 
+    \textbf{consonants} (emboîtés). Dans ce cas, la croyance $Bel$ coïncide avec la nécessité $N$, 
+    et la plausibilité $pl$ avec la possibilité $\Pi$.
+\end{remark}
+
+\subsection{Conclusion : Panorama sur les mesures d'incertitude}
+
+Toutes les mesures étudiées ($P, Bel, pl, N, \Pi$) appartiennent à la famille des \textbf{capacités} 
+(ou mesures de confiance).
+
+\begin{definition}[Capacité]
+    Une application $g : 2^{\Omega} \longrightarrow [0,1]$ est une capacité si elle vérifie :
+    \begin{itemize}
+        \item $g(\emptyset) = 0$ (impossibilité).
+        \item $g(\Omega) = 1$ (masse unitaire).
+        \item $A \subseteq B \Rightarrow g(A) \le g(B)$ (monotonie).
+    \end{itemize}
+\end{definition}
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.5} % Améliore l'espacement vertical
+    \begin{tabular}{@{}>{\bfseries}l c l@{}}
+        \toprule
+        \text{Mesure} & \text{Symbole} & \text{Axiome / Propriété caractéristique} \\
+        \midrule
+        Probabilité & $P$ & $P(A \cup B) = P(A) + P(B)$ (si $A \cap B = \emptyset$) \\
+        Croyance & $Bel$ & $Bel(A \cup B) \ge Bel(A) + Bel(B) - Bel(A \cap B)$ \\
+        Plausibilité & $Pl$ & $Pl(A \cup B) \le Pl(A) + Pl(B) - Pl(A \cap B)$ \\
+        Possibilité & $\Pi$ & $\Pi(A \cup B) = \max(\Pi(A), \Pi(B))$ \\
+        Nécessité & $N$ & $N(A \cap B) = \min(N(A), N(B))$ \\
+        \bottomrule
+    \end{tabular}
+    \caption{Panorama des mesures d'incertitude et leurs axiomes caractéristiques}
+    \label{tab:synthese_mesures}
+\end{table}
+
+% ========================================================================================================
+% Logique possibiliste 
+
+\section{Logique posibiliste}
+

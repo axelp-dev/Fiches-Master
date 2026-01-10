@@ -189,8 +189,6 @@ def uniforme(n):
     \end{itemize}
 \end{proof}
 
-
-\paragraph{Interprétation.}
 L'algorithme du rejet décrit la procédure suivante :
 \begin{enumerate}
     \item Tirer $X_1, X_2, \dots$ de manière indépendante selon la loi $\mu$.
@@ -235,10 +233,10 @@ def unif_prem(n):
 \section{Simulation de variables aléatoires à densité}
 
 Dans cette section, nous allons voir comment simuler des variables aléatoires continues. 
-Nous décrouvrirons la méthode d'inversion de la fonction de répartition, une autre version de la méthode 
+Nous découvrirons la méthode d'inversion de la fonction de répartition, une autre version de la méthode 
 du rejet ainsi que d'autres exemples. 
 
-\begin{definition}[(Rappel) Fonction de répartition]
+\begin{rappel}[Fonction de répartition]
     Soit $ \mu$ une mesure de probabilité sur $\R$. La fonction de répartition de $ \mu$ est la fonction :  
         $$ F : 
             \begin{cases}
@@ -246,7 +244,7 @@ du rejet ainsi que d'autres exemples.
                 x \longmapsto \mu (]-\infty, x[ )
             \end{cases}
         $$
-\end{definition}
+\end{rappel}
 
 \begin{proposition}
     La fonction de répartition $F$ d'une loi admet plusieurs propriétés : 
@@ -302,23 +300,22 @@ valeur aléatoire de la variable $X$. C'est ce que fait la méthode de l'inverse
 \end{theorem}
 
 \begin{proof}
-    Soit $F$ la fonction de répartition d'un loi $ \mu$ et $ U \sim \mathcal{U}([0,1])$. 
+    Soit $F$ la fonction de répartition d'une loi $ \mu$ et $ U \sim \mathcal{U}([0,1])$. 
     Montrons que $F^{-1}(U) \sim \mu$. Soit $x \in \R$, on a : 
         $$ \myP(F^{-1}(U) < y) = \myP(U < F(y)) = F(y) $$  
 \end{proof}
 
-\begin{remark}
-    Ce théorème nous assoure que la méthode de l'inverse de la fonction de répartition nous permet de 
-    générer des valeurs de la même loi. 
-    Pour les variables aléatoires discrètes, cette méthode revient au même que le premier algorithme vu dans 
-    ce cours. 
-\end{remark}
+Ce théorème nous assure que la méthode de l'inverse de la fonction de répartition nous permet de 
+générer des valeurs d'une loi voulue, en appliquant simplement la fonction de répartition au 
+résultat de la fonction \texttt{rand()}.
+Pour les variables aléatoires discrètes, cette méthode revient au même que le premier algorithme vu dans 
+ce cours. 
 
 \begin{proposition}
     Soit $X$ une variable aléatoire de densité $f$. 
     \begin{enumerate}
         \item \underline{Calculer} $F(x) = \int_{- \infty}^x f(t) \; dt$ la fonction de répartition de $X$. 
-        \item \underline{Calculer} $F^{-1}$ l'inverse généralisée de $F$ sur un invervalle bien choisi. 
+        \item \underline{Calculer} $F^{-1}$ l'inverse généralisé de $F$ sur un invervalle bien choisi. 
         \item \underline{Écrire l'algorithme} : 
             \begin{lstlisting}[language=Python]
 def simulerX(): 
@@ -424,7 +421,7 @@ def simul_f():
         \end{align*}
 \end{proof}
 
-\begin{remark}[Méthode du rejet : Principe]
+\begin{proposition}[Méthode du rejet : Principe]
     Comme dit précédement, la méthode du rejet nous permet de simuler une densité $f$ à partir d'une autre densité $g$ que l'on
     sait simuler. Pour cela, on supposera qu'il existe $c > 0$ tel que $ f \leqslant cg$. 
         \begin{center}
@@ -474,7 +471,7 @@ def simul_f():
     L'idée est donc de tirer un point aléatoirement selon la densité $g$, $(X, U \times cg(X))$ dans la zone rouge. 
     Si la valeur $ U \times cg(X)$ est sous la courbe de $f$ (i.e dans la zone bleu), on accepte le point, 
     sinon on recommence. La probabilité d'acceptation d'un point est donc de $ 1/c$.  
-\end{remark}
+\end{proposition}
 
 \begin{example}
     Soit $f$ la fonction suivante : 
@@ -506,8 +503,8 @@ def simul_f():
 \section{Méthodes ad-hoc}
 
 Dans cette section, nous allons détailler un ensemble de méthodes destinées à des usages précis. 
-Nous verrons comment simuler efficacement une loi normale une loi de poisson ainsi qu'un mélange de lois. 
-Nous finirons par aborder la méthode de Monte-Carlo pour exprimer des quantités qui s'expriment à partir d'intégrales. 
+Nous verrons comment simuler efficacement une loi normale, une loi de poisson, ainsi qu'un mélange de lois. 
+Nous finirons par aborder la méthode de Monte-Carlo pour estimer des quantités qui s'expriment à partir d'intégrales. 
 
 \subsection{Loi Normale - Méthode de Box-Muller}
 
@@ -522,7 +519,7 @@ Nous finirons par aborder la méthode de Monte-Carlo pour exprimer des quantité
 \begin{prop}[Loi centrée réduite. ]
     Si $Y \sim \mathcal{N}(0,1)$, alors : 
         $$ X = \mu + \sigma Y \sim \mathcal{N}( \mu, \sigma^2) $$  
-    On dit alors que $Y$ suit un \emph{loi normale centrée réduite}.  
+    On dit alors que $Y$ suit une \emph{loi normale centrée réduite}.  
 \end{prop}
 
 \begin{theorem}[Méthode de Box-Muller]
@@ -598,7 +595,7 @@ Nous finirons par aborder la méthode de Monte-Carlo pour exprimer des quantité
             \mathbb{E}(g(X,Y)) &= \frac{1}{2 \pi} \int_{\R^2} g(x,y) e^{ - \frac{x^2}{2}} e^{ - \frac{y^2}{2}} \; dx dy \\ 
             &= \frac{1}{2 \pi} \int_{0}^{2 \pi} \int_{0}^{\infty} g(r \cos \theta, r \sin \theta) \times e^{- \frac{r^2}{2}} \times r\; dr d \theta \\  
         \end{align*}
-    Posons donc $z = r^2$ on a donc $ dz = 2 r \; dr$ d'où :
+    Posons donc $z = r^2$, on a donc $ dz = 2 r \; dr$ d'où :
         \begin{align*}
             \mathbb{E}(g(X,Y)) &= \frac{1}{4 \pi} \int_{0}^{2 \pi} \int_{0}^{\infty} g(\sqrt{z} \cos \theta, \sqrt{z} \sin \theta) e^{- {z}/2} \; dz d \theta \\ 
             &=  \int_{0}^{2 \pi} \int_{0}^{\infty} g(\sqrt{z} \cos \theta, \sqrt{z} \sin \theta) f_z(z) f_\theta ( \theta) \; dz d \theta 
@@ -691,7 +688,7 @@ def simuler_poisson(lambda):
         s = -log(rand())
     return k 
     \end{lstlisting}
-    Algorithme donc la complexité dépend linéairement de $ \lambda$. 
+    Algorithme dont la complexité dépend linéairement de $ \lambda$. 
 \end{proposition}
 
 \begin{remark}
@@ -702,7 +699,7 @@ def simuler_poisson(lambda):
 
 \subsection{Mélange de lois}
 
-On chercher ici à déterminer la loi d'une combinaison linéaire de loi $ \mu_1$ et $ \mu_2$ de la forme : 
+On cherche ici à déterminer la loi d'une combinaison linéaire de loi $ \mu_1$ et $ \mu_2$ de la forme : 
     $$ \mu = t \mu_1 + (1-t) \mu_2 $$ 
 Pour simuler ce genre de variables aléatoires, on utilise le résultat suivant. 
 
@@ -741,15 +738,17 @@ def simuler_mu(t):
 Pour la fin de ce chapitre, on souhaite simuler des variables aléatoires pour estimer des quantités déterministes 
 pouvant s'écrire sous forme d'intégrale. 
 
-\paragraph{Principe} Soit $I = \int_{a}^{b} f(x) \; dx$ une intégrale que l'on se sait pas calculer algébriquement 
-mais que l'on souhaite estimer. On peut alors réécrire : 
-    $$ I = \int_{a}^{b} \frac{f(x)}{g(x)} g(x) \; dx $$ 
-où $g$ est une densité de probabilité d'une variable que l'on sait simuler. Or, d'après la loi des grands nombres, on a :
-    $$ \hat{I}_n = \frac{1}{n} \sum_{i=1}^{n} \frac{f(X_i)}{g(X_i)} \underset{ n \to \infty}{\xrightarrow{ \text{p.s.} }} \mathbb{E} \left( \frac{f(X)}{g(X)} \right) $$ 
-où $(X_1, \dots, X_n)$ sont des variables aléatoires iid de densité $g$. Ainsi, on va pouvoir estimer toute intégrale de 
-la forme : 
-    $$ I \simeq \mathbb{E} \left( \frac{f(X_1)}{g(X_1)} \right) $$ 
-par un estimateur convergent $ \hat{I}_n$. 
+\begin{proposition}
+    Soit $I = \int_{a}^{b} f(x) \; dx$ une intégrale que l'on ne sait pas calculer algébriquement, 
+    mais que l'on souhaite estimer. On peut alors réécrire : 
+        $$ I = \int_{a}^{b} \frac{f(x)}{g(x)} g(x) \; dx $$ 
+    où $g$ est une densité de probabilité d'une variable que l'on sait simuler. Or, d'après la loi des grands nombres, on a :
+        $$ \hat{I}_n = \frac{1}{n} \sum_{i=1}^{n} \frac{f(X_i)}{g(X_i)} \underset{ n \to \infty}{\xrightarrow{ \text{p.s.} }} \mathbb{E} \left( \frac{f(X)}{g(X)} \right) $$ 
+    où $(X_1, \dots, X_n)$ sont des variables aléatoires iid de densité $g$. Ainsi, on va pouvoir estimer toute intégrale de 
+    la forme : 
+        $$ I \simeq \mathbb{E} \left( \frac{f(X_1)}{g(X_1)} \right) $$ 
+    par un estimateur convergent $ \hat{I}_n$. 
+\end{proposition}
 
 \begin{theorem}[Rappel - Loi des grands nombres]
     Soit $(X_n)$ une suite de variables aléatoires iid et intégrables. On a alors : 
@@ -759,9 +758,10 @@ par un estimateur convergent $ \hat{I}_n$.
 \begin{remark}
     On peut aussi approcher $I$ par une méthode de Riemann : 
         $$ I = \frac{1}{n} \sum_{i=1}^{n} f \left(a + \frac{ \tau}{n} \right) $$ 
-    or elle ne nous permet d'estimer l'intégrale que pous des fonctions Riemann-intégrables. Alors que la 
-    Loi des grands nombres (LGN) nous permet d'estimer des intégrables de fonctions mesurables. 
-    De plus, les méthodes déterministes sont très lentes en plusieurs dimension comparé aux méthodes stochastiques.  
+    or elle ne nous permet d'estimer l'intégrale que pour des fonctions Riemann-intégrables, alors que la 
+    Loi des grands nombres (LGN) nous permet d'élargir notre méthode aux fonctions intégrables au sens 
+    de Lebesgue. De plus, les méthodes déterministes sont très lentes en plusieurs dimensions 
+    comparé aux méthodes stochastiques.
 \end{remark}
 
 \begin{theorem}[Rappel - Théorème Central Limite]
@@ -779,12 +779,12 @@ par un estimateur convergent $ \hat{I}_n$.
         $$ \overline{X_n} \underset{n \to \infty}{\longrightarrow} \mathbb{E}( X_1) $$ 
     D'après le théorème central limite, on a :  
         $$ \sqrt{n} \frac{\overline{X_n} - \mathbb{E}(X_1) }{\sqrt{S^2_n}} \underset{n \to \infty}{\longrightarrow} \mathcal{N}(0,1) $$ 
-    avec : $ \myP(I \in IC_n) \underset{n \to \infty}{\longrightarrow} \alpha $.  
+    avec $ \myP(I \in IC_n) \underset{n \to \infty}{\longrightarrow} \alpha $.  
 \end{rappel}
 
 \begin{proposition}
     On peut donc utiliser le TCL pour proposer des intervalles de confiance asymptotiques pour la valeur de $I$. 
-    On a donc , pour $ I = \mathbb{E}(X_1)$, l'intervalle asymptotique de niveau $ \alpha$ : 
+    On a donc, pour $ I = \mathbb{E}(X_1)$, l'intervalle asymptotique de niveau $ \alpha$ : 
         $$ \boxed{IC_n = \left[ \overline{X_n} \pm \frac{q_{1 - \alpha/2}}{\sqrt{n}} \sqrt{S_n^2} \right]} $$
 \end{proposition}
 
