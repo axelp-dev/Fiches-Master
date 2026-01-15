@@ -1,0 +1,322 @@
+\minitoc 
+
+% ========================================================================================================
+% Introduction 
+
+
+% ========================================================================================================
+% Systèmes et signaux à temps discret 
+
+\section{Systèmes et signaux à temps discret}
+
+\subsection{Généralités}
+
+\begin{definition}[Signal]
+    On définit un signal numérique comme une suite $(x_n)_{n \in \Z} $ 
+    à valeurs dans $ \C$. 
+    En pratique, elle sera finie et sera stockée sous forme de vecteur. 
+\end{definition}
+
+\begin{example}
+    Voyons quelques exemples de signaux caractéristiques : 
+    \begin{itemize}
+        \item \textbf{L'échantillon unitaire}, aussi appelé Dirac : 
+            \begin{equation}
+                x(n) = \delta(n) = 
+                    \begin{cases}
+                        1 \text{ si } n = 0 \\ 
+                        0 \text{ sinon } 
+                    \end{cases}
+            \end{equation}
+        \item \textbf{Fonction de Heaviside} : 
+            \begin{equation}
+                x(n) = u(n) = 
+                    \begin{cases}
+                        1 \text{ si }n \geqslant 0 \\
+                        0 \text{ sinon}  
+                    \end{cases}
+            \end{equation}
+        \item \textbf{Sinon/Cosinus réel} : 
+            \begin{equation}
+                x(n) = A \cos (2 \pi f_0)n 
+            \end{equation}
+            Avec $A \in \R$ l'amplitude du signal. 
+        \item \textbf{Exponentiel réel} : 
+            \begin{equation}
+                x(n) = a^n, \quad a \in \R 
+            \end{equation}
+        \item \textbf{Exponentiel complexe} : 
+            \begin{equation}
+                x(n) = c^n, \quad c \in \C
+            \end{equation}
+            Si $c = e^{j \pi f_0}$ (i.e $c$ appartient au cercle unité), alors : 
+                $$ x(n) = \cos ( \pi n f_0) + j \sin ( \pi n f_0) $$ 
+            où $j$ est la racine cubique de l'unité. 
+        \item \textbf{Porte} : 
+            \begin{equation}
+                x(n) = 
+                \begin{cases}
+                    1 \text{ si } N \leqslant n \leqslant M \\ 
+                    0 \text{ sinon }  
+                \end{cases}
+                \quad N, M \in \Z 
+            \end{equation}
+    \end{itemize}
+\end{example}
+
+\begin{remark}
+    On peut remarquer que l'échantillon unitaire peut s'écrire en fonction de la fonction 
+    de Heaviside sous la forme : 
+        $$ \forall n \in \Z, \quad \delta(n) = u(n) - u(n-1) $$ 
+    De même, on a : 
+        $$ u(n) = \sum_{k = - \infty}^{n} \delta(k) $$ 
+\end{remark}
+
+\begin{definition}[Signal fini/périodique]
+    Un signal $(x_n)_{n \in \Z}$ est dit \emph{de longueur finie} s'il 
+    existe $ N_1, N_2 \in \Z$ tels que : 
+        \begin{equation}
+            \forall n \not \in \llbracket N_1, N_2 \rrbracket, x(n) = 0 
+        \end{equation}
+    On dira alors que le signal a une longueur de $N_2 - N_1 + 1$. 
+    On dira aussi qu'il est périodique s'il existe $ N \in \N$ tel que : 
+        \begin{equation}
+            \forall n \in \Z, \quad x(n + N) = x(n) 
+        \end{equation}
+\end{definition}
+
+\subsection{Opérations}
+
+Définissons maintenant quelques opérations sur les signaux. 
+
+\begin{definition}[Opérations]
+    Soit $(x_n)_{n \in \Z}$ un signal à valeurs dans $\C$. On définit les opérations suivantes : 
+    \begin{itemize} 
+        \item \textbf{Décalage} : Pour $n_0 \in \Z$, on a : 
+            $$ \forall n \in \Z, \quad y(n) = x(n - n_0) $$ 
+        Si $n_0 > 0$ alors $y$ est en retard par rapport à $x$, sinon il est en 
+        avance. 
+        \item \textbf{Retournement} : $ \forall n \in \Z, y(n) = x(-n) $. 
+        \item \textbf{Sous-échantillonnage} : 
+            $$ y(n) = x(M \times n) $$
+        où $M > 0$ est appelé \emph{facteur de sous-échantillonnage}. 
+        Cette opération permet de sélectionner quelques valeurs du signal d'origine 
+        périodiquement. 
+        \item \textbf{Sur-échantillonnage} :
+            $$ \forall n \in \Z, \quad 
+                y(n) = x \left(n / N\right) 
+                \quad \iff \quad 
+                y(n) = 
+                \begin{cases}
+                    x(n/N) \text{ si } n = 0, \pm N, \pm 2N... \\ 
+                    0 \text{ sinon }  
+                \end{cases}
+            $$
+    \end{itemize}
+\end{definition}
+
+\begin{theorem}[Décomposition]
+    Tout signal $(x_n)_{n \in \Z} \in \C^\Z$ peut être décomposé en somme de Dirac : 
+        \begin{equation}
+            \boxed{\forall n \in \Z, \quad x(n) = \sum_{k \in \Z} x(k) \delta(n - k)}
+        \end{equation}
+\end{theorem}
+
+\subsection{Systèmes}
+
+\begin{definition}[Système]
+    Un système $T$ est une transformation qui modifie un signal $(x_n)_{n \in \Z}$ en 
+    $T[(x_n)_{n \in \Z}]$. 
+
+    On dira que $T$ est \emph{linéaire} si $ \forall \alpha_1, \alpha_2 \in \C$ et 
+    $ \forall x_1, x_2 \in \C^\Z$, on a :
+        \begin{equation}
+            \forall n \in \Z, \quad T[ \alpha_1, x_1(n) + \alpha_2 x_2(n)] = \alpha_1 T[x_1(n)] + \alpha_2 T[x_2(n)] 
+        \end{equation}
+    On appelle cela le \emph{principe de superposition}. 
+\end{definition}
+
+\begin{prop}[Systèmes à temps discret]
+    Soient $x,y \in \C^\Z$ deux signaux et $T$ un système quelconque. 
+    On définit les propriétés suivantes pour $T$ : 
+    \begin{itemize}
+        \item \textbf{Causalité} : Si pour tout $n_0 \in \Z$, $T[x(n_0)]$ 
+        ne dépend que de $x(n)$ et/ou $T[x(n)]$ avec $n \leqslant n_0$ . 
+        \item \textbf{Invariance par décalage} : si 
+            \begin{equation}
+                \forall n_0 \in \Z, \forall n \in \Z, \quad T[x(n - n_0)] = T[x(n)] 
+            \end{equation}
+        Dans le cas contraire, on dira que $T$ est variant par décalage. 
+        \item \textbf{Stabillité} : Si pour toute entrée bornée, la sortie est elle-même bornée. 
+        Plus formellement, il existe $A,B \in \R_+$ tels que : 
+            \begin{equation}
+                \forall n \in \Z, \quad |x(n)| < A \Longrightarrow T[x(n)] < B 
+            \end{equation}
+    \end{itemize}
+\end{prop}
+
+On appellera SLIT un \textbf{S}ystème \textbf{L}inéaire \textbf{I}nvariant par \textbf{T}ranslation. 
+
+\begin{definition}[Système physiquement réalisable]
+    On dira qu'un système $T$ est physiquement réalisable, s'il est à la fois \emph{stable} 
+    et \emph{causal}. 
+\end{definition}
+
+\begin{definition}[Réponse impultionnelle]
+    On appelle \emph{réponse impultionnelle} le signal $(h_n)_{n \in \Z}$ pour un système 
+    $T$ définit par : 
+        \begin{equation}
+            \forall n \in \Z, \quad h(n) = T[ \delta(n)]
+        \end{equation}
+\end{definition}
+
+Les systèmes linéaires disposent de très bonnes propriétés et leur stabilité est facilement 
+caractérisable. 
+
+\begin{proposition}
+    Soient $T$ un système linéaire de réponse impulsionnelle $(h_n)_{n \in \Z}$, alors 
+    $T$ est \emph{stable} si 
+    \begin{equation}
+        \exists A \in \R_+ \quad \forall n \in \Z, \sum_{n \in \Z} |h(n)| \leqslant A 
+    \end{equation}
+\end{proposition}
+
+
+% ========================================================================================================
+% Convolution et corrélation
+
+\section{Convolution et corrélation}
+
+Pour tout signal $(x_n)_{n \in \Z}$, on sait que : 
+    $$ \forall n \in \Z, \quad x(n) = \sum_{k \in \Z} x(k) \delta(n - k) $$ 
+Soit $T$ un SLIT. On a alors : 
+    \begin{align*}
+        \forall n \in \Z, y(n) &= T[x(n)] = T\left[ \sum_{k \in Z} x(k) \delta(n - k)\right] \\ 
+        &= \sum_{k \in \Z} x(k) T[ \delta(n - k)]
+    \end{align*}
+Or $T[ \delta(n)] = h(n)$ donc posons : 
+    $$ \forall n \in \Z, \forall k \in \Z, \quad T[ \delta(n - k)] = h_k (n) $$ 
+Or puisque $T$ est invariant par translation, on a : 
+    $$ T[ \delta(n - k)] = h_k(n) = h(n - k) $$
+Donc pour un SLIT : 
+    $$ y(n) = \sum_{k \in \Z} x(k) h(n - k) $$
+La réponse impultionnelle contient donc énormément d'information sur le système $T$ considéré. 
+Cette formule nous donne aussi la définition de la convolution temporelle discrète. 
+
+\subsection{Convolution à temps discret}
+
+Dans cette section, on suppose que tous les signaux consédérés ont des propriétés pertinentes telles 
+que la finitude. 
+
+\begin{definition}[Convolution]
+    Soient $(x_n)_{n \in \Z}$ et $ (y_n)_{n \in \Z}$ deux signaux. On définit 
+    la \emph{convolution} entre $x$ et $y$ comme l'opération : 
+        \begin{equation}
+            \boxed{\forall n \in \Z, \quad (x * y)(n) = \sum_{k \in \Z} x(k) y(n - k)}
+        \end{equation}
+\end{definition}
+
+\begin{prop}[Convolution et opérations]
+    Soient $x, y, z \in \C^\Z$ des signaux. 
+    L'opérateur convolution possède les propriétés suivantes : 
+    \begin{enumerate}[label=\roman*)]
+        \item \emph{Commutativité} : $ x * y = y * x $. 
+        \item \emph{Associativité} : $ (x * y) * z = x * (y * z)$. 
+        \item \emph{Distributivité} : $ x * (y + z) = x * y + x * z$. 
+    \end{enumerate}
+\end{prop}
+
+\begin{prop}[Convolution et Dirac]
+    Soit $ (x_n)_{n \in \Z}$ un signal. On a les propriétés suivantes vis-à-vis de l'échantillon 
+    unitaire : 
+    \begin{enumerate}[label=\roman*)]
+        \item \textbf{Invariance} : 
+            \begin{equation}
+                \forall n \in \Z, \quad (x * \delta)(n) = \sum_{k \in \Z} x(k) \delta( n -k ) = x(n) 
+            \end{equation}
+        \item \textbf{Translation} : pour tout $n, n_0 \in \Z$, 
+            \begin{align*}
+                x(n) * \delta(n - n_0) &= x(n - n_0) \\ 
+                \delta(n - n_0) * \delta(n - n_1) &= \delta(n - n_0 - n_1)
+            \end{align*}
+    \end{enumerate}
+\end{prop}
+
+\subsection{Cas des signaux de longueur finie}
+
+\begin{remark}
+    Soient $x, y \in \C^\Z$ deux signaux de longueur finie respective $N_x, N_y \in \N$. 
+    Par définition de la convolution, pour tout $n \in \Z$, on a : 
+        $$ z(n) = (x * y)(n) = \sum_{k \in \Z} x(k) y(n - k) $$
+    Alors $(z_n)_{n \in \Z}$ est de longueur, au maximum $N_x + N_y - 1$.
+\end{remark}
+
+On cherche ici à définir une convolution dite \emph{circulaire} dont la longueur du résultat 
+est la même que celle des opérandes. 
+
+\begin{definition}[Extension périodique]
+    Soit $(x_n)_{n \in \Z}$ un signal de longueur finie $N$. On définit son extension 
+    périodique comme le signal $({x_N}_n)_{n \in \Z}$ définit par : 
+        \begin{equation} 
+            \forall n \in \Z, \quad {x}_N(n) = \sum_{k=-\infty}^{+\infty} x(n - kN) 
+        \end{equation}
+    Ou de manière équivalente : 
+        \begin{equation} 
+            \forall n \in \Z, \quad {x}_N(n) = x(n \mod N) 
+        \end{equation}
+    Ce signal est périodique de période $N$. 
+\end{definition}
+
+\begin{definition}[Convolution circulaire]
+    Soient $x, y \in \C^\Z$ deux signaux de longueur finie $N \in \N$. Soit $x_N \in \C^\Z$ 
+    l'extension périodique de $x$. On définit la convolution circulaire de $x$ et $y$ comme : 
+        \begin{equation}
+            \boxed{\forall n \in \Z, \quad (x \circ y)(x) = \sum_{k=0}^{N-1} y(k) x_N(n - k)}
+        \end{equation}
+\end{definition}
+
+% \begin{center}
+%     \begin{tikzpicture}[scale=2]
+%         % Styles
+%         \tikzstyle{val_ext} = [circle, fill=blue!10, draw=blue!80, inner sep=1.5pt, font=\footnotesize]
+%         \tikzstyle{val_int} = [circle, fill=red!10, draw=red!80, inner sep=1.5pt, font=\footnotesize]
+
+%         % Disque Extérieur (Signal x)
+%         \fill[blue!5, draw=blue!30, thick] (0,0) circle (1.2cm);
+%         \node[blue!70, above] at (0, 1.25cm) {Disque fixe $x(k)$};
+
+%         % Disque Intérieur (Signal h retourné et décalé)
+%         \fill[red!5, draw=red!30, thick] (0,0) circle (0.75cm);
+%         \node[red!70, below] at (0, -1.35cm) {Disque mobile $h((n-k)_N)$};
+
+%         % Échantillons et graduations (N=4)
+%         % Pour n=0 : x(0)*h(0) + x(1)*h(3) + x(2)*h(2) + x(3)*h(1)
+        
+%         % k = 0
+%         \draw[dashed, gray!50] (0,0) -- (0:1.2cm);
+%         \node[val_ext, blue] at (0:1cm) {$x(0)$};
+%         \node[val_int, red] at (0:0.55cm) {$h(0)$};
+
+%         % k = 1
+%         \draw[dashed, gray!50] (0,0) -- (90:1.2cm);
+%         \node[val_ext, blue] at (90:1cm) {$x(3)$};
+%         \node[val_int, red] at (90:0.55cm) {$h(1)$};
+
+%         % k = 2
+%         \draw[dashed, gray!50] (0,0) -- (180:1.2cm);
+%         \node[val_ext, blue] at (180:1cm) {$x(2)$};
+%         \node[val_int, red] at (180:0.55cm) {$h(2)$};
+
+%         % k = 3
+%         \draw[dashed, gray!50] (0,0) -- (270:1.2cm);
+%         \node[val_ext, blue] at (270:1cm) {$x(1)$};
+%         \node[val_int, red] at (270:0.55cm) {$h(3)$};
+
+%         % Flèche de rotation pour le disque intérieur
+%         \draw[-{Stealth}, red!60, thick] (40:0.4cm) arc (40:320:0.4cm);
+%         \node[red!60] at (0,0) {\textbf{+ n}};
+        
+%     \end{tikzpicture}
+%     \end{center}
+
+\subsection{Corrélation}

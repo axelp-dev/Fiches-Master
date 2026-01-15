@@ -401,3 +401,34 @@ Toutes les mesures étudiées ($P, Bel, pl, N, \Pi$) appartiennent à la famille
 
 \section{Logique posibiliste}
 
+La logique classique est binaire : une proposition est soit vraie, soit fausse. Or, les connaissances d'un agent 
+sont souvent entachées d'incertitude. La \emph{logique possibiliste} étend la logique classique en associant à 
+chaque formule un degré de certitude (nécessité).
+
+\subsection{Syntaxe et Sémantique}
+
+\begin{definition}[Base de connaissances possibiliste]
+    Une base de connaissances possibiliste $\Sigma$ est un ensemble de couples $(\phi_i, \alpha_i)$ où :
+    \begin{itemize}
+        \item $\phi_i$ est une formule de la logique propositionnelle classique.
+        \item $\alpha_i \in (0, 1]$ est le \textbf{degré de nécessité} (ou de certitude) associé à $\phi_i$.
+    \end{itemize}
+    On note $\Sigma = \{ (\phi_i, \alpha_i), i=1, \dots, n \}$.
+\end{definition}
+
+\begin{example}[Base de connaissances type]
+    Soit la base $\Sigma$ concernant un oiseau $O$, un manchot $M$ et la capacité de voler $V$ :
+    \begin{enumerate}
+        \item $(M \to O, 1)$ : Il est certain qu'un manchot est un oiseau.
+        \item $(O \to V, 0.8)$ : Il est assez certain qu'un oiseau vole.
+        \item $(M \to \neg V, 0.9)$ : Il est très certain qu'un manchot ne vole pas.
+    \end{enumerate}
+\end{example}
+
+Une base $\Sigma$ induit une distribution de possibilité $\pi_\Sigma$ sur l'ensemble des interprétations $\Omega$. 
+Un monde $\omega$ est d'autant moins possible qu'il viole des formules de certitude élevée.
+
+\begin{definition}[Distribution de possibilité induite]
+    \[ \pi_\Sigma(\omega) = 1 - \max \{ \alpha_i \mid \omega \not\models \phi_i \} \]
+    Par convention, si $\omega$ satisfait toutes les formules, $\pi_\Sigma(\omega) = 1$.
+\end{definition}
