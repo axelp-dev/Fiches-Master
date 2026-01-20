@@ -26,9 +26,7 @@ recherche est de développer une IA hybride mélangeant système 1 et 2.
 
 Les informations disponibles sur un système (météo, population animale, etc...) sont généralement 
 imparfaites. Nous devons donc être capables de définir cette imperfection. L'objectif de ce cours est 
-donc de quantifier cette imperfection et de présenter différents formalismes de représentation de cette 
-imperfection. 
-
+donc de la quantifier et d'en présenter différents formalismes de représentation. 
 On distingue ainsi 4 natures d'imperfection de l'information : 
 
 \begin{itemize}
@@ -68,8 +66,8 @@ Il y a une relation entre incertain et imprécis : moins on est précis, plus on
 \section{Mesures d'incertitude}
 
 Nous allons ici étendre la théorie des probabilités en définissant des mesures d'incertitudes. 
-Nous nous plaçons ici dans une situation où il n'est, a priori, pas possible de répéter 
-plusieurs fois l'expérience aléatoire. Nous devons donc nous contenter de \emph{connaissances incertaines}.
+On suppose qu'il n'est, a priori, pas possible de répéter plusieurs fois l'expérience aléatoire. 
+Nous devons donc nous contenter de \emph{connaissances incertaines}.
 
 \subsection{Élicitation des probabilités par les paris}
 
@@ -91,7 +89,7 @@ permettre de la retrouver.
 
 \begin{definition}[Pari]
     Soit $A \subset \Omega$ un évènnement et $y,x \in \R$. On définit le pari $yAx$ comme 
-    "on gagne $y$ si $A$ et $x$ sinon. 
+    "on gagne $y$ si $A$ et $x$ sinon". 
 
     L'utilité espérée d'un pari $yAx$ est définie par : 
         $$ UE(yAx) = u(y) \myP(A) + u(x) \myP( \overline{A}). $$ 
@@ -112,12 +110,11 @@ Lorsque l'agent hésite, on a :
     $$ \iff \myP(A) = \frac{u(x)}{u(y)} $$ 
 Ainsi la probabilité d'un évènnement $A$ peut être estimée par le rapport des utilités entre ce que l'agent 
 est prêt à engager $x$ et ce qu'il peut gagner $y$. 
-
 La \emph{probabilité subjective} est donc la somme relative que l'on est prêt à parier. 
 
 \subsection{Probabilités imprécises}
 
-Ce nouveau modèle n'est en revanche pas suffisant. 
+Ce nouveau modèle n'est en revanche pas suffisant, l'exemple suivant nous le montre. 
 
 \begin{proposition}[Paradoxe d'Ellsberg]
     Soit une urne contenant 90 boules dont 30 rouges et 60 noires ou jaunes. 
@@ -138,7 +135,7 @@ Ce nouveau modèle n'est en revanche pas suffisant.
 Ainsi le modèle de l'utilité espérée ne suffit pas toujours à décrire le comportement humain face à une ignorance 
 totale. 
 Lorsque l'information est incomplète (comme dans le paradoxe d'Ellsberg), il est impossible de définir une probabilité 
-unique $P$. On travaille alors avec un ensemble $\mathfrak{F}$ de mesures de probabilité compatibles avec 
+unique $p$. On travaille alors avec un ensemble $\mathcal{F}$ de mesures de probabilité compatibles avec 
 l'information disponible.
 
 \begin{definition}[Famille de probabilités]
@@ -148,31 +145,31 @@ l'information disponible.
 
 \begin{example}[Urnes d'Ellsberg]
     Dans notre exemple précédent, cet ensemble est défini par : 
-        $$ \mathcal{F} := {p : \Omega \longrightarrow [0,1] \mid p(R) = 1/2, p(N) + p(J) = 2/3} $$
+        $$ \mathcal{F} := \{p : \Omega \longrightarrow [0,1] \mid p(R) = 1/2, p(N) + p(J) = 2/3\} $$
 \end{example}
 
 \begin{definition}[Mesures infra et supra-probabilistes]
-    Soit $\mathfrak{F}$ un ensemble de distributions de probabilité. 
+    Soit $\mathcal{F}$ un ensemble de distributions de probabilité. 
     Pour tout événement $A \subseteq \Omega$, on définit :
     \begin{itemize}
-        \item \textbf{La probabilité inférieure :} $P_*(A) = \inf_{p \in \mathfrak{F}} P(A)$.
-        \item \textbf{La probabilité supérieure :} $P^*(A) = \sup_{p \in \mathfrak{F}} P(A)$.
+        \item \textbf{La probabilité inférieure :} $P_*(A) = \inf_{p \in \mathcal{F}} P(A)$.
+        \item \textbf{La probabilité supérieure :} $P^*(A) = \sup_{p \in \mathcal{F}} P(A)$.
     \end{itemize}
 \end{definition}
 
 Face à l'imprécision, le critère de décision consiste à maximiser l'\emph{utilité espérée minimale} (approche pessimiste) 
 définie par : 
 \begin{equation}
-    UE_*(f) = \inf_{p \in \mathfrak{F}} UE(f)
+    UE_*(f) = \inf_{p \in \mathcal{F}} UE(f)
 \end{equation}
 
 \begin{prop}[Mesures infra/supra-probabilistes]
     Ces probabilités vérifient :
     \begin{itemize}
-        \item \textbf{Encadrement :} $\forall A, P_*(A) \le P(A) \le P^*(A)$.
-        \item \textbf{Dualité :} $P_*(A) = 1 - P^*(\overline{A})$.
-        \item \textbf{Super-additivité :} $P_*$ est super-additive : $P_*(A \cup B) \ge P_*(A) + P_*(B)$ (pour $A, B$ disjoints).
-        \item \textbf{Sub-additivité :} $P^*$ est sub-additive : $P^*(A \cup B) \le P^*(A) + P^*(B)$ (pour $A, B$ disjoints).
+        \item \emph{Encadrement :} $\forall A \subset \Omega, \quad P_*(A) \leqslant P(A) \leqslant P^*(A)$.
+        \item \emph{Dualité :} $P_*(A) = 1 - P^*(\overline{A})$.
+        \item \emph{Super-additivité :} $P_*$ est super-additive : $P_*(A \cup B) \geqslant P_*(A) + P_*(B)$ (pour $A, B$ disjoints).
+        \item \emph{Sub-additivité :} $P^*$ est sub-additive : $P^*(A \cup B) \leqslant P^*(A) + P^*(B)$ (pour $A, B$ disjoints).
     \end{itemize}
 \end{prop}
 
@@ -225,16 +222,16 @@ Celle-ci s'appuiera sur les \emph{fonctions de masse}.
                 Bel : 
                     \begin{cases}
                         \mathcal{P}( \Omega) \longrightarrow \R \\ 
-                        A \longmapsto \sum_{B \in \mathcal{P}( \Omega) \mid B \subset A} m(B) 
+                        A \longmapsto \displaystyle \sum_{B \in \mathcal{P}( \Omega) \mid B \subset A} m(B) 
                     \end{cases}
             \end{equation}
-            qui estime dans quelle mesure une évènnement $A$ est certain. 
+            qui estime dans quelle mesure un évènement $A$ est certain. 
         \item \textbf{La plausibilité} $pl$ définie par : 
             \begin{equation}
                 pl : 
                     \begin{cases}
                         \mathcal{P}( \Omega) \longrightarrow \R \\ 
-                        A \longmapsto \sum_{B \in \mathcal{P}( \Omega) \mid B \cap A \not = 0} m(B).
+                        A \longmapsto \displaystyle \sum_{B \in \mathcal{P}( \Omega) \mid B \cap A \not = 0} m(B).
                     \end{cases}
             \end{equation}
             qui détermine en quelle mesure $A$ est plausible. 
@@ -295,7 +292,7 @@ ignorance.
 \end{remark}
 
 \begin{proposition}
-    En réalité, les foncions de croyance pl et Bel sont des manières compactes de représenter 
+    En réalité, les fonctions de croyance $pl$ et $Bel$ sont des manières compactes de représenter 
     une famille de probabilités. On a ainsi : 
     \begin{itemize}
         \item $Bel$ correspond exactement à la probabilité inférieure $ \myP_*$ sur $ \mathcal{F}$. 
@@ -310,7 +307,7 @@ On peut donc définir plus formellement l'utilité pessimiste.
 \begin{definition}[Utilité pessimiste]
     L'utilité pessimiste d'une décision $f$ est définie par :
     \begin{equation}
-        U_{pes}(f) = \sum_{A \subseteq \Omega} m(A) \cdot \min_{s \in A} u(f(s))
+        \boxed{ U_{pes}(f) = \sum_{A \subseteq \Omega} m(A) \cdot \min_{s \in A} u(f(s)) }
     \end{equation}
 \end{definition}
 
@@ -341,21 +338,24 @@ Pour évaluer la confiance en un événement $A \subseteq \Omega$, on définit d
     \begin{itemize}
         \item \textbf{La mesure de possibilité $\Pi(A)$} s'appuie sur le cas le plus favorable à $A$ :
             \begin{equation}
-                \Pi(A) = \sup_{s \in A} \pi(s)
+                \boxed{\Pi(A) = \sup_{s \in A} \pi(s)}
             \end{equation}
         \item \textbf{La mesure de nécessité $N(A)$} s'appuie sur le cas le plus favorable de l'événement contraire :
             \begin{equation}
-                N(A) = 1 - \Pi(\overline{A}) = 1 - \sup_{s \notin A} \pi(s)
+                \boxed{N(A) = 1 - \Pi(\overline{A}) = 1 - \sup_{s \notin A} \pi(s)}
             \end{equation}
     \end{itemize}
 \end{definition}
 
 \begin{prop}[Axiomes caractéristiques]
     Contrairement aux probabilités, ces mesures ne sont pas additives, mais respectent les règles suivantes :
-    \begin{itemize}
-        \item $\Pi(A \cup B) = \max(\Pi(A), \Pi(B))$.
-        \item $N(A \cap B) = \min(N(A), N(B))$.
-    \end{itemize}
+    \begin{equation}
+        \forall A, B \in \mathcal{P}( \Omega), \quad 
+        \begin{cases}
+            \Pi(A \cup B) = \max(\Pi(A), \Pi(B)) \\ 
+            N(A \cap B) = \min(N(A), N(B))
+        \end{cases}
+    \end{equation}
 \end{prop}
 
 \begin{remark}[Lien avec Dempster-Shafer]
@@ -366,15 +366,15 @@ Pour évaluer la confiance en un événement $A \subseteq \Omega$, on définit d
 
 \subsection{Conclusion : Panorama sur les mesures d'incertitude}
 
-Toutes les mesures étudiées ($P, Bel, pl, N, \Pi$) appartiennent à la famille des \textbf{capacités} 
-(ou mesures de confiance).
+Toutes les mesures étudiées ($P, Bel, pl, N, \Pi$) s'inscrivent dans le cadre plus général 
+des \emph{capacités}. 
 
 \begin{definition}[Capacité]
-    Une application $g : 2^{\Omega} \longrightarrow [0,1]$ est une capacité si elle vérifie :
+    Une application $g : \mathcal{P}( \Omega) \longrightarrow [0,1]$ est une capacité si elle vérifie :
     \begin{itemize}
-        \item $g(\emptyset) = 0$ (impossibilité).
-        \item $g(\Omega) = 1$ (masse unitaire).
-        \item $A \subseteq B \Rightarrow g(A) \le g(B)$ (monotonie).
+        \item \emph{L'impossibilité} : $g(\emptyset) = 0$. 
+        \item \emph{La Masse Unitaire} : $g(\Omega) = 1$. 
+        \item \emph{La Monotonie} : $A \subseteq B \Rightarrow g(A) \leqslant g(B)$. 
     \end{itemize}
 \end{definition}
 
@@ -385,9 +385,9 @@ Toutes les mesures étudiées ($P, Bel, pl, N, \Pi$) appartiennent à la famille
         \toprule
         \text{Mesure} & \text{Symbole} & \text{Axiome / Propriété caractéristique} \\
         \midrule
-        Probabilité & $P$ & $P(A \cup B) = P(A) + P(B)$ (si $A \cap B = \emptyset$) \\
-        Croyance & $Bel$ & $Bel(A \cup B) \ge Bel(A) + Bel(B) - Bel(A \cap B)$ \\
-        Plausibilité & $Pl$ & $Pl(A \cup B) \le Pl(A) + Pl(B) - Pl(A \cap B)$ \\
+        Probabilité & $ \myP$ & $ \myP(A \cup B) = \myP(A) + \myP(B)$ (si $A \cap B = \emptyset$) \\
+        Croyance & $Bel$ & $Bel(A \cup B) \geqslant Bel(A) + Bel(B) - Bel(A \cap B)$ \\
+        Plausibilité & $Pl$ & $Pl(A \cup B) \leqslant Pl(A) + Pl(B) - Pl(A \cap B)$ \\
         Possibilité & $\Pi$ & $\Pi(A \cup B) = \max(\Pi(A), \Pi(B))$ \\
         Nécessité & $N$ & $N(A \cap B) = \min(N(A), N(B))$ \\
         \bottomrule
@@ -408,16 +408,20 @@ chaque formule un degré de certitude (nécessité).
 \subsection{Syntaxe et Sémantique}
 
 \begin{definition}[Base de connaissances possibiliste]
-    Une base de connaissances possibiliste $\Sigma$ est un ensemble de couples $(\phi_i, \alpha_i)$ où :
+    Une base de connaissances possibiliste $\Sigma$ est un ensemble de \emph{formules de logique 
+    possibiliste} $(\phi_i, \alpha_i)$ telles que :
     \begin{itemize}
-        \item $\phi_i$ est une formule de la logique propositionnelle classique.
-        \item $\alpha_i \in (0, 1]$ est le \textbf{degré de nécessité} (ou de certitude) associé à $\phi_i$.
+        \item $\phi_i$ est une formule logique propositionnelle classique.
+        \item $\alpha_i \in ]0, 1]$ est le \textbf{degré de nécessité} (ou de certitude) associé à $\phi_i$.
     \end{itemize}
     On note $\Sigma = \{ (\phi_i, \alpha_i), i=1, \dots, n \}$.
 \end{definition}
 
+$ \alpha_i $ peut être interprété par une borne inférieure du degré de certitude d'une proposition 
+$ \varphi_i$ telle que $ N( \varphi) > \alpha$, avec $N$ une mesure de nécessité. 
+
 \begin{example}[Base de connaissances type]
-    Soit la base $\Sigma$ concernant un oiseau $O$, un manchot $M$ et la capacité de voler $V$ :
+    Soit la base $\Sigma$ concernant un oiseau $O$, un manchot $M$ et la capacité de voler $V$ définie par : 
     \begin{enumerate}
         \item $(M \to O, 1)$ : Il est certain qu'un manchot est un oiseau.
         \item $(O \to V, 0.8)$ : Il est assez certain qu'un oiseau vole.
@@ -425,10 +429,185 @@ chaque formule un degré de certitude (nécessité).
     \end{enumerate}
 \end{example}
 
-Une base $\Sigma$ induit une distribution de possibilité $\pi_\Sigma$ sur l'ensemble des interprétations $\Omega$. 
-Un monde $\omega$ est d'autant moins possible qu'il viole des formules de certitude élevée.
+Une base possibiliste $ \Sigma$ induit une base de logique classique, notée $ \Sigma^*$, définie par : 
+    \begin{equation}
+        \Sigma^* := \{ \varphi \mid \exists \alpha \in [0,1], ( \varphi, \alpha) \in \Sigma\}
+    \end{equation}
 
 \begin{definition}[Distribution de possibilité induite]
-    \[ \pi_\Sigma(\omega) = 1 - \max \{ \alpha_i \mid \omega \not\models \phi_i \} \]
-    Par convention, si $\omega$ satisfait toutes les formules, $\pi_\Sigma(\omega) = 1$.
+    Une base de possibilité $ \Sigma$ induit une distribution de possibilité $ \pi$ 
+    sur l'ensemble des mondes possibles $ \Omega$. On a donc : 
+    \begin{equation}
+        \pi_\Sigma(\omega) = 1 - \max \{ \alpha_i \mid \omega \not\models \phi_i \}
+    \end{equation}
+    Pour un monde $ \omega \in \Omega$, on a donc 3 cas différents : 
+    \begin{itemize}
+        \item si $ \omega$ ne contredit aucunes formules possibilistes de $ \Sigma$, alors 
+        $ \pi ( \omega) = 1$. 
+        \item si $ \omega$ contredit une connaissance certaine, alors $ \pi ( \omega) = 0$. 
+        \item sinon $ \pi( \omega) \in [0, 1]$. 
+    \end{itemize}
+    \begin{quote}
+        \emph{"Plus un monde viole une formule certaine, moins il est possible."}
+    \end{quote}
 \end{definition}
+
+\begin{example}[Calcul de distribution de possibilité]
+    Considérons le monde $\omega = (M, O, V)$ (un manchot oiseau qui vole). 
+    Ce monde viole la formule $\phi_3 : M \to \neg V$ de degré $\alpha_3 = 0.9$. 
+    En appliquant la sémantique de la base :
+    \[ \pi_\Sigma(\omega) = 1 - \max \{ 0.9 \} = 0.1 \]
+    Ce monde est donc jugé peu possible car il contredit une connaissance quasi-certaine.
+\end{example}
+
+\subsection{Raisonnement}
+
+On souhaite maintenant raisonner sur des bases possibilistes $ \Sigma$ dans le but d'en déduire des mondes 
+possibles. 
+Une première idée serait de calculer $ N( \omega)$ et $ \Pi( \omega) $ pour tout monde $ \omega \in \Omega$. 
+Or, c'est un problème très coûteux en temps et en mémoire. 
+Une seconde idée est d'essayer de se ramener au cas de la logique classique à partir de certaines réductions. 
+C'est ce que nous allons détailler ici. 
+
+\begin{notation}
+    Pour de tels raisonnements, on introduit la notation $ \Sigma_{ \alpha} \models \varphi$. 
+    Elle signifie que la base $ \Sigma$ permet de déuire que $ N ( \varphi) \geqslant \alpha$. 
+\end{notation}
+
+L'outil fondamental pour nous ramener au cas "simple" de la logique classique est la \emph{coupure de 
+niveau}. 
+
+\begin{definition}[Coupure de niveau]
+    Soit $ \Sigma$ une base possibiliste. On définit la \emph{coupure de niveau de degré $ \alpha$}
+    de $ \Sigma$ comme l'ensemble : 
+        \begin{equation}
+            \Sigma_\alpha := \{ ( \varphi, \alpha) \in \Sigma \mid \alpha_i \geqslant \alpha\}
+        \end{equation}
+\end{definition}
+
+\begin{theorem}[Fondamental]
+    Soit $ \Sigma$ une base possibiliste et $ ( \varphi, \alpha) \in \Sigma$. On a : 
+        \begin{equation}
+            N( \varphi) \geqslant \alpha \quad \text{ssi} \quad ( \Sigma_\alpha)^* \vdash \varphi 
+        \end{equation}
+\end{theorem}
+
+Autrement dit, pour affirmer que $ N( \varphi) \geqslant \alpha$, il faut prouver 
+mathématiquement que $ \varphi$ est vraie seulement à partir des formules de $ (\Sigma_\alpha)^*$, 
+en ignorant les degrés. 
+
+Pour cela, on définit un ensemble d'axiomes, desquels découleront des formules plus complexes. 
+
+\begin{definition}[Axiomes de la logique possibiliste]
+    Soient $ p,q$ deux formules propositionnelles. On a les axiomes suivants : 
+    \begin{enumerate}[label=\roman*)]
+        \item \emph{Masse unitaire} : $N(\top) = 1$ 
+        \item \emph{Nécessaité} : $N( p \wedge q) = \min( N(p), N(q)) $
+        \item \emph{Monotonie} : Si $ p \models q$, alors $ N(p) \leqslant N(q)$. 
+    \end{enumerate}
+    De même pour la forme duale : 
+    \begin{enumerate}[label=\roman*)]
+        \item \emph{Impossibilité} : $ \Pi( \bot ) = 0$ 
+        \item \emph{Possibilité} : $ \Pi( p \vee q) = \max( \Pi(p), \Pi(q))$ 
+        \item \emph{Monotonie} : Si $ p \models q$, alors $ \Pi(p) \leqslant \Pi(q)$. 
+    \end{enumerate}
+\end{definition}
+
+\begin{proposition}
+    Il existe différentes règles d'inférence. En voici quelques-unes :
+    \begin{itemize}
+        \item \emph{Modus Ponens possibiliste} : 
+        \begin{equation}
+            \text{Si } N( p \to q) \geqslant \alpha \text{ et } N(p) \geqslant \beta \text{ alors } N(q) \geqslant \min( \alpha, \beta)
+        \end{equation}
+        \begin{equation}
+            \text{Si } N(p \to q) = 1 \text{ et } \Pi(p) \geqslant \beta \text{ alors } \Pi(q) \geqslant \beta 
+        \end{equation}
+        \item \emph{Modus Tollens possibiliste} : 
+        \begin{equation}
+            \text{ Si } N(p \to q) \geqslant \alpha \text{ et } \Pi(q) \leqslant \beta \text{ alors } \Pi(p) \leqslant \max(1 - \alpha, \beta)  
+        \end{equation}
+    \end{itemize}
+\end{proposition}
+
+\begin{example}[Application du théorème fondamental]
+    On veut savoir si l'on peut déduire que l'individu ne vole pas avec une certitude $\alpha = 0.9$. 
+    On extrait la coupure $\Sigma_{0.9} = \{ M, M \to O, M \to \neg V \}$.
+    Dans cette coupure, on a $(\Sigma_{0.9})^* \vdash \neg V$ par simple Modus Ponens classique.
+    Ainsi, $N(\neg V) \geqslant 0.9$ est une déduction valide.
+\end{example}
+
+\subsection{Inconsistance}
+
+En logique classique, si une base de connaissances admet une contradiction, alors on ne peut plus 
+l'utiliser. En logique possibiliste, nous allons attribuer un \emph{niveau de confiance} à nos 
+bases possibilistes appelé \emph{degré d'inconsistance}. 
+
+\begin{definition}[Degré d'inconsistance]
+    Soit $ \Sigma$ une base possibiliste. On définit son \emph{degré d'inconsistance}, noté 
+    $Inc( \Sigma)$, par : 
+        \begin{equation}
+            \boxed{Inc( \Sigma) := \max \{ \alpha \mid \Sigma_\alpha \vdash \bot\}}
+        \end{equation}
+    Dans le cas où $ Inc( \Sigma) = 0$, on dit que la base est consistante. Si $Inc( \Sigma) = 1$, alors 
+    elle est totalement inconsistante, on ne peut pas travailler avec. 
+    Enfin, si $ 0 < Inc( \Sigma) < 1$, alors il y a un conflit entre des informations incertaines. 
+\end{definition}
+
+\begin{proposition}
+    Ce niveau de confiance en une base possibiliste permet d'orienter le raisonnement définit plus 
+    haut. En effet, pour qu'une conclusion $ \varphi$ soit considérée comme "valide", il sera 
+    nécessaire que son degré de nécessité soit supérieur au niveau d'inconsistance de la base. 
+        $$ \text{i.e} \quad N( \varphi) > Inc( \Sigma) $$  
+\end{proposition}
+
+
+\begin{example}[Calcul du degré d'inconsistance]
+    Dans notre base $\Sigma$ augmentée du fait que l'individu est un manchot ($M, 1$):
+    \begin{itemize}
+        \item Une chaîne mène à $\neg V$ avec un degré $0.9$.
+        \item Une autre mène à $V$ via $O$ avec un degré $\min(1, 1, 0.8) = 0.8$.
+    \end{itemize}
+    Le conflit entre $V$ et $\neg V$ au niveau le plus haut est $0.8$.
+    On a donc $Inc(\Sigma) = 0.8$. 
+    La conclusion $V$ ($0.8$) est rejetée car $0.8 \ngtr 0.8$, tandis que $\neg V$ ($0.9$) est acceptée car $0.9 > 0.8$.
+\end{example}
+
+\subsection{Calcul par Résolution et Réfutation}
+
+Pour automatiser le raisonnement sans tester tous les mondes possibles, on utilise la forme clausale 
+(CNF) où chaque formule est une disjonction de littéraux.
+
+\begin{definition}[Règle de Résolution Possibiliste (RP)] 
+    Soient deux clauses possibilistes $(\lnot p \lor q, \alpha)$ et $(p \lor r, \beta)$. 
+    La règle de résolution permet d'engendrer un \emph{résolvant} : 
+    \begin{equation} 
+        (\neg p \vee q, \alpha), (p \vee r, \beta) \vdash_{RP} (q \vee r, \min(\alpha, \beta)) 
+    \end{equation} 
+\end{definition}
+
+Comme en logique classique, la résolution n'est pas complète pour la déduction directe, on utilise donc la \textbf{réfutation}.
+
+\begin{theorem}[Complétude de la résolution] 
+    $ \Sigma \vdash_\alpha \varphi$  si et seulement si on peut déduire la clause vide $ \bot$  avec un 
+    poids $ \alpha$ à partir de la base augmentée de la négation de la conclusion : 
+    \begin{equation} 
+        \Sigma \cup { (\neg \varphi, 1) } \vdash_{RP} (\perp, \alpha) 
+    \end{equation} 
+    La valeur $ \alpha$ obtenue correspond au degré d'inconsistance de la base augmentée.
+\end{theorem}
+
+\begin{example}[Manchot et Vol] 
+    Reprenons la base $ \Sigma = \{(M, 1), (\lnot M \lor O, 1), (\lnot M \lor \lnot V, 0.9), (\lnot O \lor V, 0.8)\}$
+    \begin{itemize} 
+        \item Le degré d'inconsistance de la base seule est $Inc( \Sigma) = 0.8$ (conflit sur V). 
+        \item Pour prouver $\lnot V$, on ajoute $(V,1)$. On déduit $(\bot,0.9)$ par résolution. 
+        \item Comme $0.9 > 0.8$, la conclusion "l'individu ne vole pas" est validée avec $ N(\lnot V) \geqslant 0.9$. 
+    \end{itemize}
+\end{example}
+
+
+
+
+
+

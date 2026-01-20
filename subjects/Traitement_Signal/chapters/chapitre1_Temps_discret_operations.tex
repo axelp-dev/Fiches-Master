@@ -320,3 +320,47 @@ est la même que celle des opérandes.
 %     \end{center}
 
 \subsection{Corrélation}
+
+On souhaite maintenant définir une opération permettant de déterminer si deux signaux sont 
+plus ou moins proches. 
+
+\begin{definition}[Fonction d'intercorrélation]
+    Soient $x,y \in \C^\Z$. On définit la corrélation entre $x$ et $y$ comme le signal : 
+        \begin{equation}
+            \forall n \in \Z, \quad C_{xy}(n) = \sum_{k \in \Z} x(k) y(k - n) 
+        \end{equation}
+    Si $x = y$ alors $ C_{xx}$ s'appellera la \emph{fonction d'autocorrélation}. 
+\end{definition}
+
+\begin{prop}[Corrélation]
+    Soient $x,y \in \C^\Z$. La corrélation admet les propriétés suivantes : 
+    \begin{enumerate}[label=\roman*)]
+        \item Lien avec la convolution : 
+            \begin{equation}
+                \forall n \in \Z, \quad C_{xy}(n) = x(n) * y(-n)
+            \end{equation}
+        \item Stabilité par inversion : $ \forall n \in \Z, C_{xy}(n) = C_{xy}(-n)$.
+    \end{enumerate}
+\end{prop}
+
+\begin{proposition}
+    On peut aussi définir deux autres formes de fonction de corrélation pour tous signaux $x,y \in \C^\Z$ 
+    de longueur finie $N$ :
+    \begin{itemize}
+        \item \textbf{Forme biaisée} : 
+            \begin{equation}
+                \forall n \in \Z, \quad C_{xy}(n) = \frac{1}{N} \sum_{k=0}^{N - n -1} x(k) y(k - n)
+            \end{equation}
+        \item \textbf{Forme non biaisée} : 
+            \begin{equation}
+                \forall n \in \Z, \quad C_{xy}(n) = \frac{1}{N - |n|} \sum_{k=0}^{N - n -1} x(k) y(k - n)
+            \end{equation}
+    \end{itemize}
+
+\end{proposition}
+
+% ========================================================================================================
+% Transformée de Fourrier
+
+\section{Transformée de Fourrier}
+
