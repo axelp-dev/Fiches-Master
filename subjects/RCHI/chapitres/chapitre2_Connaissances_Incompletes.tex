@@ -1,0 +1,277 @@
+\minitoc
+
+% ========================================================================================================
+% Introduction 
+
+
+% ========================================================================================================
+% Rappels - Logique des Prédicats
+
+\section{Rappels - Logique des Prédicats}
+
+La logique des prédicats est à la base de tous les raisonnements de ce chapitre. Aussi, il est 
+essentiel d'en avoir une bonne connaissance et d'être au clair avec ses notations.
+
+\subsection{Syntaxe}
+
+On se place ici sur un \emph{domaine} fixé, noté $D$. On prendra souvent $ D = \N$ ou 
+$D = \Z$. Tout comme la logique propositionnelle, la logique des prédicats s'appuie sur un \emph{alphabet},
+cette fois plus riche.
+
+\begin{definition}[Alphabet]
+    On définit l'alphabet comment l'ensemble contenant : 
+    \begin{enumerate}[label=\roman*)]
+        \item les \emph{constantes} (i.e des éléments sur domaine), 
+        \item les \emph{variables}, 
+        \item les \emph{fonctions}, 
+        \item les \emph{relations}, 
+        \item les \emph{connecteurs} $ \land, \lor, \lnot, \Rightarrow$, 
+        \item les \emph{symboles} $ \exists$ (il existe) et $ \forall $ (pour tout), 
+        \item les \emph{parenthèses} $ ($ et $)$. 
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[Arrité]
+    On définit \emph{l'arité} d'une fonction ou d'une relation comme le nombre d'éléments 
+    auquel elle s'applique. Par exemple, la fonction $ x \mapsto - x$ a une arrité de $1$ 
+    et la relation \texttt{divise} possède une arrité de $2$. 
+\end{definition}
+
+\begin{definition}[Termes]
+    On définit le sous-ensemble de $D$, appelé \emph{termes}, de façon récursive : 
+    \begin{enumerate}[label=\roman*)]
+        \item Les constantes sont des termes, 
+        \item Les variables sont des termes, 
+        \item Si $f$ est une fonction et $t_1, \dots, t_n$ des termes, alors $f(t_1, \dots, t_n)$ est un terme. 
+    \end{enumerate}
+\end{definition}
+
+L'ensemble des termes forme ainsi le premier niveau syntaxique des formules de logique 
+des prédicats. 
+Ces termes sont dont des éléments de $D$. Nous voulons aussi définir des formules qui soient 
+vraies ou fausses. Pour cela, nous devons passer de $D$ vers l'ensemble $ \{vrai, faux\}$. Ce rôle
+sera joué par les \emph{relations}. 
+
+\begin{definition}[Atome/Formule Atomique]
+    Soit $r$ une relation d'arité $n$ et $t_1, \dots, t_n$ $n$ termes. 
+    On appelle $r(t_1, \dots, t_n)$ une \emph{formule atomique}. 
+\end{definition}
+
+\begin{definition}[Atome de base / Ground Atom]
+    Un \emph{atome de base} est une formule atomique qui ne contient aucun symbole de variable. Les termes qui la composent 
+    sont uniquement des constantes ou des fonctions sur des constantes.
+    \begin{itemize}
+        \item Exemple : $parent(jean, marie)$ est un atome de base.
+        \item Contre-exemple : $parent(x, marie)$ n'est pas un atome de base, car il contient la variable $x$.
+    \end{itemize}
+\end{definition}
+
+On appellera \emph{formules d'ordre $1$} les formules atomiques ou les formules 
+composées d'une variable et d'une formule d'ordre $1$. On appellera enfin \emph{langage}, noté 
+$ \mathcal{L}$, un ensemble de formules bien formées. 
+
+\subsection{Sémantique et évaluation}
+
+La sémantique définit le sens d'une formule en déterminant les conditions sous lesquelles elle est vraie ou fausse 
+dans un domaine $D$.
+
+\begin{definition}[Valuation]
+    Une \emph{valuation} est une fonction $v$ qui associe à chaque variable d'un ensemble $E$ un élément du domaine $D$.
+    L'évaluation d'une formule $F$ pour une valuation $v$, notée $eval_v(F)$, consiste à remplacer chaque variable libre
+    par sa valeur définie par $v$.
+\end{definition}
+
+On définit ainsi différents types de variables : 
+\begin{itemize}
+    \item \textbf{Variables libres :} Une formule avec des variables libres exprime une propriété sur ses variables; 
+    sa valeur de vérité dépend de la valuation choisie.
+    \item \textbf{Variables liées :} Une formule est quantifiée par $\forall$ ou $\exists$. 
+    \begin{itemize}
+        \item $(\forall x F)$ est vraie si $F$ est vraie pour \emph{toute} valuation de $x$.
+        \item $(\exists x F)$ est vraie s'il \emph{existe au moins} une valuation de $x$ telle que $F$ soit vraie.
+    \end{itemize}
+\end{itemize}
+
+\begin{definition}[Tautologie et Équivalence]
+    \begin{enumerate}[label=\roman*)]
+        \item Une \emph{tautologie} est une formule vraie quelle que soit la valuation de ses variables libres.
+        \item Deux formules sont \emph{équivalentes} si elles ont la même évaluation pour toutes les valuations.
+    \end{enumerate}
+\end{definition}
+
+\subsection{Propriétés et calculs}
+
+\begin{proposition}[Négation des quantificateurs]
+    Pour transformer la négation d'une formule quantifiée, on utilise des règles similaires aux lois de Morgan :
+        $$ \neg(\forall x P) \equiv \exists x (\neg P) \quad \text{et} \quad \neg(\exists x P) \equiv \forall x (\neg P) $$
+\end{proposition}
+
+\begin{definition}[Quantificateurs avec condition]
+    Pour restreindre une recherche à un sous-domaine (ex: $x \in \mathbb{R}$ ou $x \geqslant 0$), on utilise les raccourcis 
+    suivants :
+    \begin{itemize}
+        \item $(\forall x : r(x), P) \equiv \forall x (r(x) \Rightarrow P)$ 
+        \item $(\exists x : r(x), P) \equiv \exists x (r(x) \land P)$ 
+    \end{itemize}
+\end{definition}
+
+\subsection{Satisfaisabilité}
+
+La sémantique permet de lier la syntaxe (les symboles) à la vérité dans un monde réel ou modélisé.
+
+\begin{definition}[Modèle et Satisfaisabilité]
+    On dit qu'une interprétation (ou un monde) $I$ \emph{satisfait} une formule $\phi$ si $\phi$ est vraie dans cette interprétation. 
+    On le note :
+        \[ I \models \phi \]
+\end{definition}
+
+% ========================================================================================================
+% Hypothèse du monde clos  
+
+\section{Hypothèse du monde clos}
+
+On se fixe ici un langage $ \mathcal{L}$. 
+
+\subsection{Définitions}
+
+\begin{definition}[Base de connaissances]
+    Une \emph{base de connaissances}, notée BC, est un ensemble fini de formules logiques 
+    bien formées dans un langage donné $ \mathcal{L}$. 
+\end{definition}
+
+\begin{definition}[Consistance]
+    Soit BC une base de connaissances sur un langage $ \mathcal{L}$. On dit que BC est 
+    \emph{consistante} s'il existe au moins une interprétation $I$ où toutes les formules de BC sont vraies. 
+        $$ \text{i.a} \quad \exists I, \quad \forall \varphi \in BC, I \models \varphi $$  
+\end{definition}
+
+\begin{definition}[Conséquence logique]
+    Soit $BC$ une base de connaissances (ensemble de formules). On dit que $\phi$ est une \emph{conséquence logique} 
+    de $BC$, noté \boldmath$BC \models \phi$\unboldmath, si toute interprétation qui satisfait toutes les 
+    formules de $BC$ satisfait aussi nécessairement $\phi$.
+\end{definition}
+
+\begin{definition}[Théorie]
+    On note $Th(BC)$ l'ensemble de toutes les conséquences logiques d'une base de connaissances :
+    \begin{equation}
+        Th(BC) = \{ \phi \in \mathcal{L} \mid BC \models \phi \}
+    \end{equation} 
+    Une théorie est dite \emph{complète} si, pour tout atome de base $\alpha$ de $ \mathcal{L}$, on a soit $\alpha \in Th(BC)$, 
+    soit $\neg \alpha \in Th(BC)$.
+\end{definition}
+
+En général, une base de connaissances est \emph{incomplète}. L'objectif de l'hypothèse du monde clos (HMC)
+sera de compléter cette théorie en considérant que tout ce qui ne peut pas en être déduit sera faux. 
+
+\subsection{Inférence et complétion}
+
+Formalisons maintenant cet "ajout" de connaissances a priori fausses. On définit pour cela 
+un ensemble des "vérités négatives". 
+
+\begin{definition}[$BC^-$]
+    Soit $ BC^-$ l'ensemble des "vérités négatives" d'une base de connaissances BC sur un langage $ \mathcal{L}$. 
+    Il définit comme l'ensemble des littéraux négatifs de base dont la version positive n'est pas une conséquence logique de 
+    BC. Plus formellement : 
+    \begin{equation}
+        \boxed{BC^- = \{ \lnot \alpha \mid \alpha \in \mathcal{L}, BC \nvDash \alpha\}}
+    \end{equation}
+\end{definition}
+
+Enfin, nous travaillons avec une base dite \emph{complétée} formée de l'union de la base de connaissances de départ BC et 
+de $BC^-$. On la notera $ HMC(BC)$ telle que : 
+    $$ HMC(BC) = BC \cup BC^- $$ 
+On dira qu'une formule $ \varphi$ est inférée par $HMC$ ssi 
+    $$ BC \models_{HMC} \varphi \quad \iff \quad BC \cup BC^- \models \varphi $$ 
+
+\begin{example}
+    Soit le langage $ \mathcal{L}$ définit sur les atomes $ \{a,b\}$ et le prédicat $ p : \{a, b\} \longrightarrow \{vrai, faux\}$. 
+    On pose $ BC = \{p(a)\}$. On a alors : 
+    \begin{itemize}
+        \item $ Th(BC) = \{p(a), p(a) \lor p(b)\}$ 
+        \item $ BC \nvDash p(b)$ et $ BC \nvDash \lnot p(b)$ donc la base est \emph{incomplète}.
+    \end{itemize}
+    On va donc générer $ BC^- = \{ \lnot p(b)\}$. 
+\end{example}
+
+\subsection{Limitations}
+
+Ce modèle de la connaissance incomplète est très performant pour des bases de connaissances simples. 
+Or, il peut s'avérer défaillant lorsque celles-ci se compliquent, rendant la théorie inconsistante. 
+
+\begin{prop}[Inconsistance]
+    Soit $BC$ une base de connaissances. $HMC(BC)$ est inconsistante ssi il existe des atomes $ \alpha_1, \dots, \alpha_n$ 
+    tels que : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \forall i \in \llbracket 1, n \rrbracket, \quad BC \nvDash \alpha_i$ 
+        \item $ BC \models \alpha_1 \lor \dots \lor \alpha_i$. 
+    \end{enumerate}
+\end{prop}
+
+\begin{example}
+    Posons $BC = \{ \alpha_1 \lor \alpha_2\}$. D'après précédents, on a donc bien $ BC \nvDash \alpha_1$ et 
+    $ BC \nvDash \alpha_2$, d'où $BC^- = \{ \lnot \alpha_1, \lnot \alpha_2\}$. On aura donc : 
+        $$ HMC(BC) = \{ \alpha_1 \lor \alpha_2, \lnot \alpha_1, \lnot \alpha_2\} $$ 
+    ce qui en fait une base inconsistante. 
+\end{example}
+
+Ce problème est en revanche résolu par les clauses de Horn. Pour rappel, une clause de Horn est 
+une conjonction de littéraux comportant au plus un littéral positif. Par exemple 
+    $$ \lnot \alpha_1 \land \lnot \alpha_2 \land \dots \land \lnot \alpha_n $$ 
+    $$ \lnot \alpha_1 \land \alpha_2 \land \lnot \alpha_3 \land \dots \land \lnot \alpha_n $$ 
+sont des clauses de Horn. 
+
+\begin{corollary}[Consistance]
+    Si une base de connaissances est un ensemble consistant de clauses de Horn, alors 
+    $HMC(BC)$ est aussi consistante. 
+\end{corollary}
+
+\subsection{Hypothèse restreinte du monde clos}
+
+L'application globale de l'HMC peut mener à des inconsistances, notamment en présence d'informations 
+disjonctives. Pour pallier cela, on peut affaiblir l'hypothèse en ne l'appliquant qu'à un sous-ensemble choisi de prédicats.
+Au lieu de considérer que {tout} ce qui n'est pas prouvable est faux, on définit une liste de prédicats dits \emph{complets} 
+(dont on suppose que la connaissance est exhaustive).
+\begin{itemize}
+    \item On n'ajoute dans $BC^-$ que les négations d'atomes de base correspondant à ces prédicats spécifiques.
+    \item Cela permet de modéliser des situations hybrides : par exemple, une base de données où la liste des employés est complète,
+     mais leurs compétences ne le sont pas.
+\end{itemize}
+
+\begin{example}
+    Considérons la base de connaissances suivante :
+    $$
+        BC = \{ \forall X (p(X) \Rightarrow q(X)), \quad r(b) \lor q(b), \quad p(a) \}
+    $$
+
+    \begin{enumerate}
+        \item \textbf{Échec de l'HMC classique :} 
+        Ici, $BC \not\models q(b)$ et $BC \not\models r(b)$ . L'HMC classique ajouterait $\neg q(b)$ {et} $\neg r(b)$. 
+        Or, comme $BC \models r(b) \lor q(b)$, l'union $BC \cup \{\neg q(b), \neg r(b)\}$ est \textbf{inconsistante}.
+        
+        \item \textbf{Application restreinte :} 
+        Si l'on restreint l'HMC au seul prédicat $q$ :
+        \begin{itemize}
+            \item On ajoute seulement l'hypothèse $\neg q(b)$ car $BC \not\models q(b)$.
+            \item Par résolution avec $r(b) \lor q(b)$, on peut alors inférer de manière consistante que $r(b)$ est vrai.
+        \end{itemize}
+    \end{enumerate}
+\end{example}
+
+\subsection{Hypothèse de Fermeture du Domaine (DCA)}
+
+L'HMC est souvent couplée à la DCA, qui limite le domaine d'interprétation aux seuls objets explicitement nommés dans le langage.
+
+\begin{definition}[DCA]
+    L'hypothèse DCA stipule que tout élément du domaine $D$ est dénoté par un terme de base (constante ou composition de 
+    fonctions sur des constantes). 
+\end{definition}
+
+Cette hypothèse a donc plusieurs conséquences : 
+\begin{itemize}
+    \item \textbf{Sémantique :} On ne considère plus que les \textbf{modèles de Herbrand}. Un modèle de Herbrand est entièrement caractérisé par l'ensemble des atomes de base qui y sont vrais.
+    \item \textbf{Syntaxique :} Dans un langage sans symboles de fonctions avec des constantes $\{c_1, \dots, c_n\}$, la quantification universelle se réduit à une conjonction finie:
+    \[ \forall X, \varphi(X) \equiv \varphi(c_1) \land \dots \land \varphi(c_n) \]
+\end{itemize}
+
+Sous l'hypothèse DCA, toute formule du premier ordre devient équivalente à une formule de la logique propositionnelle.
+

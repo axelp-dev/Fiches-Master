@@ -399,7 +399,7 @@ des \emph{capacités}.
 % ========================================================================================================
 % Logique possibiliste 
 
-\section{Logique posibiliste}
+\section{Logique possibiliste}
 
 La logique classique est binaire : une proposition est soit vraie, soit fausse. Or, les connaissances d'un agent 
 sont souvent entachées d'incertitude. La \emph{logique possibiliste} étend la logique classique en associant à 
@@ -433,6 +433,11 @@ Une base possibiliste $ \Sigma$ induit une base de logique classique, notée $ \
     \begin{equation}
         \Sigma^* := \{ \varphi \mid \exists \alpha \in [0,1], ( \varphi, \alpha) \in \Sigma\}
     \end{equation}
+Ainsi $ \varphi \in \Sigma^*$ définit un ensemble de mondes la vérifiant que l'on 
+note $[ \varphi]$ définit par : 
+    \begin{equation}
+        [ \varphi] := \{ \omega \in \Omega \mid \omega \models \varphi\}
+    \end{equation}
 
 \begin{definition}[Distribution de possibilité induite]
     Une base de possibilité $ \Sigma$ induit une distribution de possibilité $ \pi$ 
@@ -457,7 +462,7 @@ Une base possibiliste $ \Sigma$ induit une base de logique classique, notée $ \
     Ce monde viole la formule $\phi_3 : M \to \neg V$ de degré $\alpha_3 = 0.9$. 
     En appliquant la sémantique de la base :
     \[ \pi_\Sigma(\omega) = 1 - \max \{ 0.9 \} = 0.1 \]
-    Ce monde est donc jugé peu possible car il contredit une connaissance quasi-certaine.
+    Ce monde est donc jugé peu possible, car il contredit une connaissance quasi-certaine.
 \end{example}
 
 \subsection{Raisonnement}
@@ -570,7 +575,7 @@ bases possibilistes appelé \emph{degré d'inconsistance}.
     \end{itemize}
     Le conflit entre $V$ et $\neg V$ au niveau le plus haut est $0.8$.
     On a donc $Inc(\Sigma) = 0.8$. 
-    La conclusion $V$ ($0.8$) est rejetée car $0.8 \ngtr 0.8$, tandis que $\neg V$ ($0.9$) est acceptée car $0.9 > 0.8$.
+    La conclusion $V$ ($0.8$) est rejetée, car $0.8 \ngtr 0.8$, tandis que $\neg V$ ($0.9$) est acceptée car $0.9 > 0.8$.
 \end{example}
 
 \subsection{Calcul par Résolution et Réfutation}

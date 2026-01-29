@@ -1,0 +1,319 @@
+
+\minitoc 
+
+% ===================================================================================================================
+% Introduction 
+
+
+
+% ===================================================================================================================
+% Contexte
+
+\section{Contexte}
+
+Dans cette section, nous posons le cadre de l'étude des statistiques ainsi que l'ensemble 
+des notations utilisées. 
+
+\subsection{Différents Modèles}
+
+L'étude des statistiques se résume à l'étude de la loi de variables aléatoires ou de suites de 
+variables aléatoires. Nous devons donc définir un cadre dans lequel ces différents objets vivrons. 
+On considère ainsi des variables aléatoires $X$ définies telles que : 
+\begin{equation}
+    X : 
+        \begin{cases}
+            ( \Omega, \mathcal{T}, \myP) \longrightarrow (\mathcal{X}, \mathcal{A}, \myP^X) \\ 
+            \omega \longmapsto X( \omega)
+        \end{cases}    
+\end{equation}
+Dans notre contexte, nous n'avons accès qu'à des \emph{réalisations} $X( \omega)$ de la variable 
+aléatoire $X$ et nous souhaitons déterminer sa loi $ \myP^X$. 
+Pour cela, nous faisons une hypothèse appelée \emph{hypothèse paramtérique forte} qui suppose que 
+la loi de $X$ ne dépend que d'un paramètre $ \theta \in \Theta$, où $ \Theta \subset \R^d$. 
+Ainsi, la recherche de la loi $ \myP^X$ se réduit à la détermination d'un paramètre $ \theta_*$ tel 
+que $ \myP^X = \myP_{\theta_*}$. 
+
+\begin{definition}[Modèle Paramétrique]
+    On appellera \emph{modèle paramétrique} l'espace probabilisé $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ 
+    tel que $ \mathcal{P}_\Theta = \{ \myP_\theta \mid \theta \in \Theta\}$ où $ \Theta$ est un ouvert convexe 
+    de $ \R^d$. 
+\end{definition}
+
+Or cet espace ne nous permet de considérer que de simples variables aléatoires. Dans un cadre plus général, 
+nous souhaiterions étudier des \emph{échantillons} $(X_1, \dots, X_n)$ iid d'une variable aléatoire 
+$X$. Nous définissons pour cela le \emph{modèle d'échantillonnage}. 
+
+\begin{definition}[Modèle d'échantillonnage]
+    Soit $( \mathcal{X}, \mathcal{A}, \mathcal{P}_{\Theta})$ un modèle paramétrique. 
+    Un \emph{échantillon} $(X_1( \omega), \dots, X_n( \omega))$ de ce modèle est un $n$-uplet de réalisations 
+    indépendantes d'une variable aléatoire $X$ de loi $ \myP_\theta \in \mathcal{P}_\Theta$. 
+    On note $ \myP^\{X_1, \dots, X_n\} = \myP_{\theta_*}^{n}$ la loi de cet échantillon. Le modèle 
+    paramétrique de cet échantillon est donc : 
+        $$ ( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^n = ( \mathcal{X}^n, \mathcal{A}^n, \mathcal{P}_{\Theta}^{n}) $$
+\end{definition}
+
+On a donc : 
+    $$ 
+        (X_1, \dots, X_n) : 
+            \begin{cases}
+                ( \Omega, \mathcal{T}, \myP) &\longrightarrow ( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^n \\ 
+                \omega &\longmapsto (X_1( \omega), \dots, X_n( \omega))
+            \end{cases}
+    $$
+
+Enfin, pour l'étude plus théorique de tels objets, il serait intéressant de pouvoir faire 
+tendre vers l'infini la taille de ces échantillons $(X_1, \dots, X_n)$. On définit donc un 
+modèle dit \emph{asymptotique} : 
+    $$ 
+        (X_i)_{i \in \N^*} : 
+        \begin{cases}
+            ( \Omega, \mathcal{T}, \myP) & \longrightarrow ( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^\infty \\ 
+            \omega & \longmapsto \{X_i( \omega) \mid i \in \N_*\}
+        \end{cases}
+    $$
+
+\subsection{Les variables aléatoires d'un modèle}
+
+L'objet principal que nous allons manipuler permet d'effectuer des opérations sur des échantillons 
+d'une variable aléatoire. On les appelle les \emph{statistiques}, notées $S$. 
+
+\begin{definition}[Statistique]
+    Une fonction mesurable $S$ est une \emph{statistique} si elle ne dépend pas 
+    de $ \theta$. On a donc : 
+        $$ 
+            S(X_1, \dots, X_n) : 
+                \begin{cases}
+                    ( \mathcal{X}, \mathcal{A})^n \longrightarrow ( \mathcal{Y}, \mathcal{B}) \\ 
+                    (X_1, \dots, X_n) \longmapsto S(X_1, \dots, X_n)
+                \end{cases}
+        $$ 
+    On notera aussi $ \myP_\theta^S = ( \myP_\theta^n)^S$ la mesure image de 
+    $\myP_\theta^n$ par $S$. 
+\end{definition}
+
+Cette translation de nos observations $(X_1, \dots, X_n)$ implique la définition d'un \emph{modèle image} 
+nous permettant de manipuler ce nouvel objet $S(X_1, \dots, X_n)$. 
+
+\begin{definition}[Modèle Image]
+    Le modèle image de $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^n$ par $S_n$ 
+    est donc $ ( \mathcal{Y}, \mathcal{B}, \mathcal{P}_\Theta^{S_n})$, avec : 
+        \begin{equation}
+            \mathcal{P}_\Theta^{S_n} := \{ \myP_\theta \circ S_n^{-1} \mid \theta \in \Theta\}
+        \end{equation}
+\end{definition}
+
+Pour rappel, l'objectif des statistiques est de déterminer le paramètre $ \theta_* \in \Theta$. 
+Pour cela, il faut que la donnée utilisée ($(X_1, \dots, X_n)$, $X$, ou $S(X_1, \dots, X_n)$) contienne 
+le plus d'information possible sur $ \theta$. 
+Il serait donc préférable que la translation $S$ ne réduise pas cette quantité. De telles statistiques seront 
+donc dites \emph{exhaustives}. Elles seront caractérisées par la loi conditionnelle de l'échantillon. 
+
+\begin{definition}[Loi conditionnelle d'une statistique]
+    Soit $T$ une statistique. La loi conditionnelle de $(X_1, \dots, X_n)$ sachant 
+    $T(X_1, \dots, X_n)$ est définie par : 
+        \begin{equation}
+            \myP_\theta^{(X_1, \dots, X_n) \mid T}(A) = \myP((X_1, \dots, X_n) \in A \mid T) 
+            = \mathbb{E}_\theta( \mathbbm{1}_{(X_1, \dots, X_n) \in A} \mid T )
+        \end{equation}
+    pour tout $A \in \mathcal{A}^n$. 
+\end{definition}
+
+\begin{definition}[Statistique Exhaustives]
+    Soit $T$ une statistique sur $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^n$ est dite \emph{exhaustive en $ \theta$}
+    si $ \myP_\theta^{(X_1, \dots, X_n) \mid T}$ ne dépend pas de $ \theta$. Cela revient 
+    à dire que l'application : 
+        $$ \theta \longmapsto \frac{ \myP_\theta^n (A \cap T^{-1}(C))}{ \myP_\theta^T(C)} 
+            = \frac{ \myP_\theta((X_1, \dots, X_n) \in A \cap T(X_1, \dots, X_n) \in C)}{ \myP_\theta T(X_1, \dots, X_n) \in C} $$
+    est constante pour tout $ \theta \in \{ \theta \in \Theta \mid \myP_\theta^T(C) > 0\}$. 
+\end{definition}
+
+Une statistique exhaustive contient toute l'information nécessaire sur $ \theta^*$ contenue 
+dans l'échantillon. C'est donc une bonne statistique à utiliser. 
+
+\begin{proposition}
+    $T$ est une \emph{statistique exhaustive} ssi pour toute statis $S$ réelle intégrable, on a : 
+        \begin{equation}
+            \mathbb{E}_\theta(S \mid \sigma(T)) = \varphi( T)
+        \end{equation}
+    (i.e si cela ne dépend pas de $ \theta$.)
+\end{proposition}
+
+\begin{example}[Statistique exhaustive]
+    Soit $(X_1, \dots, X_n)$ un échantillon d'une variable aléatoire $ X \sim \mathcal{B}(1, \theta)$. Posons 
+    $S_n = \sum_{i=1}^{n} X_i \sim \mathcal{B}(n, \theta)$. On a ici, $ \mathcal{X} = \{0, 1\}^n$. 
+    On cherche à estimer $ \theta$. Montrons que $S$ est une statistique exhaustive. 
+    Soit $k \in \llbracket 1, n \rrbracket$, on : 
+    \begin{align*}
+        & \myP_\theta ((X_1, \dots, X_n) = (x_1, \dots, x_n) \mid S_n = k) \\ 
+        &= \frac{ \myP_\theta( (X_1, \dots, X_n) = (x_1, \dots, x_n) \cap S_n = k)}{ \myP_\theta(S_n = k)} \\ 
+        &= \mathbbm{1}_{\left\{\sum_{i=1}^{n} x_i = k\right\}} \times  \frac{ \myP_\theta( (X_1, \dots, X_n) = (x_1, \dots, x_n))}{ \myP_\theta(S_n = k)} \\ 
+        &= \mathbbm{1}_{\left\{\sum_{i=1}^{n} x_i = k\right\}} \times \prod_{i=1}^{n} \frac{ \myP_\theta(X_i = x_i)}{ \binom{n}{k} \theta^k (1 - \theta)^{n - k}} \\ 
+        &= \frac{1}{\binom{n}{k}}
+    \end{align*}
+    qui est indépendant de $ \theta$ donc $S_n$ est bien une statistique exhaustive en $ \theta$. 
+\end{example}
+
+\begin{definition}[Statistique libre et Variable pivotable]
+    On appelle \emph{statistique libre} une statistique $S$ telle que $ ( \myP_\theta^n)^S$ ne dépend 
+    pas de $ \theta$. 
+    On appelle \emph{variable aléatoire pivotable} $U_\theta(X_1, \dots, X_n)$ une fonction de $ \theta$
+    et de l'échantillon telle que, sous la loi $ \myP_\theta$ pour $(X_1, \dots, X_n)$, la mesure 
+    image $ ( \myP_\theta^n)^{U_\theta}$ ne dépend pas de $ \theta$. 
+\end{definition}
+
+
+% ===================================================================================================================
+% Information Qualitative
+
+\section{Information Qualitative}
+
+\subsection{Domination et Densités}
+
+\begin{definition}[Domination]
+    On dira qu'une mesure $ \mu$ positive \emph{domine} $ \myP_\theta$ sur $( \mathcal{X}, \mathcal{A})$ si : 
+    \begin{equation}
+        \boxed{
+            \forall A \in \mathcal{A}, \quad \mu(A) = 0 \Longrightarrow \myP_\theta(A) = 0 
+        }
+    \end{equation}
+    On notera alors $ \myP_\theta \ll \mu$.
+    Si c'est le cas pour tout $ \theta \in \Theta$, on dira alors que \emph{le modèle est dominé par $ \mu$}.
+\end{definition}
+
+\begin{lemma}
+    Plus formellement, $ \myP_\theta \ll \mu$ ssi 
+    \begin{equation}
+        \forall \varepsilon > 0, \exists \delta > 0 \quad \text{tel que} \quad 
+        \forall A \in \mathcal{A}, \mu(A) < \delta \Longrightarrow \myP_\theta(A) < \varepsilon 
+    \end{equation}
+\end{lemma}
+
+\begin{theorem}[Radon-Nikodym]
+    Soit $ \mu$ $ \sigma$-finie. On a $ \myP_\theta \ll \mu$ ssi 
+    \begin{equation}
+        \forall \theta \in \Theta, \exists f \in L^1_+( \mu) \quad \text{telle que} \quad 
+        \forall A \in \mathcal{A}, \quad \myP_\theta(A) = \int_A f \; d \mu 
+    \end{equation}
+    La densite $f$ de $ \myP_\theta$ est unique à égalité $ \mu$-presque partout. Elle est notée 
+    $f = d \myP_\theta / d \mu$ comme dérivée de Radon-Nicodym. 
+\end{theorem}
+
+\begin{remark}[Cas discret]
+    Le cas des lois discrètes peut paraître contre-intuitif, mais s'explique bien 
+    grâce à ce théorème. Soit $ \mathcal{X}$ fini ou dénombrable et $ \mathcal{A} = \mathcal{P}( \mathcal{X})$. 
+    Soit $ m_c$ la mesure de comptage sur $ \mathcal{A}$. Par définition de l'intégrale de Lebesgue, pour toute 
+    fonction $ f : \mathcal{X} \longrightarrow \R$ et $ A \in \mathcal{A}$, on a : 
+        $$ \int_A f d \; m_c = \sum_{x \in A} f(x) m_c(x) = \sum_{x \in A} f(x) $$ 
+    Soit $ \mathcal{P}_\Theta$ une famille de lois sur $ \mathcal{X}$ et $n = 1$. On a $ \mathcal{P}_\theta \ll m_c$ et 
+    les densités $f = d \myP_\theta / d m_c$ existent et vérifient :
+        $$ \forall A = {x} \in \mathcal{A}, \quad \myP_\theta(\{x\}) = \int_{\{x\}} f \; d m_c = f(x) $$
+    On a donc bien $f(x) = \myP_\theta(X = x)$. 
+\end{remark}
+
+\subsection{Hypothèses}
+
+Pour tous les raisonnements suivants sur notre modèle, nous devons définir des \emph{hypothèses}. 
+Celles-ci nous assureront certaines propriétés nécessaires à l'application des théorèmes suivants. 
+Elles sont donc : 
+    \begin{center}
+        $(H_0)$ : $ \mathcal{P}_\Theta$ est identifiable et dominé. \\
+        $(H_1)$ : $ \mathcal{P}_\Theta$ est identifiable et homogène. 
+    \end{center}
+
+\begin{proposition}
+    S'il existe $ \mu$ $ \sigma$-finie telle que $ \mathcal{P}_\Theta \ll \mu$ et $ \mu(\{f_{\theta_0} \not = f_{\theta_1}\}) > 0$ 
+    pour tout $ \theta_0 \not = \theta_1$, alors le modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ 
+    est dit \emph{identifiable}. 
+\end{proposition}
+
+\begin{definition}[Modèle homgène]
+    Le modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ est dit \emph{homogène} si 
+    $ \mathcal{P}_\Theta \ll \mu$ pour tout $ \theta \in \Theta$. 
+\end{definition}
+
+\begin{proposition}
+    Le modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ est homogène ssi, il existe $ \mu$ 
+    $ \sigma$-finie telle que : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \mathcal{P}_\Theta \ll \mu$ 
+        \item $\{f_\theta > 0\}$ $ \mu$-presque partout pour tout $ \theta \in \Theta$. 
+    \end{enumerate}
+\end{proposition}
+
+En conséquence, pour tout $ \theta \in \Theta$, $ \mathcal{P}_\Theta \ll \myP_\theta$ donc 
+les $ \myP_\theta$ ont tous les mêmes négligeables et la densité de $ \myP_{ \theta_2}$ par rapport 
+à $ \myP_{ \theta_1}$ s'écrit : 
+    $$ 
+        \frac{ \partial \myP_{ \theta_2}}{ \partial \myP_{ \theta_1}} = \frac{ f_{ \theta_2}}{f_{ \theta_1}} 
+        = \frac{ \partial \myP_{ \theta_2} / d \mu}{ \partial \myP_{ \theta_1} / d \mu}
+    $$ 
+En effet, on a pour tout $A \in \mathcal{A}$ : 
+    \begin{align*}
+        \myP_{ \theta_2}(A) &= \int_A \frac{f_{ \theta_2}}{f_{ \theta_1}} \; d \myP_{ \theta_1} 
+        = \int_A \frac{f_{ \theta_2}}{f_{ \theta_1}} f_{ \theta_1} \; d \mu \\ 
+        &= \int_A f_{ \theta_2} \; d \mu = \myP_{\theta_2}(A). 
+    \end{align*}
+
+\subsection{Vraissemblance}
+
+Venons à la définition principale de ce cours : la fonction de vraissemblance, notée $ L_\theta$ 
+pour "likelihood". Elle correspond à la densité de l'échantillon $(X_1, \dots, X_n)$ a posteriori aux 
+résultats $X_i( \omega)$. 
+
+\begin{definition}[Fonction de vraissemblance]
+    Dans un modèle vérifiant $H_0$ et $H_1$, on appelle \emph{fonction de vraissemblance}
+    l'application $L$ définie par : 
+        $$ 
+            L : 
+                \begin{cases}
+                    \Theta \times \mathcal{X}^n \longrightarrow (\R_+, \mathcal{B}_{\R_+}) \\ 
+                    \theta, X_1, \dots, X_n \longmapsto L( \theta, X_1, \dots, X_n)
+                \end{cases}
+        $$ 
+    elle vérifie : 
+        $$
+            L(\theta, X_1, \dots, X_n) = \prod_{i=1}^{n} f_\theta(X_i) 
+        $$
+\end{definition}
+
+Cette nouvelle application nous permet de caractériser plus simplement la notion de statistique 
+exhaustive. 
+
+\begin{theorem}[Critère de Fisher-Neyman]
+    $T$ est une statistique exhaustive ssi 
+        $$ \forall \theta \in \Theta, \quad L( \theta, X_1, \dots, X_n) = h(X_1, \dots, X_n) \times g( \theta, T(X_1, \dots, X_n)) $$
+    avec $ h : \mathcal{X}^n \longrightarrow \R$ et $ g : T( \mathcal{X}^n) \longrightarrow \R$ positives mesurables. 
+\end{theorem}
+
+\subsection{Minimalité}
+
+On souhaite définir des statistiques dites minimales, contenant uniquement l'information nécessaire 
+sur $ \theta$ à partir de l'échantillon. Pour cela, on pose : 
+    $$ \mathcal{A}^* := \bigcap_{T \text{ exhaustives}} \sigma(T) $$ 
+appelée la \emph{tribu exhaustive minimale}. Elle contient donc toute l'information apportée par 
+$(X_1, \dots, X_n)$ sur $ \theta$. 
+
+\begin{definition}[Statistique exhaustive minimale]
+    On dira d'une statistique exhaustive $S^*$ qu'elle est \emph{minimale} si $ \sigma(S^*) = \mathcal{A}^*$. 
+\end{definition}
+
+\begin{proposition}
+    Sous $ H_1$, pour $ \theta_0 \in \Theta$ fixé que : 
+        $$ 
+            \mathcal{A} = \sigma(\left\{
+                \frac{L_\theta}{L_{\theta_0}} (X_1, \dots, X_n) \mid \theta \in \Theta
+            \right\})
+        $$
+\end{proposition}
+
+\begin{example}[Loi exponentielle]
+    Soit la densité de la loi exponentielle $ f_\theta(x) = \theta e^{ - \theta x} $. On cherche à déterminer $S^*$. 
+    Posons $ S_n = \sum_{i=1}^{n} X_i$. On a : 
+        $$ L_\theta(X_1, \dots, X_n) = \prod_{i=1}^{n} f_\theta(X_i) = \theta^n e^{- \theta S_n} $$ 
+    Pour tout $ \theta_0 \not = \theta_1$, on a :
+        $$ 
+            \frac{L_{\theta_1}}{L_{\theta_2}}(X_1, \dots, X_n) = \exp (( \theta_0 - \theta_1) S_n + n(\log \theta_1 - \log \theta_0))
+        $$ 
+    Donc $S$ est fonction mesurable du rapport $ L_{\theta_1}/L_{\theta_2}$, elle est donc minimale. 
+\end{example}
+
