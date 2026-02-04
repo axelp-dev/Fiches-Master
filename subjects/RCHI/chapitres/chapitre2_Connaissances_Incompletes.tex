@@ -132,12 +132,15 @@ La sémantique permet de lier la syntaxe (les symboles) à la vérité dans un m
 
 On se fixe ici un langage $ \mathcal{L}$. 
 
-\subsection{Définitions}
+\subsection{Généralités}
 
 \begin{definition}[Base de connaissances]
     Une \emph{base de connaissances}, notée BC, est un ensemble fini de formules logiques 
     bien formées dans un langage donné $ \mathcal{L}$. 
 \end{definition}
+
+Comme dans le langage naturel, une base de connaissances représente l'ensemble de l'information 
+disponible sur un système. 
 
 \begin{definition}[Consistance]
     Soit BC une base de connaissances sur un langage $ \mathcal{L}$. On dit que BC est 
@@ -162,6 +165,7 @@ On se fixe ici un langage $ \mathcal{L}$.
 
 En général, une base de connaissances est \emph{incomplète}. L'objectif de l'hypothèse du monde clos (HMC)
 sera de compléter cette théorie en considérant que tout ce qui ne peut pas en être déduit sera faux. 
+De même, nous éviterons de traiter des bases de connaissances inconsistantes menant à des raisonnements erronés.
 
 \subsection{Inférence et complétion}
 

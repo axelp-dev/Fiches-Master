@@ -210,7 +210,7 @@ dans l'échantillon. C'est donc une bonne statistique à utiliser.
     On a donc bien $f(x) = \myP_\theta(X = x)$. 
 \end{remark}
 
-\subsection{Hypothèses}
+\subsection{Hypothèses de Cramer-Rao}
 
 Pour tous les raisonnements suivants sur notre modèle, nous devons définir des \emph{hypothèses}. 
 Celles-ci nous assureront certaines propriétés nécessaires à l'application des théorèmes suivants. 
@@ -297,13 +297,22 @@ $(X_1, \dots, X_n)$ sur $ \theta$.
     On dira d'une statistique exhaustive $S^*$ qu'elle est \emph{minimale} si $ \sigma(S^*) = \mathcal{A}^*$. 
 \end{definition}
 
-\begin{proposition}
-    Sous $ H_1$, pour $ \theta_0 \in \Theta$ fixé que : 
+\begin{proposition}[Caractérisation de $ \mathcal{A}$]
+    Sous $ H_1$, pour $ \theta_0 \in \Theta$ fixé, on a : 
         $$ 
-            \mathcal{A} = \sigma(\left\{
+            \mathcal{A} = \sigma \left\{
                 \frac{L_\theta}{L_{\theta_0}} (X_1, \dots, X_n) \mid \theta \in \Theta
-            \right\})
+            \right\}
         $$
+\end{proposition}
+
+\begin{proposition}[Statistiques exhaustives minimales]
+    Soit $S$ une statistique exhaustive telle que : 
+        \begin{equation}
+            S(x_1, \dots, x_n) = S(y_1, \dots, y_n) \quad \iff \frac{L_\theta(x_1, \dots, x_n)}{L_\theta(y_1, \dots, y_n)}
+            \text{ indépendants de } \theta
+        \end{equation}
+    alors $S$ est \emph{minimale}. 
 \end{proposition}
 
 \begin{example}[Loi exponentielle]
@@ -316,4 +325,22 @@ $(X_1, \dots, X_n)$ sur $ \theta$.
         $$ 
     Donc $S$ est fonction mesurable du rapport $ L_{\theta_1}/L_{\theta_2}$, elle est donc minimale. 
 \end{example}
+
+
+% ===================================================================================================================
+% Information de Küllback-Leibler
+
+\section{Information de Küllback-Leibler}
+
+\begin{definition}[Contraste de Küllback-Leibler]
+    Le \emph{contraste de Küllback} est défini par : 
+    \begin{equation}
+        K( \theta_0 \mid \theta_1) = \mathbb{E}_{\theta_0} \left(\log \frac{f_{\theta_0}}{f_{\theta_1}} \right) = 
+        \int_\mathcal{X} \log \left( \frac{f_{\theta_0}}{f_{\theta_1}}\right) f_{\theta_0} \; d \mu 
+    \end{equation}
+\end{definition}
+
+
+
+
 

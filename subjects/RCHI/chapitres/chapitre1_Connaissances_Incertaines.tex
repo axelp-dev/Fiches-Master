@@ -84,7 +84,7 @@ $ \myP : \Omega \longrightarrow [0,1]$.
         \end{equation}
 \end{definition}
 
-Or ici, on suppose l'existence d'une probabilité. Définissons la notion de papi pour nous 
+Or ici, on suppose l'existence d'une probabilité. Définissons la notion de pari pour nous 
 permettre de la retrouver. 
 
 \begin{definition}[Pari]
@@ -214,25 +214,22 @@ Celle-ci s'appuiera sur les \emph{fonctions de masse}.
     que $A$ est un \emph{élément focal}. 
 \end{definition}
 
+\begin{remark}
+    Les mesures de probabilités sont un cas particulier des mesures de croyance. En effet, si tous les éléments 
+    focaux de $ \mathcal{P}( \Omega)$ sont des singletons, on retrouve une telle mesure. 
+\end{remark}
+
 \begin{definition}[Croyance et Plausibilité]
     Soit $ \Omega$ un univers. On définit deux applications : 
     \begin{itemize}
         \item \textbf{La croyance} $Bel$ définie par : 
             \begin{equation}
-                Bel : 
-                    \begin{cases}
-                        \mathcal{P}( \Omega) \longrightarrow \R \\ 
-                        A \longmapsto \displaystyle \sum_{B \in \mathcal{P}( \Omega) \mid B \subset A} m(B) 
-                    \end{cases}
+                \boxed{\forall A \in \mathcal{P}( \Omega), \quad Bel(A) = \sum_{B \in \mathcal{P}( \Omega) \mid B \subset A} m(B)} 
             \end{equation}
             qui estime dans quelle mesure un évènement $A$ est certain. 
         \item \textbf{La plausibilité} $pl$ définie par : 
             \begin{equation}
-                pl : 
-                    \begin{cases}
-                        \mathcal{P}( \Omega) \longrightarrow \R \\ 
-                        A \longmapsto \displaystyle \sum_{B \in \mathcal{P}( \Omega) \mid B \cap A \not = 0} m(B).
-                    \end{cases}
+                \boxed{\forall A \in \mathcal{P}( \Omega), \quad pl(A) = \sum_{B \in \mathcal{P}( \Omega) \mid B \cap A \not = 0} m(B)}
             \end{equation}
             qui détermine en quelle mesure $A$ est plausible. 
     \end{itemize}
@@ -285,11 +282,6 @@ ignorance.
             $$
     \end{itemize}
 \end{example}
-
-\begin{remark}
-    Les mesures de probabilités sont un cas particulier des mesures de croyance. En effet, si tous les éléments 
-    focaux de $ \mathcal{P}( \Omega)$ sont des singletons, on retrouve une telle mesure. 
-\end{remark}
 
 \begin{proposition}
     En réalité, les fonctions de croyance $pl$ et $Bel$ sont des manières compactes de représenter 
@@ -486,7 +478,7 @@ niveau}.
     Soit $ \Sigma$ une base possibiliste. On définit la \emph{coupure de niveau de degré $ \alpha$}
     de $ \Sigma$ comme l'ensemble : 
         \begin{equation}
-            \Sigma_\alpha := \{ ( \varphi, \alpha) \in \Sigma \mid \alpha_i \geqslant \alpha\}
+            \displaystyle \Sigma_\alpha := \{ ( \varphi, \alpha) \in \Sigma \mid \alpha_i \geqslant \alpha\}
         \end{equation}
 \end{definition}
 
