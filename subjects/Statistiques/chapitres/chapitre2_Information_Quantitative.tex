@@ -1,0 +1,341 @@
+\minitoc 
+
+
+% ===================================================================================================================
+% Modèles réguliers
+
+\section{Modèles réguliers}
+
+Dans cette section, nous nous intéressons aux propriétés des modèles dit \emph{réguliers}, c'est à dire 
+vérifiant plusieurs hypothèses de Cramer-Rao. 
+
+\subsection{Hypothèses de Cramer-Rao}
+
+\begin{proposition}
+    Rappelons donc les hypothèses de Cramer-Rao. 
+    \begin{itemize}
+        \item[$(H_1)$] : Le modèle est \emph{identifiable} et \emph{dominé}. 
+        $$ i.e \quad \mathcal{P}_\Theta << \mu, \quad \text{et} \quad \forall \theta \in \Theta, f_\theta = \frac{ \partial \myP_\theta}{ \partial \mu}, 
+        \quad \text{et} \quad \forall \theta_1 \not = \theta_2, \; \mu(\{f_{\theta_1} = f_{\theta_2}\}) = 0 
+        $$
+        \item[$(H_2)$] : Le modèle est \emph{identifiable} et \emph{homogène}. 
+        $$ 
+            i.e \quad \forall \theta \in \Theta, \; \nabla f_\theta \in L^2( \mu) \quad \text{et} \quad 
+            \forall \theta_1 \not = \theta_2, \; \mu(\{f_{\theta_1} = f_{\theta_2}\}) = 0 
+        $$ 
+        \item[$(H_3)$] : Pour tout $A \in \mathcal{A}$, la fonction $ \theta \in \Theta \longmapsto \myP_\theta(A)$, admet des 
+            dérivées partielles telles que : 
+            $$ 
+                \frac{ \partial}{ \partial \theta_k} \myP_\theta(A) = \frac{ \partial}{ \partial \theta_k} \int_A f_\theta \; d \mu
+                = \int_A \left( \frac{ \partial}{ \partial \theta_k} f_\theta \right) \;  d \mu 
+            $$ 
+        \item[$(H_4)$] : Pour tout $A \in \mathcal{A}$, la fonction $ \theta \in \Theta \longmapsto \myP_\theta(A)$, admet des 
+            dérivées partielles d'ordre 2 telles que : 
+            $$ 
+                \frac{ \partial^2}{ \partial \theta_j \partial \theta_k} \myP_\theta(A) = \frac{ \partial^2}{ \partial \theta_j \partial \theta_k} \int_A f_\theta \; d \mu
+                = \int_A \left( \frac{ \partial^2}{ \partial \theta_j \partial \theta_k} f_\theta \right) \;  d \mu 
+            $$ 
+    \end{itemize}
+\end{proposition}
+
+Les modèles dits \emph{réguliers} seront des modèles vérifiant ces hypothèses. Les calculs seront donc plus 
+simples.
+
+% \begin{example}[Modèle Régulier Binomial]
+%     Posons $ \myP_\theta = \mathcal{B}(n, \theta)$ de densité par rapport à la mesure de comptage : 
+%         $$ 
+%             \forall x \in \mathcal{X} = \llbracket 1, n \rrbracket, \quad 
+%             f_\theta(x) = \binom{n}{x} \theta^x (1 - \theta)^{n-x} 
+%         $$ 
+%     Dans le cas d'une seule dimension, où l'on considère un échantillon d'une variable aléatoire, on : 
+%     \begin{align*}
+%         \forall \theta \in \Theta, \quad f_\theta'(x) 
+%         &= \binom{n}{x} x \theta^{x-1} (1 - \theta)^{n-x} \times (n-x) \theta^{x-1} (1 - \theta)^{n-x-1} \mathbbm{1}_{x \leqslant n} 
+%     \end{align*}
+
+% \end{example}
+
+\begin{example}[Modèle Irrégulier]
+    Soit un modèle $( \mathcal{X}, \mathcal{A}, \myP_\theta)$ de densité : 
+        $$ f_\theta(x) = k_\theta g_\theta(x) \mathbbm{1}_{[0, \theta]} $$
+    Le support de $ \myP_\theta$ varie en fonction du paramètre, il n'est donc pas dominé 
+    pour tout $ \theta \in \Theta$. Il ne vérifie donc pas $(H_1)$. 
+    D'autre part, $(H_2)$ n'est pas vérifiée, car $ x \longmapsto \mathbbm{1}_{[0, \theta]}$ n'est pas dérivable 
+    partout à cause du saut en $ \theta$. 
+\end{example}
+
+\subsection{Rappel d'Outils}
+
+Effectuons quelques rappels sur des théorèmes utiles. 
+
+\begin{rappel}[Théorème d'inversion globale]
+    S'il existe $ g \in L^1( \mu)$ et $ \mathcal{N} \in \mathcal{A}$ une partie négligeable vérifiants : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \nabla_\theta f_\theta(x) $ existe pour tout $ \theta \in \Theta$ avec $x \not \in \mathcal{N}$ fixé, 
+        \item $ \displaystyle \left| \frac{ \partial f_\theta}{ \partial \theta_k}\right| \leqslant g $
+            pour tout $ k \in \llbracket 1, p \rrbracket$ et $ \theta \in \Theta$, 
+    \end{enumerate}
+    alors $ \theta \longmapsto \myP_\theta(A)$ est différentiable sur $ \Theta$ et : 
+        $$ 
+            \forall A \in \mathcal{A}, \forall \theta \in \Theta, \quad 
+            \nabla_\theta \myP_\theta(A) = \int_A \nabla_\theta f_\theta \; d \mu 
+        $$
+\end{rappel}
+
+\begin{rappel}[Théorème de Dérivation Locale]
+    Soit $ \theta_0 \in \Theta$, $ \mathcal{N}_{\theta_0} \in \mathcal{A}$, et $V_0 \subset \Theta$ un voisinnage de $ \theta_0$ 
+    tels que $ \mu( \mathcal{N}_{\theta_0}) = 0$. Si 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \nabla_\theta f_\theta(x)$ existe en $ \theta_0$ pour tout $ x \not \in \mathcal{N}_{\theta_0}$, 
+        \item $ | f_\theta(x) - f_{\theta_0}(x) | \leqslant g_{\theta_0}(x) \| \theta - \theta_0 \|_p $
+            pour tout $ \theta \in V_0$ et $g_{\theta_0} \in L^1( \mu)$, 
+    \end{enumerate}
+    alors pour tout $A \in \mathcal{A}$, $ \theta \longmapsto \myP_\theta(A)$ est \emph{différentiable} en $ \theta = \theta_0$ 
+    et : 
+        $$ \nabla_\theta \int_A f_\theta \; d \mu = \int_A \nabla_\theta f_\theta \; d \mu $$
+\end{rappel}
+
+% ===================================================================================================================
+% Vecteurs Scores
+
+\section{Vecteurs Scores}
+
+\subsection{Score}
+
+Durant tout ce chapitre, nous serons amenés à calculer le gradient de log-vraissemblance. 
+Pour simplifier les calculs et étudier leurs propriétés, nous allons les définir sous 
+la forme de \emph{vecteurs scores}. 
+
+\begin{definition}[Vecteur Score]
+    Soit $(H_{1,2})$, le vecteur aléatoire score d'un échantillon $X$ est défini par le gradient de la 
+    log-vraissemblance de l'échantillon. On a donc : 
+    \begin{equation}
+        \boxed{S_\theta(X) = \nabla_\theta \log f_\theta(X) = \frac{1}{f_\theta(X)} \nabla f_\theta(X). }
+    \end{equation}
+    C'est une \emph{variable aléatoire}. 
+\end{definition}
+
+\begin{prop}[Espérance]
+    Sous $(H_{1, 2, 3})$, les vecteurs scores donc centrés. 
+        $$ i.e \quad (H_{1, 2, 3}) \Longrightarrow \forall \theta \in \Theta, \; \mathbb{E}_\theta(S_\theta(X)) = 0_p $$
+\end{prop}
+
+\begin{proof}
+    Supposons $(H_{1, 2, 3})$, on a alors que $ \int_\mathcal{X} f_\theta \; d \mu = 1$ car c'est une densité. 
+    Donc par $(H_{1, 2, 3})$, on a : 
+        \begin{align*}
+            & \int_\mathcal{X} \frac{ \partial}{ \partial \theta_k} f_\theta \; d \mu = 0 \\ 
+            \iff & \int_\mathcal{X} \frac{1}{f_\theta(x)} \frac{\partial}{\partial \theta_k} f_\theta(x) \times 
+                \underbrace{ f_\theta(x) \; d \mu(x)}_{d \myP_\theta(x)} = 0 \\ 
+            \iff & \int_\mathcal{X} \frac{ \partial }{\partial \theta_k} \log f_\theta \; d \myP_\theta = 0 \\ 
+            \iff & \mathbb{E}_\theta \left( \frac{\partial}{\partial \theta_k} \log f_\theta \right) = 0 
+        \end{align*}
+\end{proof}
+
+\subsection{Modèles exponentiels}
+
+Voyons à présent un modèle régulier très utilisé : le \emph{modèle exponentiel}. 
+
+\begin{definition}[Modèle Exponentiel]
+    Un modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ sera dit \emph{exponentiel} si : 
+        $$ \boxed{\forall \theta \in \Theta, \quad f_\theta(x) = k_\theta h(x) \exp \left( \langle T(x), \gamma(\theta) \rangle\right).} $$
+    Avec $ \gamma( \Theta) \subset \R^q$, $T : \mathcal{X} \longrightarrow \R^q$ et 
+    $h : \mathcal{X} \longrightarrow \R$ la fonction de changement de mesure. 
+
+    Il sera qualifié \emph{de plein rang} si $p=q$. On dira aussi qu'il est \emph{canonique} sir $ p=q$ et 
+    $ \gamma$ est l'identité. On appellera enfin $T(X)$ la \emph{statistique privilégiée du modèle}. 
+
+    Par soucis de clarté, on notera souvent $ \kappa_\theta = \log k_\theta$. 
+\end{definition}
+
+\begin{theorem}[Régularité]
+    Un modèle exponentiel canonique de plein rang vérifie $(H_{1, 2, 3, 4})$ et $ k_\theta \in \mathcal{C}^\infty$.
+\end{theorem}
+
+\begin{proposition}
+    Les modèles canoniques sont très pratiques à manipuler. On a :  
+        $$ f_\theta(x) = k_\theta h(x) \exp \left( \langle T(x), \theta \rangle\right) $$ 
+    Après calcul, on obtient que $S_\theta(X) = \nabla_\theta \log k_\theta + T(X) \in \R^p$. 
+    Or, on sait que $ \mathbb{E}_\theta(S_\theta(X)) = 0$, donc : 
+        $$ \mathbb{E}_\theta(T(X)) = - \nabla_\theta \kappa_\theta. $$
+\end{proposition}
+
+\begin{prop}[Cas général]
+    Dans un cadre plus général, un modèle exponentiel de plein rang admet des scores de la forme : 
+        $$ S_\theta(X) = J_{ \gamma}^t \times T(X) + \nabla_\theta \kappa_\theta $$ 
+    avec $ \displaystyle J_{\gamma} = \left( \left( \frac{\partial \gamma_i}{ \partial \theta_j} (\theta)\right)_{i,j}\right)$ 
+    ma matrice Jacobienne $ p \times p$ de $ \gamma : \Theta \longrightarrow \R^p$. 
+    Si $J_{\gamma}$ est définie positive, alors : 
+        $$ \mathbb{E}_\theta(T(X)) = - \left( J_\gamma ^{-1}\right)^t \times \nabla_\theta \kappa_\theta $$
+\end{prop}
+
+% ===================================================================================================================
+% Information de Fischer
+
+\section{Information de Fischer}
+
+Passons à la définition principale de ce chapitre : l'information de Fisher. Elle quantifie 
+l'information contenue sur $ \theta$ dans l'acte d'observer $X$. 
+
+\begin{definition}[Information de Fisher]
+    Sous $(H_{1,2})$, la \emph{quantité d'information de Fisher} en $ \theta$ apportée par l'acte d'observer 
+    une réalisation $X( \omega)$ sous $ \myP_\theta$ est : 
+    \begin{equation}
+        \mathcal{I}_\theta(X) = \mathbb{E}_\theta(S_\theta(X) \times S_\theta^t(X))
+    \end{equation}
+    Si $(H_4)$ est vérifiée, alors $ \mathcal{I}_\theta(X) = \V_\theta(S_\theta(X))$, la 
+    matrice de covariance du vecteur score. 
+\end{definition}
+
+\begin{prop}[Information de Fisher]
+    \begin{itemize}
+        \item Sous $(H_{1,2})$, $ \mathcal{I}_\theta(X)$ est intrinsèque au modèle (i.e elle ne dépend plus de 
+        la mesure dominante $ \mu$). 
+        \item Sous $(H_{1,2,3,4})$, on a : 
+        $$ 
+            \mathcal{I}_\theta(X) = - \mathbb{E}_\theta(J_{S_\theta(X)}) 
+            = - \mathbb{E}_\theta \left( \left( \frac{\partial ^2 \log f_\theta(X)}{\partial \theta_i \partial \theta_j}\right)_{i,j}\right)
+        $$
+        avec $J_{S_\theta(X)}$ la Jacobienne du score. 
+    \end{itemize}
+\end{prop}
+
+Ces propriétés seront donc privilégiées pour le calcul pratique de l'information de Fisher. 
+
+\begin{prop}[Cas du modèle exponentiel canonique]
+    Dans le cas d'un modèle exponentiel canonique, on a $ \mathcal{I}_\theta(X) = \V_\theta(T(X)) = - H_{ \kappa_\theta}$ 
+    la hessienne de $ \kappa_\theta = \log k_\theta$. 
+    Donc si $ p = 1$, alors $ \mathcal{I}_\theta(X) = - \frac{ \partial ^2}{ \partial \theta^2} \log k_\theta$. 
+\end{prop}
+
+\begin{proposition}
+    Comme dit précédement, les modèles exponentiels de plein rang sont très utiles. 
+    Ils permettent de calculer simplement l'information de Fisher à partir des fonctions 
+    définissant la densité. On a donc : 
+        \begin{align*}
+            \mathcal{I}_\theta(X) &\underset{\text{def}}{=} J_{\gamma}^t \times \V_\theta(T(X)) \times J_\gamma(\theta) \\ 
+            &\underset{\text{prop}}{=} - H_{ \kappa_\theta} - H_{\gamma} \left( J_{\gamma}^{-1}\right)^t \nabla_\theta \kappa_\theta
+        \end{align*}
+    Si $p = 1$, 
+        $$ \mathcal{I}_\theta(X) = ( \gamma'(\theta))^2 \times V_\theta(T(X))
+            = \frac{- k_\theta'}{k_\theta} \left( \frac{k_\theta ''}{k_\theta'} + \frac{ \gamma_\theta ''}{\gamma_\theta'} 
+            - \frac{k_\theta'}{k_\theta}\right)
+        $$
+\end{proposition}
+
+\begin{example}
+    Soit le modèle $X \sim \mathcal{N}( \theta_1, \theta_2^2)$, avec 
+    $ 
+        \begin{cases}
+            \theta_1 = \mathbb{E}_\theta(X) \\
+            \theta_2 = \sqrt{\V_\theta(X)}
+        \end{cases}
+    $. 
+    On a donc : 
+        $$ f_\theta(x) = \frac{1}{2 \pi} \exp \left( \langle T(x), \gamma(\theta) \rangle + \kappa_\theta\right) $$
+    où $ p =q = 2$ et : 
+        $$ 
+            T(x) = (x, x^2), \quad \kappa_\theta = - \frac{ \theta_1^2}{2 \theta_2^2} - \log \theta_2, \quad 
+            \gamma(\theta) = \left( \frac{ \theta_1}{ \theta_2}, - \frac{1}{ 2 \theta_2^2}\right) 
+        $$
+    On peut donc ensuite appliquer les formules : 
+        $$ J_\gamma = 
+            \begin{pmatrix}
+                \frac{1}{ \theta_2^2} & - \frac{2 \theta_1}{ \theta_2^2} \\
+                0 & \frac{1}{ \theta_2^2}
+            \end{pmatrix}
+            \quad \V_\theta(T(X)) = 
+            \begin{pmatrix}
+                \theta_2^2 & Cov(X, X^2) \\ 
+                Cov(X, X^2) & \V_\theta(X^2)
+            \end{pmatrix}
+        $$ 
+    On a donc : 
+        \begin{align*}
+            \mathcal{I}_\theta(X) &= Y_\gamma^t \times V_\theta(T(X)) \times J_\gamma \\ 
+            &= - \mathbb{E}_\theta \left( \frac{\partial^2}{ \partial \theta_i \partial \theta_j} 
+                \left(
+                    - \frac{(X- \theta_1)^2}{2 \theta_2^2} - \log \theta_2
+                \right)
+                \right)_{i,j}
+            = 
+                \begin{pmatrix}
+                    \frac{1}{ \theta_2^2} & 0 \\ 
+                    0 & \frac{2}{ \theta_2^2}
+                \end{pmatrix}
+        \end{align*}
+\end{example}
+
+% ===================================================================================================================
+% Propriétés de l'information de Fisher
+
+\section{Propriétés de l'information de Fischer}
+
+\subsection{Additivité}
+
+Les propriétés de l'information de Fisher découlent de celles du score défini 
+à partir d'un $ \log$. Ainsi, l'information de Fisher va hériter de sa propriété 
+d'additivité. 
+
+\begin{proposition}
+    Soient $S,T$ deux statistiques $ \mathcal{P}_\Theta$-indépendantes. Si $ \myP_\Theta^S$ et 
+    $ \myP_\Theta^T$ vérifient $ (H_{1, 2, 3}) $, alors l'information du modèle $ \myP_\Theta^{S,T}$
+    est $ \mathcal{I}_\theta(S, T) = \mathcal{I}_\theta(S) + \mathcal{I}_\theta(T)$. 
+\end{proposition}
+
+\begin{corollary}[Additivité]
+    Dans le modèle $ \mathcal{P}_\Theta ^{\otimes n}$, l'information de Fisher sur $ \theta$ est : 
+        $$ \mathcal{I}_\theta(X_1, \dots, X_n) = n \mathcal{I}_\theta(I_1). $$
+\end{corollary}
+
+\subsection{Décroissance}
+
+L'information de Fisher donne la quentité d'information contenue dans l'acte d'observer 
+la réalisation d'un échantillon dans un certain espace. Or les statistiques nous permettent 
+de condenser cette inormation dans un autre espace. Déterminer le lien de cette \emph{information image}
+par rapport à l'initiale. 
+
+\begin{definition}[Information image]
+    Soit $ S : ( \mathcal{X}, \mathcal{A}) \longrightarrow ( \mathcal{Y}, \mathcal{B})$ une statistique. 
+    Si $( \mathcal{Y}, \mathcal{B}, \mathcal{P}_\Theta^S)$ vérifie $(H_{1,2})$ avec $ \mu^S$ une mesure 
+    $ \sigma$-finie, alors $ \mathcal{I}_\theta(S)$ est l'information de Fisher dans ce modèle 
+    sur $ \theta$ dans l'acte d'observer $ S$.     
+\end{definition}
+
+\begin{lemma}
+    Si $ \mathcal{P}_\Theta$ et $ \mathcal{P}_\Theta^S$ vérifient $(H_{1, 2, 3})$, alors : 
+        $$ S_\theta(S) = \nabla_\theta \log f_{s,\theta}(S) = \mathbb{E}_\theta( \nabla_\theta \log L_\theta(X) \mid S) 
+        = \mathbb{E}_\theta(S_\theta(S) \mid S) 
+        $$
+    On a aussi : 
+        $$ \mathcal{I}_\theta(S) = \V_\theta(S_\theta(S)) = \V_\theta( \mathbb{E}_\theta(S_\theta(X)) \mid S). $$
+\end{lemma}
+
+Ainsi, le score image $S_\theta(S)$ est l'espérance du score initial conditionnellement à $S$. 
+
+\begin{prop}[Décroissance]
+    Si $ \mathcal{P}_\Theta$ et $ \mathcal{P}_\Theta^S$ vérifient $(H_{1,2,3})$, alors 
+    $ \mathcal{I}_\theta(X) - \mathcal{I}_\theta(S)$ est semi-définie positive. 
+    De même, dans le cas du modèle d'échantillonnage,  $ n \mathcal{I}_\theta(X_1) - \mathcal{I}_\theta(S(X_1, \dots, X_n))$
+    l'est aussi. 
+\end{prop}
+
+\subsection{Exhaustivité}
+
+Tout l'intérêt des statistiques exhaustives réside dans la propriété suivante. 
+
+\begin{proposition}
+    Sous $(H_{1, 2, 3})$, si $S$ est exhaustive, il n'y a pas de perte d'information par transfert. 
+        $$ i.e \quad n \mathcal{I}_\theta(X) = \mathcal{I}_\theta(S(X_1, \dots, X_n)) $$
+\end{proposition}
+
+
+\subsection{Contaste de Kullback}
+
+\begin{proposition}
+    Sous $(H_{1, 2, 3, 4})$, pour tout $ \theta_0 \in \Theta$ fixé, on a : 
+        $$ \mathcal{I}_{\theta_0}(X) = \left( \left( \frac{ \partial^2 K( \theta_0 \mid \theta)}{ \partial \theta_i \partial \theta_j} \right)_{i,j}\right) $$
+\end{proposition}
+
+
+
