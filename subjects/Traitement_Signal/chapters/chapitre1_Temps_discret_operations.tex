@@ -364,3 +364,95 @@ plus ou moins proches.
 
 \section{Transformée de Fourrier}
 
+\subsection{Définition et Propriétés}
+
+\begin{definition}[Transformée de Fourrier]
+    On définit la transformée de Fourrier $X$ comme l'application \emph{continue} telle que : 
+        $$ \boxed{X : f \longmapsto 
+            \sum_{n \in \Z} x(n) e^{-2j \pi n f }} 
+        $$
+    On a $ X(f) \in \C$ donc, en particulier, $X(f) = |X(f)| e^{j \text{Arg} (X(f))}$. Elle est 
+    aussi prédiodique de période $1$, i.e $X(f + 1) = X(f)$.
+
+    $X(f)$ indique la "quantité" de fréquence $f$ présente dans le signal $x$ sur $ \Z$. 
+    Elle donne donc des informations fréquentielles sur le signal $x(n)$. 
+\end{definition}
+
+\begin{proposition}
+    Bien qu'elle ne soit pas bijective, on peut aussi définir la \emph{transformée de Fourier inverse} : 
+    $$
+        x(n) = \int_{-1/2}^{1/2} X(f) e^{2 j n \pi f} df 
+    $$
+    Pour un signal et sa transformée de Fourier, on notera $ x(x) \overset{F}{\longleftrightarrow} X(f)$. 
+\end{proposition}
+
+\begin{prop}[Transformée de Fourier]
+    Soient $x,y \in \C^\Z$ deux signaux. On a les propriétés suivantes : 
+    \begin{enumerate}[label=\roman*)]
+        \item \emph{Linéairité} : Pour tout $ a,b \in \C$, si : 
+            $$ x(n) \overset{F}{\longleftrightarrow} X(f) \quad \text{et} \quad y(n) \overset{F}{\longleftrightarrow} Y(f) $$ 
+        alors : 
+            $$ 
+                a x(x) + b y(n) \overset{F}{\longleftrightarrow} a X(f) + b Y(f) 
+            $$ 
+        \item \emph{Parité} : 
+            $$ 
+                x(n) \overset{F}{\longleftrightarrow} X(f) \Longrightarrow x(-n) \overset{F}{\longleftrightarrow} X(-f) 
+            $$
+        \item Si $ x(x) \overset{F}{\longleftrightarrow} X(f)$ et $ y(n) \overset{F}{\longleftrightarrow} Y(f)$, 
+        alors : 
+            \begin{itemize}
+                \item $x(n - n_0) \overset{F}{\longleftrightarrow} X(f) e^{-2 j \pi n_0 f}$. 
+                \item $x(an) \overset{F}{\longleftrightarrow} X(f/a)$ si $a \not = 0$ (dilatation). 
+                \item $ x(n) e^{2 j \pi n f_0} \overset{F}{\longleftrightarrow} X(f - f_0) $
+                \item $ x(n) y(n) \overset{F}{\longleftrightarrow} X(f) * Y(f) $
+                \item $ x(n) * y(n) \overset{F}{\longleftrightarrow} X(f) Y(f)$ 
+            \end{itemize}
+    \end{enumerate}
+\end{prop}
+
+\begin{proposition}
+    On retiendra les quelques transformées de Fourier usuelles : 
+    \begin{center}
+        \renewcommand{\arraystretch}{2.2} % Augmente l'espace vertical pour les fractions
+        \begin{tabular}{lc} % Suppression des lignes verticales pour plus de clarté
+            \toprule
+            \textbf{Signal temporel} $x(n)$ & \textbf{Transformée de Fourier} $X(f)$ \\ 
+            \midrule
+            $e^{2 j \pi f_0 n}$ & $\delta(f - f_0)$ \\ 
+            $\cos(2 \pi f_0 n)$ & $\displaystyle \frac{1}{2} [ \delta(f - f_0) + \delta(f + f_0)]$ \\ 
+            $\sin(2 \pi f_0 n)$ & $\displaystyle \frac{1}{2j} [ \delta(f - f_0) - \delta(f + f_0)]$ \\ 
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{proposition}
+
+\subsection{Transformée de Fourier à temps discret (TFD)}
+
+Dans cette sous-section, nous ne considérons plus que des signaux 
+finis $(x_0, \dots, x_{n-1})$ de longueur $ n \in \N$. 
+
+\begin{definition}[Transformée de Fourier discrète]
+    De la même façon que précédement, on définira la transformée de Fourier discrète 
+    d'un signal $(x_0, \dots, x_{N-1}), N \in \N$ par : 
+        $$ 
+            \boxed{X(m) = \sum_{n=0}^{N-1} x(n) e^{-2 j \pi  n m / N}, \quad m \in \llbracket 0, N-1 \rrbracket.}
+        $$ 
+\end{definition}
+
+\begin{remark}
+    Ainsi, si $ x(n) \overset{F}{\longleftrightarrow} X(f)$, alors 
+    sa transformée de Fourier discrète sera $X(m) = X(f)$ pour $ f \in \{m/N \mid m \in \llbracket 0, N-1 \rrbracket\}$. 
+    $X(m)$ sera aussi périodique de période $ N$. 
+\end{remark}
+
+\begin{proposition}
+    De même, la transformée de Fourier discrète inverse sera : 
+        $$ x(n) = \frac{1}{N} \sum_{m=0}^{N-1} X(m) e^{2 j \pi n m / N}. $$ 
+    Elle héritera des mêmes propriétés que la précédente avec la convolution circulaire. 
+\end{proposition}
+
+
+
+
+

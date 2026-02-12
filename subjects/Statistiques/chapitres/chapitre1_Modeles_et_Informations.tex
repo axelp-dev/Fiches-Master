@@ -1,0 +1,620 @@
+\minitoc 
+
+% ===================================================================================================================
+% Introduction 
+
+
+% ===================================================================================================================
+% Cadre Statistique
+
+\section{Cadre}
+
+Dans cette section, nous posons le cadre de l'étude des statistiques ainsi que l'ensemble 
+des notations et objets utilisés. 
+
+\subsection{Modèle}
+
+
+L'étude des statistiques se résume à l'étude de la loi de variables aléatoires ou de suites de 
+variables aléatoires. Nous devons donc définir un cadre dans lequel ces différents objets vivrons. 
+On considère ainsi des variables aléatoires $X$ définies telles que : 
+\begin{equation}
+    X : 
+        \begin{cases}
+            ( \Omega, \mathcal{T}, \myP) \longrightarrow (\mathcal{X}, \mathcal{A}, \myP^X) \\ 
+            \omega \longmapsto X( \omega)
+        \end{cases}    
+\end{equation}
+
+Dans notre contexte, nous n'avons accès qu'à des \emph{réalisations} $X( \omega)$ de la variable 
+aléatoire $X$ et nous souhaitons déterminer sa loi $ \myP^X$. 
+Pour cela, nous faisons une hypothèse appelée \emph{hypothèse paramétrique forte} qui suppose que 
+la loi de $X$ ne dépend que d'un paramètre $ \theta \in \Theta$, où $ \Theta \subset \R^d$. 
+Ainsi, la recherche de la loi $ \myP^X$ se réduit à la détermination d'un paramètre $ \theta_*$ tel 
+que $ \myP^X = \myP_{\theta_*}$. 
+
+\begin{definition}[Modèle Paramétrique]
+    On appellera \emph{modèle paramétrique} l'espace probabilisé $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ 
+    tel que $ \mathcal{P}_\Theta = \{ \myP_\theta \mid \theta \in \Theta\}$ où $ \Theta$ est un ouvert convexe 
+    de $ \R^d$. 
+\end{definition}
+
+Or cet espace ne nous permet de considérer que de simples variables aléatoires. Dans un cadre plus général, 
+nous souhaiterions étudier des \emph{échantillons} $(X_1, \dots, X_n)$ i.i.d d'une variable aléatoire 
+$X$. Nous définissons pour cela le \emph{modèle d'échantillonnage}. 
+
+\begin{definition}[Modèle d'échantillonnage]
+    Soit $( \mathcal{X}, \mathcal{A}, \mathcal{P}_{\Theta})$ un modèle paramétrique. 
+    Un \emph{échantillon} $(X_1( \omega), \dots, X_n( \omega))$ de ce modèle est un $n$-uplet de réalisations 
+    indépendantes d'une variable aléatoire $X$ de loi $ \myP_\theta \in \mathcal{P}_\Theta$. 
+    On note $ \myP^{\{X_1, \dots, X_n\}} = \myP_{\theta_*}^{ \otimes n}$ la loi de cet échantillon. Le modèle 
+    paramétrique de cet échantillon est donc : 
+        $$ ( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^{\otimes n} = ( \mathcal{X}^n, \mathcal{A}^n, \mathcal{P}_{\Theta}^{\otimes n}) $$
+\end{definition}
+
+On a donc : 
+    $$ 
+        (X_1, \dots, X_n) : 
+            \begin{cases}
+                ( \Omega, \mathcal{T}, \myP) &\longrightarrow ( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^{\otimes n} \\ 
+                \omega &\longmapsto (X_1( \omega), \dots, X_n( \omega))
+            \end{cases}
+    $$
+
+Enfin, pour l'étude plus théorique de tels objets, il serait intéressant de pouvoir faire 
+tendre vers l'infini la taille de ces échantillons $(X_1, \dots, X_n)$. On définit donc un 
+modèle dit \emph{asymptotique} : 
+    $$ 
+        (X_i)_{i \in \N^*} : 
+        \begin{cases}
+            ( \Omega, \mathcal{T}, \myP) & \longrightarrow ( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^\infty \\ 
+            \omega & \longmapsto \{X_i( \omega) \mid i \in \N_*\}
+        \end{cases}
+    $$
+
+
+\subsection{Les variables aléatoires d'un modèle}
+
+L'objet principal que nous allons manipuler permet d'effectuer des opérations sur des échantillons 
+d'une variable aléatoire. On les appelle les \emph{statistiques}, notées $S$. 
+
+\begin{definition}[Statistique]
+    Une fonction mesurable $S$ est une \emph{statistique} si elle ne dépend pas 
+    de $ \theta$. On a donc : 
+        $$ 
+            S(X_1, \dots, X_n) : 
+                \begin{cases}
+                    ( \mathcal{X}, \mathcal{A})^n \longrightarrow ( \mathcal{Y}, \mathcal{B}) \\ 
+                    (X_1, \dots, X_n) \longmapsto S(X_1, \dots, X_n)
+                \end{cases}
+        $$ 
+    On notera aussi $ \myP_\theta^S = ( \myP_\theta^{\oplus n})^S$ la mesure image de 
+    $\myP_\theta^{\oplus n}$ par $S$. 
+\end{definition}
+
+Cette translation de nos observations $(X_1, \dots, X_n)$ implique la définition d'un \emph{modèle image} 
+nous permettant de manipuler ce nouvel objet $S(X_1, \dots, X_n)$. 
+
+\begin{definition}[Modèle Image]
+    Le modèle image de $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^{\oplus n}$ par $S_n$ 
+    est donc $ ( \mathcal{Y}, \mathcal{B}, \mathcal{P}_\Theta^{S_n})$, avec : 
+        \begin{equation}
+            \mathcal{P}_\Theta^{S_n} := \{ \myP_\theta \circ S_n^{-1} \mid \theta \in \Theta\}
+        \end{equation}
+\end{definition}
+
+Pour rappel, l'objectif des statistiques est de déterminer le paramètre $ \theta_* \in \Theta$. 
+Pour cela, il faut que la donnée utilisée ($(X_1, \dots, X_n)$, $X$, ou $S(X_1, \dots, X_n)$) contienne 
+le plus d'information possible sur $ \theta$. 
+Il serait donc préférable que la translation $S$ ne réduise pas cette quantité. De telles statistiques seront 
+donc dites \emph{exhaustives}. Elles seront caractérisées par la loi conditionnelle de l'échantillon. 
+
+\begin{definition}[Loi conditionnelle d'une statistique]
+    Soit $T$ une statistique. La loi conditionnelle de $(X_1, \dots, X_n)$ sachant 
+    $T(X_1, \dots, X_n)$ est définie par : 
+        \begin{equation}
+            \myP_\theta^{(X_1, \dots, X_n) \mid T}(A) = \myP((X_1, \dots, X_n) \in A \mid T) 
+            = \mathbb{E}_\theta( \mathbbm{1}_{(X_1, \dots, X_n) \in A} \mid T )
+        \end{equation}
+    pour tout $A \in \mathcal{A}^n$. 
+\end{definition}
+
+% \begin{definition}[Statistique Exhaustives]
+%     Soit $T$ une statistique sur $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)^n$ est dite \emph{exhaustive en $ \theta$}
+%     si $ \myP_\theta^{(X_1, \dots, X_n) \mid T}$ ne dépend pas de $ \theta$. Cela revient 
+%     à dire que l'application : 
+%         $$ \theta \longmapsto \frac{ \myP_\theta^n (A \cap T^{-1}(C))}{ \myP_\theta^T(C)} 
+%             = \frac{ \myP_\theta((X_1, \dots, X_n) \in A \cap T(X_1, \dots, X_n) \in C)}{ \myP_\theta T(X_1, \dots, X_n) \in C} $$
+%     est constante pour tout $ \theta \in \{ \theta \in \Theta \mid \myP_\theta^T(C) > 0\}$. 
+% \end{definition}
+
+% Une statistique exhaustive est donc une variable aléatoire telle que la loi 
+% conditionnelle d'un échantillon par rapport à cette statistique ne dépend pas de $ \theta$. 
+% Elles apportent toute l'information nécessaire sur $ \theta^*$ contenue 
+% dans l'échantillon. Ce sont donc de bonnes statistiques à utiliser. 
+
+\subsection{Domination et Densités}
+
+\begin{definition}[Domination]
+    On dira qu'une mesure $ \mu$ positive \emph{domine} $ \myP_\theta$ sur $( \mathcal{X}, \mathcal{A})$ si : 
+    \begin{equation}
+        \boxed{
+            \forall A \in \mathcal{A}, \quad \mu(A) = 0 \Longrightarrow \myP_\theta(A) = 0 
+        }
+    \end{equation}
+    On notera alors $ \myP_\theta \ll \mu$.
+    Si c'est le cas pour tout $ \theta \in \Theta$, on dira alors que \emph{le modèle est dominé par $ \mu$}.
+\end{definition}
+
+Plus formellement, $ \myP_\theta \ll \mu$ ssi 
+    \begin{equation}
+        \forall \varepsilon > 0, \exists \delta > 0 \quad \text{tel que} \quad 
+        \forall A \in \mathcal{A}, \mu(A) < \delta \Longrightarrow \myP_\theta(A) < \varepsilon 
+    \end{equation}
+
+\begin{theorem}[Radon-Nikodym]
+    Soit $ \mu$ $ \sigma$-finie. On a $ \myP_\theta \ll \mu$ ssi 
+    \begin{equation}
+        \forall \theta \in \Theta, \exists f \in L^1_+( \mu) \quad \text{telle que} \quad 
+        \forall A \in \mathcal{A}, \quad \myP_\theta(A) = \int_A f \; d \mu 
+    \end{equation}
+    La densite $f$ de $ \myP_\theta$ est unique à égalité $ \mu$-presque partout. Elle est notée 
+    $f = d \myP_\theta / d \mu$ comme dérivée de Radon-Nicodym. 
+\end{theorem}
+
+\begin{remark}[Cas discret]
+    Le cas des lois discrètes peut paraître contre-intuitif, mais s'explique bien 
+    grâce à ce théorème. Soit $ \mathcal{X}$ fini ou dénombrable et $ \mathcal{A} = \mathcal{P}( \mathcal{X})$. 
+    Soit $ m_c$ la mesure de comptage sur $ \mathcal{A}$. Par définition de l'intégrale de Lebesgue, pour toute 
+    fonction $ f : \mathcal{X} \longrightarrow \R$ et $ A \in \mathcal{A}$, on a : 
+        $$ \int_A f d \; m_c = \sum_{x \in A} f(x) m_c(x) = \sum_{x \in A} f(x) $$ 
+    Soit $ \mathcal{P}_\Theta$ une famille de lois sur $ \mathcal{X}$ et $n = 1$. On a $ \mathcal{P}_\theta \ll m_c$ et 
+    les densités $f = d \myP_\theta / d m_c$ existent et vérifient :
+        $$ \forall A = {x} \in \mathcal{A}, \quad \myP_\theta(\{x\}) = \int_{\{x\}} f \; d m_c = f(x) $$
+    On a donc bien $f(x) = \myP_\theta(X = x)$. 
+\end{remark}
+
+\subsection{Hypothèses de régularité}
+
+Pour tous les raisonnements suivants sur notre modèle, nous devons définir des \emph{hypothèses}. 
+Celles-ci nous assureront certaines propriétés nécessaires à l'application des théorèmes suivants. 
+
+
+\begin{definition}[Modèle Identifiable]
+    S'il existe $ \mu$ $ \sigma$-finie telle que $ \mathcal{P}_\Theta \ll \mu$ et $ \mu(\{f_{\theta_0} \not = f_{\theta_1}\}) > 0$ 
+    pour tout $ \theta_0 \not = \theta_1$, alors le modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ 
+    est dit \emph{identifiable}. 
+\end{definition}
+
+Un modèle est identifiable si $ \theta$ caractérise de façon unique ue loi. Dans le cas contraire, 
+un même valeur de $ \theta$ pourrait correspondre à plusieurs lois initiales. L'estimation 
+du paramètre n'aurait donc plus aucun sens. 
+
+\begin{definition}[Modèle Homogène]
+    Le modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ est dit \emph{homogène} si 
+    $ \mathcal{P}_\Theta \ll \myP_\theta$ pour tout $ \theta \in \Theta$. 
+\end{definition}
+
+L'homogénéité est une propriété fondamentale d'un modèle et elle intervient sur 
+plusieurs aspects. Un modèle homogène garantit que tous les $ \myP_\theta$ ont les mêmes 
+ensembles négligeables. D'autre part, l'homogénéité garantit que le support des variables 
+aléatoires ne dépend pas de $ \theta$. Sans cela, les inversion de dérivées/intégrales 
+(voir ci-dessous) ne seraient pas possibles. 
+
+\begin{proposition}
+    Le modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ est homogène ssi, il existe $ \mu$ 
+    $ \sigma$-finie telle que : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ \mathcal{P}_\Theta \ll \mu$ 
+        \item $\{f_\theta > 0\}$ $ \mu$-presque partout pour tout $ \theta \in \Theta$. 
+    \end{enumerate}
+\end{proposition}
+
+En conséquence, pour tout $ \theta \in \Theta$, $ \mathcal{P}_\Theta \ll \myP_\theta$. Donc 
+les $ \myP_\theta$ ont tous les mêmes négligeables et la densité de $ \myP_{ \theta_2}$ par rapport 
+à $ \myP_{ \theta_1}$ s'écrit : 
+    $$ 
+        \frac{ d \myP_{ \theta_2}}{ d \myP_{ \theta_1}} = \frac{ f_{ \theta_2}}{f_{ \theta_1}} 
+        = \frac{ d \myP_{ \theta_2} / d \mu}{ d \myP_{ \theta_1} / d \mu}
+    $$ 
+En effet, on a pour tout $A \in \mathcal{A}$ : 
+    \begin{align*}
+        \myP_{ \theta_2}(A) &= \int_A \frac{f_{ \theta_2}}{f_{ \theta_1}} \; d \myP_{ \theta_1} 
+        = \int_A \frac{f_{ \theta_2}}{f_{ \theta_1}} f_{ \theta_1} \; d \mu \\ 
+        &= \int_A f_{ \theta_2} \; d \mu = \myP_{\theta_2}(A). 
+    \end{align*}
+
+\begin{definition}[Hypothèses de régularité]
+    Définissons donc ces hypothèses : 
+    \begin{itemize}
+        \item[$(H_1)$] : Le modèle est \textbf{identifiable} et \textbf{dominé}. 
+        $$ i.e \quad \mathcal{P}_\Theta << \mu, \quad \text{et} \quad \forall \theta \in \Theta, f_\theta = \frac{ d \myP_\theta}{ d \mu}, 
+        \quad \text{et} \quad \forall \theta_1 \not = \theta_2, \; \mu(\{f_{\theta_1} = f_{\theta_2}\}) = 0 
+        $$
+        \item[$(H_2)$] : Le modèle est \textbf{homogène}. 
+        $$ 
+            i.e \quad \forall \theta \in \Theta, \; \nabla f_\theta \in L^2( \mu)
+        $$ 
+        \item[$(H_3)$] : Pour tout $A \in \mathcal{A}$, la fonction $ \theta \in \Theta \longmapsto \myP_\theta(A)$, admet des 
+            dérivées partielles telles que : 
+            $$ 
+                \frac{ \partial}{ \partial \theta_k} \myP_\theta(A) = \frac{ \partial}{ \partial \theta_k} \int_A f_\theta \; d \mu
+                = \int_A \left( \frac{ \partial}{ \partial \theta_k} f_\theta \right) \;  d \mu 
+            $$ 
+        \item[$(H_4)$] : Pour tout $A \in \mathcal{A}$, la fonction $ \theta \in \Theta \longmapsto \myP_\theta(A)$, admet des 
+            dérivées partielles d'ordre 2 telles que : 
+            $$ 
+                \frac{ \partial^2}{ \partial \theta_j \partial \theta_k} \myP_\theta(A) = \frac{ \partial^2}{ \partial \theta_j \partial \theta_k} \int_A f_\theta \; d \mu
+                = \int_A \left( \frac{ \partial^2}{ \partial \theta_j \partial \theta_k} f_\theta \right) \;  d \mu 
+            $$ 
+    \end{itemize}
+\end{definition}
+
+
+\subsection{Vraissemblance}
+
+Soit un échantillon ${X} = (X_1, \dots, X_n)$ d'un modèle vérifiant $H_{0,1}$.
+
+\begin{definition}[Fonction de vraissemblance]
+    On appelle \emph{fonction de vraissemblance} l'application $L$ définie par : 
+        $$ L(\theta; x) = \prod_{i=1}^{n} f_\theta(x_i) $$
+    Pour un $x$ observé, $L$ est vue comme une fonction du paramètre $\theta$. Il est crucial d'inclure les 
+    indicatrices de support $ \mathbbm{1}_{A(\theta)}(x_i)$ dans l'expression de $f_\theta$.
+\end{definition}
+
+\begin{remark}[Log-vraisemblance]
+    En pratique, on utilise la log-vraisemblance notée $\ell_n(\theta)$ :
+        $$ \ell_n(\theta) = \log L(\theta; x) = \sum_{i=1}^n \log f_\theta(x_i). $$
+    Elle facilite la recherche du Maximum de Vraisemblance (EMV) et le calcul du Score.
+\end{remark}
+
+\begin{theorem}[Critère de factorisation de Fisher-Neyman]
+    $T$ est une statistique exhaustive ssi il existe deux fonctions mesurables positives $h$ et $g_\theta$ telles que :
+        $$ \boxed{L(\theta; {x}) = h({x}) \cdot g_\theta(T({x}))} $$
+    Où $h$ est indépendante de $\theta$ et $g_\theta$ ne dépend de ${x}$ qu'à travers $T({x})$.
+\end{theorem}
+
+% ===================================================================================================================
+% Informations Quantitatives
+
+\section{Informations Quantitatives}
+
+\subsection{Exhaustivité}
+
+Une statistique $T$ est exhaustive si elle "conserve" toute l'information utile sur $\theta$. Mathématiquement, 
+cela signifie qu'une fois $T$ connue, la loi de l'échantillon ne dépend plus de $\theta$.
+
+\begin{definition}[Statistique Exhaustive]
+    $T$ est exhaustive pour $\theta$ si la loi conditionnelle de $(X_1, \dots, X_n)$ sachant $T$ est indépendante de $\theta$. 
+    $$ \forall \theta \in \Theta, \quad \mathcal{L}_\theta(X_1, \dots, X_n \mid T) = \mathcal{L}(X_1, \dots, X_n \mid T) $$
+\end{definition}
+
+\begin{remark}
+    En pratique, on utilise presque exclusivement le {théorème de factorisation de Fisher-Neyman} pour 
+    prouver l'exhaustivité.
+\end{remark}
+
+\begin{proposition}
+    $T$ est une \emph{statistique exhaustive} ssi pour toute statistique $S$ réelle intégrable, on a : 
+        \begin{equation}
+            \mathbb{E}_\theta(S \mid \sigma(T)) = \varphi( T)
+        \end{equation}
+    (i.e si cela ne dépend pas de $ \theta$.)
+\end{proposition}
+
+\begin{example}[Statistique exhaustive]
+    Soit $(X_1, \dots, X_n)$ un échantillon d'une variable aléatoire $ X \sim \mathcal{B}(1, \theta)$. Posons 
+    $S_n = \sum_{i=1}^{n} X_i \sim \mathcal{B}(n, \theta)$. On a ici, $ \mathcal{X} = \{0, 1\}^n$. 
+    On cherche à estimer $ \theta$. Montrons que $S$ est une statistique exhaustive. 
+    Soit $k \in \llbracket 1, n \rrbracket$, on : 
+    \begin{align*}
+        & \myP_\theta ((X_1, \dots, X_n) = (x_1, \dots, x_n) \mid S_n = k) \\ 
+        &= \frac{ \myP_\theta( (X_1, \dots, X_n) = (x_1, \dots, x_n) \cap S_n = k)}{ \myP_\theta(S_n = k)} \\ 
+        &= \mathbbm{1}_{\left\{\sum_{i=1}^{n} x_i = k\right\}} \times  \frac{ \myP_\theta( (X_1, \dots, X_n) = (x_1, \dots, x_n))}{ \myP_\theta(S_n = k)} \\ 
+        &= \mathbbm{1}_{\left\{\sum_{i=1}^{n} x_i = k\right\}} \times \prod_{i=1}^{n} \frac{ \myP_\theta(X_i = x_i)}{ \binom{n}{k} \theta^k (1 - \theta)^{n - k}} \\ 
+        &= \frac{1}{\binom{n}{k}}
+    \end{align*}
+    qui est indépendant de $ \theta$ donc $S_n$ est bien une statistique exhaustive en $ \theta$. 
+\end{example}
+
+
+\subsection{Minimalité et complétude}
+
+On souhaite définir des statistiques dites minimales, contenant uniquement l'information nécessaire 
+sur $ \theta$ à partir de l'échantillon. Pour cela, on pose : 
+    $$ \mathcal{A}^* := \bigcap_{T \text{ exhaustives}} \sigma(T) $$ 
+appelée la \emph{tribu exhaustive minimale}. Elle contient donc toute l'information apportée par 
+$(X_1, \dots, X_n)$ sur $ \theta$. 
+
+\begin{definition}[Statistique exhaustive minimale]
+    On dira d'une statistique exhaustive $S^*$ qu'elle est \emph{minimale} si $ \sigma(S^*) = \mathcal{A}^*$. 
+\end{definition}
+
+\begin{proposition}[Caractérisation de $ \mathcal{A}$]
+    Sous $ H_1$, pour $ \theta_0 \in \Theta$ fixé, on a : 
+        $$ 
+            \mathcal{A} = \sigma \left\{
+                \frac{L_\theta}{L_{\theta_0}} (X_1, \dots, X_n) \mid \theta \in \Theta
+            \right\}
+        $$
+\end{proposition}
+
+\begin{proposition}[Statistiques exhaustives minimales]
+    Soit $S$ une statistique exhaustive telle que : 
+        \begin{equation}
+            S(x_1, \dots, x_n) = S(y_1, \dots, y_n) \quad \iff \frac{L_\theta(x_1, \dots, x_n)}{L_\theta(y_1, \dots, y_n)}
+            \text{ indépendants de } \theta
+        \end{equation}
+    alors $S$ est \emph{minimale}. 
+\end{proposition}
+
+\begin{example}[Loi exponentielle]
+    Soit la densité de la loi exponentielle $ f_\theta(x) = \theta e^{ - \theta x} $. On cherche à déterminer $S^*$. 
+    Posons $ S_n = \sum_{i=1}^{n} X_i$. On a : 
+        $$ L_\theta(X_1, \dots, X_n) = \prod_{i=1}^{n} f_\theta(X_i) = \theta^n e^{- \theta S_n} $$ 
+    Pour tout $ \theta_0 \not = \theta_1$, on a :
+        $$ 
+            \frac{L_{\theta_1}}{L_{\theta_2}}(X_1, \dots, X_n) = \exp (( \theta_0 - \theta_1) S_n + n(\log \theta_1 - \log \theta_0))
+        $$ 
+    Donc $S$ est fonction mesurable du rapport $ L_{\theta_1}/L_{\theta_2}$, elle est donc minimale. 
+\end{example}
+
+\begin{definition}[Statistique Complète (ou Totale)]
+    Une statistique $T$ est dite \emph{complète} si pour toute fonction mesurable $h$ telle que $\mathbb{E}_\theta[h(T)]$ existe :
+    $$ \forall \theta \in \Theta, \quad \mathbb{E}_\theta[h(T)] = 0 \implies h(T) = 0 \quad \mathbb{P}_\theta\text{-p.s.} $$
+\end{definition}
+
+\begin{theorem}[Lien entre Complétude et Minimalité]
+    Si une statistique $T$ est \emph{exhaustive} et \emph{complète}, alors elle est \emph{exhaustive minimale}.
+\end{theorem}
+
+\begin{remark}
+    Dans le cas des \emph{modèles exponentiels} (voir plus loin), la statistique naturelle $T(X)$ est toujours exhaustive 
+    et complète (si l'espace des paramètres $\Theta$ est d'intérieur non vide). C'est le moyen le plus rapide en exercice 
+    pour obtenir une minimale.
+\end{remark}
+
+\subsection{Statistiques Libres}
+
+\begin{definition}[Statistique Libre]
+    Une statistique $S$ est dite \emph{libre} si sa loi ne dépend pas de $\theta$.
+    $$ \forall \theta, \theta' \in \Theta, \quad \mathbb{P}_\theta^S = \mathbb{P}_{\theta'}^S $$
+\end{definition}
+
+Cette notion est fondamentale pour isoler le "bruit" du "signal" ($\theta$). Le lien avec l'exhaustivité est donné par le théorème suivant, très utile pour montrer l'indépendance de deux variables ou pour prouver qu'une statistique n'est pas exhaustive.
+
+\begin{theorem}[Théorème de Basu]
+    Si $T$ est une statistique \textbf{exhaustive complète} et $S$ est une statistique \textbf{libre}, alors $T$ et $S$ sont \textbf{indépendantes} sous toute loi $\mathbb{P}_\theta$.
+\end{theorem}
+
+\begin{example}
+    Dans un modèle gaussien $\mathcal{N}(\mu, \sigma^2)$ avec $\sigma^2$ connu, la moyenne empirique $\bar{X}_n$ est exhaustive complète. La variance empirique $S_n^2$ (ou toute valeur centrée $X_i - \bar{X}_n$) est libre. Par le théorème de Basu, $\bar{X}_n$ et $S_n^2$ sont indépendantes.
+\end{example}
+
+% ===================================================================================================================
+% Information de Küllback-Leibler
+
+\section{Information de Kullback-Leibler}
+
+\begin{definition}[Information de Kullback-Leibler]
+    L'information de \emph{Kullback-Leibler} (ou entropie relative) entre deux lois du modèle est définie par : 
+    \begin{equation}
+        K( \theta_0 \mid \theta_1) = \mathbb{E}_{\theta_0} \left[\log \frac{f_{\theta_0}(X)}{f_{\theta_1}(X)} \right] = 
+        \int_\mathcal{X} f_{\theta_0} \log \left( \frac{f_{\theta_0}}{f_{\theta_1}}\right) \; d \mu 
+    \end{equation}
+\end{definition}
+
+On parle de \emph{divergence} ou de \emph{contraste} plutôt que de distance, car cette application n'est pas 
+symétrique ($K(\theta_0|\theta_1) \neq K(\theta_1|\theta_0)$) et ne respecte pas l'inégalité triangulaire.
+
+\begin{proposition}[Propriétés fondamentales]
+    Soit $\mathcal{P}_\Theta$ un modèle dominé.
+    \begin{itemize}
+        \item \emph{Indépendance :} $K( \theta_0 \mid \theta_1)$ ne dépend pas du choix de la mesure dominante $\mu$. 
+        \item \emph{Positivité (Inégalité de Gibbs) :} $ K( \theta_0 \mid \theta_1) \geqslant 0$ (découle de l'inégalité de Jensen).
+        \item \emph{Séparation :} $ K( \theta_0 \mid \theta_1) = 0 \iff \mathbb{P}_{\theta_0} = \mathbb{P}_{\theta_1}$. 
+        \item \emph{Lien Identifiabilité :} Si le modèle est identifiable, $K( \theta_0 \mid \theta_1) = 0 \iff \theta_0 = \theta_1$.
+    \end{itemize}
+\end{proposition}
+
+% \begin{remark}[Lien avec Fisher]
+%     Rappelons que sous les hypothèses de régularité, l'information de Fisher est la courbure locale de la divergence de Kullback-Leibler :
+%     $ \mathcal{I}(\theta_0) = \nabla_{\theta}^2 K(\theta_0 | \theta) \big|_{\theta = \theta_0} $.
+% \end{remark}
+
+
+% ===================================================================================================================
+% Informations Quantitatives
+
+\section{Informations Quantitatives}
+
+\subsection{Vecteur Score}
+
+Durant toute cette section, nous serons amenés à calculer le gradient de log-vraissemblance. 
+Pour simplifier les calculs et étudier leurs propriétés, nous allons les définir sous 
+la forme de \emph{vecteurs scores}. 
+
+\begin{definition}[Vecteur Score]
+    Soit $(H_{1,2})$, le vecteur aléatoire score d'un échantillon $X$ est défini par le gradient de la 
+    log-vraissemblance de l'échantillon. On a donc : 
+    \begin{equation}
+        \boxed{S_\theta(X) = \nabla_\theta \log f_\theta(X) = \frac{1}{f_\theta(X)} \nabla f_\theta(X). }
+    \end{equation}
+    C'est une \emph{variable aléatoire}. 
+\end{definition}
+
+\begin{prop}[Espérance]
+    Sous $(H_{1, 2, 3})$, les vecteurs scores donc centrés. 
+        $$ i.e \quad (H_{1, 2, 3}) \Longrightarrow \forall \theta \in \Theta, \; \mathbb{E}_\theta(S_\theta(X)) = 0_p $$
+\end{prop}
+
+\begin{proof}
+    Supposons $(H_{1, 2, 3})$, on a alors que $ \int_\mathcal{X} f_\theta \; d \mu = 1$ car c'est une densité. 
+    Donc par $(H_{1, 2, 3})$, on a : 
+        \begin{align*}
+            & \int_\mathcal{X} \frac{ \partial}{ \partial \theta_k} f_\theta \; d \mu = 0 \\ 
+            \iff & \int_\mathcal{X} \frac{1}{f_\theta(x)} \frac{\partial}{\partial \theta_k} f_\theta(x) \times 
+                \underbrace{ f_\theta(x) \; d \mu(x)}_{d \myP_\theta(x)} = 0 \\ 
+            \iff & \int_\mathcal{X} \frac{ \partial }{\partial \theta_k} \log f_\theta \; d \myP_\theta = 0 \\ 
+            \iff & \mathbb{E}_\theta \left( \frac{\partial}{\partial \theta_k} \log f_\theta \right) = 0 
+        \end{align*}
+\end{proof}
+
+\subsection{Modèles exponentiels}
+
+Voyons à présent un modèle régulier très utilisé : le \emph{modèle exponentiel}. 
+
+\begin{definition}[Modèle Exponentiel]
+    Un modèle $( \mathcal{X}, \mathcal{A}, \mathcal{P}_\Theta)$ sera dit \emph{exponentiel} si : 
+        $$ \boxed{\forall \theta \in \Theta, \quad f_\theta(x) = k_\theta h(x) \exp \left( \langle T(x), \gamma(\theta) \rangle\right).} $$
+    Avec $ \gamma( \Theta) \subset \R^q$, $T : \mathcal{X} \longrightarrow \R^q$ et 
+    $h : \mathcal{X} \longrightarrow \R$ la fonction de changement de mesure. 
+
+    Il sera qualifié \emph{de plein rang} si $p=q$. On dira aussi qu'il est \emph{canonique} sir $ p=q$ et 
+    $ \gamma$ est l'identité. On appellera enfin $T(X)$ la \emph{statistique privilégiée du modèle}. 
+
+    Par soucis de clarté, on notera souvent $ \kappa_\theta = \log k_\theta$. 
+\end{definition}
+
+\begin{theorem}[Régularité]
+    Un modèle exponentiel canonique de plein rang vérifie $(H_{1, 2, 3, 4})$ et $ k_\theta \in \mathcal{C}^\infty$.
+\end{theorem}
+
+\begin{proposition}
+    Les modèles canoniques sont très pratiques à manipuler. On a :  
+        $$ f_\theta(x) = k_\theta h(x) \exp \left( \langle T(x), \theta \rangle\right) $$ 
+    Après calcul, on obtient que $S_\theta(X) = \nabla_\theta \log k_\theta + T(X) \in \R^p$. 
+    Or, on sait que $ \mathbb{E}_\theta(S_\theta(X)) = 0$, donc : 
+        $$ \mathbb{E}_\theta(T(X)) = - \nabla_\theta \kappa_\theta. $$
+\end{proposition}
+
+\begin{prop}[Cas général]
+    Dans un cadre plus général, un modèle exponentiel de plein rang admet des scores de la forme : 
+        $$ S_\theta(X) = J_{ \gamma}^t \times T(X) + \nabla_\theta \kappa_\theta $$ 
+    avec $ \displaystyle J_{\gamma} = \left( \left( \frac{\partial \gamma_i}{ \partial \theta_j} (\theta)\right)_{i,j}\right)$ 
+    ma matrice Jacobienne $ p \times p$ de $ \gamma : \Theta \longrightarrow \R^p$. 
+    Si $J_{\gamma}$ est définie positive, alors : 
+        $$ \mathbb{E}_\theta(T(X)) = - \left( J_\gamma ^{-1}\right)^t \times \nabla_\theta \kappa_\theta $$
+\end{prop}
+
+\subsection{Information de Fisher}
+
+
+Passons à la définition principale de cette partie : l'information de Fisher. Elle quantifie 
+l'information contenue sur $ \theta$ dans l'acte d'observer $X$. 
+
+\begin{definition}[Information de Fisher]
+    Sous $(H_{1,2})$, la \emph{quantité d'information de Fisher} en $ \theta$ apportée par l'acte d'observer 
+    une réalisation $X( \omega)$ sous $ \myP_\theta$ est : 
+    \begin{equation}
+        \mathcal{I}_\theta(X) = \mathbb{E}_\theta(S_\theta(X) \times S_\theta^t(X))
+    \end{equation}
+    Si $(H_4)$ est vérifiée, alors $ \mathcal{I}_\theta(X) = \V_\theta(S_\theta(X))$, la 
+    matrice de covariance du vecteur score. 
+\end{definition}
+
+\begin{prop}[Information de Fisher]
+    \begin{itemize}
+        \item Sous $(H_{1,2})$, $ \mathcal{I}_\theta(X)$ est intrinsèque au modèle (i.e elle ne dépend plus de 
+        la mesure dominante $ \mu$). 
+        \item Sous $(H_{1,2,3,4})$, on a : 
+        $$ 
+            \mathcal{I}_\theta(X) = - \mathbb{E}_\theta(J_{S_\theta(X)}) 
+            = - \mathbb{E}_\theta \left( \left( \frac{\partial ^2 \log f_\theta(X)}{\partial \theta_i \partial \theta_j}\right)_{i,j}\right)
+        $$
+        avec $J_{S_\theta(X)}$ la Jacobienne du score. 
+    \end{itemize}
+\end{prop}
+
+Ces propriétés seront donc privilégiées pour le calcul pratique de l'information de Fisher. 
+
+\begin{prop}[Cas du modèle exponentiel canonique]
+    Dans le cas d'un modèle exponentiel canonique, on a $ \mathcal{I}_\theta(X) = \V_\theta(T(X)) = - H_{ \kappa_\theta}$ 
+    la hessienne de $ \kappa_\theta = \log k_\theta$. 
+    Donc si $ p = 1$, alors $ \mathcal{I}_\theta(X) = - \frac{ \partial ^2}{ \partial \theta^2} \log k_\theta$. 
+\end{prop}
+
+\begin{proposition}
+    Comme dit précédement, les modèles exponentiels de plein rang sont très utiles. 
+    Ils permettent de calculer simplement l'information de Fisher à partir des fonctions 
+    définissant la densité. On a donc : 
+        \begin{align*}
+            \mathcal{I}_\theta(X) &\underset{\text{def}}{=} J_{\gamma}^t \times \V_\theta(T(X)) \times J_\gamma(\theta) \\ 
+            &\underset{\text{prop}}{=} - H_{ \kappa_\theta} - H_{\gamma} \left( J_{\gamma}^{-1}\right)^t \nabla_\theta \kappa_\theta
+        \end{align*}
+    Si $p = 1$, 
+        $$ \mathcal{I}_\theta(X) = ( \gamma'(\theta))^2 \times V_\theta(T(X))
+            = \frac{- k_\theta'}{k_\theta} \left( \frac{k_\theta ''}{k_\theta'} + \frac{ \gamma_\theta ''}{\gamma_\theta'} 
+            - \frac{k_\theta'}{k_\theta}\right)
+        $$
+\end{proposition}
+
+\begin{example}
+    Soit le modèle $X \sim \mathcal{N}( \theta_1, \theta_2^2)$, avec 
+    $ 
+        \begin{cases}
+            \theta_1 = \mathbb{E}_\theta(X) \\
+            \theta_2 = \sqrt{\V_\theta(X)}
+        \end{cases}
+    $. 
+    On a donc : 
+        $$ f_\theta(x) = \frac{1}{2 \pi} \exp \left( \langle T(x), \gamma(\theta) \rangle + \kappa_\theta\right) $$
+    où $ p =q = 2$ et : 
+        $$ 
+            T(x) = (x, x^2), \quad \kappa_\theta = - \frac{ \theta_1^2}{2 \theta_2^2} - \log \theta_2, \quad 
+            \gamma(\theta) = \left( \frac{ \theta_1}{ \theta_2}, - \frac{1}{ 2 \theta_2^2}\right) 
+        $$
+    On peut donc ensuite appliquer les formules : 
+        $$ J_\gamma = 
+            \begin{pmatrix}
+                \frac{1}{ \theta_2^2} & - \frac{2 \theta_1}{ \theta_2^2} \\
+                0 & \frac{1}{ \theta_2^2}
+            \end{pmatrix}
+            \quad \V_\theta(T(X)) = 
+            \begin{pmatrix}
+                \theta_2^2 & Cov(X, X^2) \\ 
+                Cov(X, X^2) & \V_\theta(X^2)
+            \end{pmatrix}
+        $$ 
+    On a donc : 
+        \begin{align*}
+            \mathcal{I}_\theta(X) &= Y_\gamma^t \times V_\theta(T(X)) \times J_\gamma \\ 
+            &= - \mathbb{E}_\theta \left( \frac{\partial^2}{ \partial \theta_i \partial \theta_j} 
+                \left(
+                    - \frac{(X- \theta_1)^2}{2 \theta_2^2} - \log \theta_2
+                \right)
+                \right)_{i,j}
+            = 
+                \begin{pmatrix}
+                    \frac{1}{ \theta_2^2} & 0 \\ 
+                    0 & \frac{2}{ \theta_2^2}
+                \end{pmatrix}
+        \end{align*}
+\end{example}
+
+
+\subsection{Propriétés de l'information de Fisher}
+
+L'information de Fisher possède des propriétés de structure fondamentales qui découlent de la linéarité du score et de la 
+géométrie du modèle.
+
+\begin{enumerate}
+    \item \textbf{Additivité :} 
+    Soient $S$ et $T$ deux statistiques $\mathcal{P}_\Theta$-indépendantes. Si les modèles associés vérifient $(H_{1,2,3})$, l'information jointe est la somme des informations :
+    $$ \mathcal{I}_\theta(S, T) = \mathcal{I}_\theta(S) + \mathcal{I}_\theta(T) $$
+    \textit{Conséquence :} Dans le modèle d'échantillonnage i.i.d. $\mathcal{P}_\Theta^{\otimes n}$, on a :
+    $$ \boxed{\mathcal{I}_\theta(X_1, \dots, X_n) = n \mathcal{I}_\theta(X_1)} $$
+
+    \item \textbf{Décroissance par transfert (Information image) :} 
+    Soit $S$ une statistique. Si le modèle image vérifie $(H_{1,2,3})$, le score image est $S_\theta(S) = \mathbb{E}_\theta[S_\theta(X) \mid S]$. Par l'inégalité de Jensen (ou la formule de décomposition de la variance), on a :
+    $$ \mathcal{I}_\theta(S) = \mathbb{V}_\theta(\mathbb{E}_\theta[S_\theta(X) \mid S]) \preceq \mathbb{V}_\theta(S_\theta(X)) = \mathcal{I}_\theta(X) $$
+    Ainsi, $\mathcal{I}_\theta(X) - \mathcal{I}_\theta(S)$ est une matrice semi-définie positive. On perd de l'information en condensant les données, sauf si la statistique est exhaustive.
+
+    \item \textbf{Conservation par exhaustivité :} 
+    Sous $(H_{1,2,3})$, une statistique $S$ est exhaustive si et seulement s'il n'y a pas de perte d'information par transfert :
+    $$ \boxed{S \text{ est exhaustive} \iff \mathcal{I}_\theta(S(X_1, \dots, X_n)) = n \mathcal{I}_\theta(X_1)} $$
+
+    \item \textbf{Lien avec le contraste de Kullback :} 
+    Sous $(H_{1,2,3,4})$, pour tout $\theta_0 \in \Theta$ fixé, l'information de Fisher est la matrice Hessienne du contraste de Kullback-Leibler (courbure locale de la divergence) :
+    $$ \mathcal{I}_{\theta_0}(X) = \text{Hess}_{\theta} \left( K(\theta_0 \mid \theta) \right) \Big|_{\theta=\theta_0} = \left( \left( \frac{\partial^2 K(\theta_0 \mid \theta)}{\partial \theta_i \partial \theta_j} \right)_{i,j} \right)_{\theta=\theta_0} $$
+\end{enumerate}
