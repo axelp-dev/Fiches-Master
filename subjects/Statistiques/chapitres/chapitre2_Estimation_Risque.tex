@@ -4,3 +4,202 @@
 % ===================================================================================================================
 % Introduction
 
+En statistiques paramétriques, on cherche à déterminer la valeur d'un paramètre 
+$ \theta^*$ inconnu. Nous posons ici une autré demarche que celle des estimateurs vue 
+précédement. 
+
+% ===================================================================================================================
+% Risque 
+
+\section{Risque}
+
+\begin{definition}[Règle de décision]
+    On appelle \emph{règle de décision} $ \delta$ une statistique à valeurs dans un
+    espace $(\D, \mathcal{D})$ telle que : 
+        $$ \delta : ( \mathcal{X}, \mathcal{A})^{\oplus n} \longrightarrow (\D, \mathcal{D}). $$ 
+\end{definition}
+
+\begin{remark}
+    Une règle de décision est donc une fonction mesurable et indépendante d'un paramètre $ \theta$ puis 
+    c'est une statistique. 
+\end{remark}
+
+\begin{proposition}
+    Il existe différents types de règles de décisions : 
+    \begin{itemize}
+        \item \textbf{Estimation} : On choisit un paramètre $ \theta$ par un 
+        estimateur $ \delta(X_1, \dots, X_n)$ à partir d'informations contenues 
+        dans un échantillon. On a donc $ \D = \Theta$ et on peut définir 
+        \emph{l'erreur quadratique moyenne} : 
+            $$ R_Q( \delta, \theta) = \mathbb{E}_\theta( \| \delta - \theta\|_p^2) $$
+        sous $ \myP_\theta$. Ici, on aura $ \D = \mathcal{P}( \Theta)$. 
+        \item \textbf{Localisation} : Ici, on choisit plutôt une région pouvant contenir 
+        $ \theta$. On veut donc une notion de \emph{confiance} telle que : 
+            $$ \forall \theta \in \Theta, \quad \myP_\theta ( \theta \in \delta(X_1, \dots, X_n)) \geqslant 1 - \alpha. $$
+        \item \textbf{Test} : On a ici $ \D = \{0,1\}$ ou $ \D = [0,1]$. On cherche 
+        à vérifier si une affirmation sur $ \theta$ est vraie plutôt qu'une autre. 
+        Elles seront définies par deux types d'hypothèses : \emph{l'hypothèse nulle} $ \mathcal{H}_0$ et 
+        \emph{l'hypothèse alternative} $ \mathcal{H}_1$.
+        On souhaite donc que : 
+            \begin{itemize}
+                \item $ \myP( \delta(X_1, \dots, X_n) = 0) $ soit proche de $1$ si $ \theta \in \Theta_0$. 
+                \item $ \myP( \delta(X_1, \dots, X_n) = 1) $ soit proche de $1$ si $ \theta \not \in \Theta_0$. 
+            \end{itemize} 
+    \end{itemize}
+\end{proposition}
+
+% ===================================================================================================================
+% Estimateurs 
+
+\section{Estimateurs}
+
+\subsection{Définition}
+
+On cherche ici à estimer une transformation $g( \theta)$ d'un paramètre $ \theta$ 
+connu. Pour cela, on dispose de : 
+    $$ g : 
+        \begin{cases}
+            \Theta \subseteq \R^p \longrightarrow \R^q \\ 
+            \theta \longmapsto g( \theta)    
+        \end{cases}
+    $$
+
+\begin{definition}[Estimateur]
+    On appelle \emph{estimateur} de $g( \theta)$ toute fonction mesurable : 
+        $$ \delta : ( \mathcal{X}, \mathcal{A})^{ \oplus n} \longrightarrow (g(\Theta), \mathcal{D}) $$ 
+    qui ne dépend pas de $ \theta$. On note $ \Delta$ l'ensemble des estimateurs de 
+    $ \theta$. 
+\end{definition}
+
+\begin{remark}
+    Si $ \hat{ \theta}_n$ est un "bon" estimateur de $ \theta$, alors $ g( \hat{ \theta}_n)$ 
+    n'est pas nécessairement un aussi bon estimateur pour $ g( \theta)$. La composition 
+    doit s'étudier au cas par cas. 
+\end{remark}
+
+\subsection{Comparaisons}
+
+On souhaite qu'un estimateur se comporte comme une boîte noire pointant toujours 
+sur $ \theta$ peu importe sa valeur. 
+
+\begin{definition}[Estimateur consistant]
+    Une suite d'estimateurs $ \delta_n \in \Delta^\N$ sera dite \emph{consistante}
+    si : 
+        $$ 
+            \forall \theta \in \Theta, \quad 
+            \lim_{n \to \infty} \delta_n(X_1, \dots, X_n) = g( \theta) \quad \myP_\theta \text{- p.s}.
+        $$
+\end{definition}
+
+\begin{definition}[Estimateur Asymptotiquement Gaussien]
+    Un suite d'estimateurs $ \delta_n \in \Delta^\N$ sera dite 
+    \emph{asymptotiquement gaussienne} si pour tout $ \theta \in \Theta$, il existe 
+    une matrice $ V_\theta$ semi-définie positive telle que sous $P_\theta^\infty$, 
+    on ait : 
+        $$ \sqrt{n} ( \delta_n(X_1, \dots, X_n) - g(\theta)) 
+            \underset{n \to \infty}{\overset{\mathcal{N}}{\longrightarrow}} \mathcal{N}(0_p,\V_\theta). 
+        $$
+\end{definition}
+
+\subsection{Comparaison par le risque}
+
+Un autre façon de comparer deux estimateurs est d'introduire une notion de 
+\emph{perte} qui quantifie le degré d'erreur d'estimation de $ g( \theta)$. 
+Pour cela, on définit les fonctions de perte ou \emph{loss} en anglais. 
+
+\begin{definition}[Fonction de perte]
+    Une fonction de perte $ \ell$ est une fonction mesurable positive : 
+        $$ \ell : \Theta \times g(\Theta) \longrightarrow (\R_+, \mathcal{B}_\R) $$ 
+    telle que : 
+        $$ \boxed{ \forall ( \theta, d) \in \Theta \times g( \Theta), \quad 
+            l( \theta, d) = 0 \iff d = g( \theta)    
+        }.
+        $$
+\end{definition}
+
+Comme dit précédemment, on souhaite que nos estimateurs se comportent 
+comme des boîtes noires. Il nous faut cela minimiser la perte moyenne 
+d'une décision pour toutes les valeurs de $ g(\theta)$ possibles. 
+Cette notion sera donc définie comme le \emph{risque}. 
+
+\begin{definition}[Risque]
+    On définit la \emph{fonction de risque} associée à une décision $ \delta \in \Delta$, 
+    comme l'application : 
+        $$ \theta \longmapsto R( \theta, \delta) = \mathbb{E}_\theta( \ell( \theta, \delta)).$$
+    Ainsi, un estimateur $ \delta$ sera dit \emph{préférable} à un autre $ \delta' \in \Delta$, ssi : 
+        $$ \forall \theta \in \Theta, \quad R( \theta, \delta') \leqslant R( \theta, \delta).$$
+    On notera alors $ \delta \succeq \delta'$. 
+\end{definition}
+
+\begin{remark}
+    Se pose alors un problème fondamental dans la recherche de l'estimateur optimal. 
+    Admettons que vous ayez un ami complotiste qui croit les extraterrestres sont 
+    parmi nous. Dans tous les mondes qu'il pourrait exister, la plupart ne sont pas 
+    dirigés par une secte martienne. Or, il suffit qu'un seul monde le soit pour 
+    que vous ne soyez pas meilleur que votre ami pour une valeur spécifique de $ \theta$. 
+
+    C'est exactement le problème que posent les estimateurs constants. On va donc chercher 
+    à les exclure en créant des sous-classes $ \Delta_i \subset \Delta$. 
+\end{remark}
+
+\begin{proof}
+    Supposons qu'il existe $ \delta^* \in \Delta$ un estimateur parfait tel que : 
+        $$ \forall \theta \in \Theta, \quad \forall \delta \in \Delta, \quad 
+            R(\theta, \delta^*) \leqslant R( \theta, \delta). 
+        $$
+    alors $ \delta = \delta_{\theta_0}$ qui répond $ \theta_0$ presque-partout 
+    quelque soit l'échantillon proposé (un estimateur constant). 
+    D'où : 
+        $$ R( \theta, \delta_{\theta_0})
+            \begin{cases}
+                = 0 & \text{ si } \theta = \theta_0 \\ 
+                > 0  & \text{ si } \theta \not = \theta_0.
+            \end{cases}
+        $$ 
+    Donc nécessairement $ \forall \theta \in \Theta, R(\theta, \delta^*) = 0$ pour 
+    faire mieux que chacun des estimateurs constants. 
+\end{proof}
+
+\begin{definition}[Estimateurs admissibles]
+    On définit l'ensemble des estimateurs \emph{admissibles}, noté $ \Delta_0$, comme l'ensemble 
+    des estimateurs "meilleurs en moyenne". Plus formellement, 
+        $$ \Delta_0 = \{ \delta \in \Delta_0 \mid \not \exists \delta' \in \Delta_0, \delta' \succeq \delta\}. $$
+\end{definition}
+
+\begin{proposition}
+    Supposons que $ \Delta_0$ est stable par combinaison convexe et que $\ell$ est strictement 
+    convexe en la décision $ \delta$. Alors si $dd_0$ est admissible dans $ \Delta_0$ 
+    et si $ \delta_1$ admet la même fonction de risque, alors $ \delta_1 = \delta_0$ $ \myP_\theta$-p.p 
+    pour tout $ \theta \in \Theta$. 
+\end{proposition}
+
+\begin{example}
+    Soit $ \Delta_0$ la classe des estimateurs sans biais moyen : 
+        $$ \Delta_0 := \{ \delta \in \Delta \mid \mathbb{E}_\theta( \delta(X_1, \dots, X_n)) = g( \theta)\}. $$ 
+    Soit $ \delta_0, \delta_1 \in \Delta_0$, alors : 
+        $$ \forall \alpha \in [0,1], \quad \alpha \delta_0 + (1 - \alpha) \delta_1 \in \Delta_0 $$
+    par linéarité de $ \mathbb{E}_\theta(\cdot)$. Donc $ \Delta_0$ est bien stable et : 
+        $$ \delta \longmapsto \ell(\theta, \delta) = \| g( \theta) - \delta \|_2^2 $$
+    est convexe. Donc dans la classe des estimateurs sans biais, s'il existe un estimateur 
+    de plus petit risque, alors il est unique. 
+\end{example}
+
+\subsection{Optimalité}
+
+On cherche donc à déterminer des estimateurs optimaux (i.e minimisant la fonction 
+de risque). 
+
+\begin{definition}[Estimateur Optimal]
+    On dira que $ \delta_{opt}$ est $\ell$-optimal dans $ \Delta_0$ si : 
+        $$ \forall \theta \in \Theta, \quad R( \theta, \delta_{opt}) = \min_{ \delta \in \Delta_0} R( \theta, \delta). $$ 
+\end{definition}
+
+\begin{definition}[Estimateur Asymptotiquement Optimal]
+    On dit qu'une suite $ \delta_n(X_1, \dots, X_n)$ est asymptotiquement 
+    $\ell$-optimale relativement à une suite $ \Delta_n$ de classes d'estimateurs si : 
+        $$ \forall \theta \in \Theta, \quad \lim_{n \to \infty} 
+        \frac{R(\theta, \delta_n(X_1, \dots, X_n))}{\displaystyle\inf_{ \delta \in \Delta_n} R(\theta, \delta)} = 1. $$
+\end{definition}
+
+\subsection{Biais}
+

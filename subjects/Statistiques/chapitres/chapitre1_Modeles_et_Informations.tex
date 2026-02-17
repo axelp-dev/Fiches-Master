@@ -250,7 +250,6 @@ En effet, on a pour tout $A \in \mathcal{A}$ :
     \end{itemize}
 \end{definition}
 
-
 \subsection{Vraissemblance}
 
 Soit un échantillon ${X} = (X_1, \dots, X_n)$ d'un modèle vérifiant $H_{0,1}$.
@@ -261,6 +260,19 @@ Soit un échantillon ${X} = (X_1, \dots, X_n)$ d'un modèle vérifiant $H_{0,1}$
     Pour un $x$ observé, $L$ est vue comme une fonction du paramètre $\theta$. Il est crucial d'inclure les 
     indicatrices de support $ \mathbbm{1}_{A(\theta)}(x_i)$ dans l'expression de $f_\theta$.
 \end{definition}
+
+\begin{remark}[Double interprétation de la vraisemblance]
+    La fonction $L(\theta; x)$ est un pivot entre deux mondes :
+    \begin{itemize}
+        \item A \emph{priori} (Modélisation) : Pour $\theta$ fixé, $x \mapsto L(\theta; x)$ est la \emph{densité} de l'échantillon. 
+        Elle décrit la distribution des observations possibles.
+        \item A \emph{posteriori} (Inférence) : Pour $x$ observé et fixé, $\theta \mapsto L(\theta; x)$ est la 
+        \emph{vraisemblance}. Elle mesure la \emph{plausibilité} de chaque paramètre au vu des données. 
+    \end{itemize}
+    \textbf{Attention :} La vraisemblance n'est pas une mesure de probabilité sur $\Theta$. Elle permet de comparer deux 
+    paramètres entre eux via le rapport $\frac{L(\theta_1; x)}{L(\theta_0; x)}$, mais sa valeur absolue n'a pas de sens 
+    probabiliste intrinsèque.
+\end{remark}
 
 \begin{remark}[Log-vraisemblance]
     En pratique, on utilise la log-vraisemblance notée $\ell_n(\theta)$ :
@@ -273,6 +285,41 @@ Soit un échantillon ${X} = (X_1, \dots, X_n)$ d'un modèle vérifiant $H_{0,1}$
         $$ \boxed{L(\theta; {x}) = h({x}) \cdot g_\theta(T({x}))} $$
     Où $h$ est indépendante de $\theta$ et $g_\theta$ ne dépend de ${x}$ qu'à travers $T({x})$.
 \end{theorem}
+
+\subsection{Maximum de Vraissemblance}
+
+Voyons à présent la vraissemblance comme fonction de $ \theta$. Elle traduit alors la plausibilité 
+que $ \theta$ soit le paramètre inconnu vis-à-vis de l'échantillon observé. On souhaiterait donc en déterminer 
+le maximum pour trouver le $ \theta$ "le plus probable". Pour cela, on utilise la méthode 
+du \emph{maximum de vraissemblance}. 
+
+\begin{proposition}
+    Soit $X = (X_1, \dots, X_n)$ un $n$-échantillon d'une variable aléatoire de loi $ \myP_{\theta_*}$ et 
+    de densité $ f_\theta$. 
+    On souhaite déterminer le paramètre $ \theta$, pour cela, on considère la vraissemblance de l'échantillon 
+    définie par : 
+        $$ \forall \theta \in \Theta, \quad L( \theta, X_1, \dots, X_n) = \prod_{i=1}^{n} f_\theta(X_i)$$
+    dont on cherche le maximum. Or le produit n'est pas pratique à utiliser, notamment lors du calcul de la 
+    dérivée. On utilise donc la fonction $ \log$. Par sa croissance, la $\log$-vraissemblance atteindra le 
+    même maximum de la vraissemblance. On calcule donc : 
+        $$ 
+            \ell_n(\theta) = \log \left( \prod_{i=1}^{n} f_\theta(X_i) \right) 
+            = \sum_{i=1}^{n} \log f_\theta(X_i).
+        $$ 
+    Après quelques vérifications, on calculera sa dérivée à annuler pour trouver une valeur de 
+    $ \theta$ candidate, noté $ \hat{\theta}_n$, que l'on conservera après avoir confirmé la concavité de $ \ell_n$ en étudiant 
+    le signe de sa dérivée seconde. 
+    Le $ \hat{\theta}_n$ sera appelé un \emph{estimateur} et sera une fonction de $(X_1, \dots, X_n)$. 
+\end{proposition}
+
+\begin{definition}[Estimateur]
+    Dans un modèle $( \mathcal{X}, \mathcal{A}, \myP_\theta)$ dominé par $ \mu$, un \emph{estimateur du maximum de 
+    vraissemblance} est une statistique $ \hat{\theta}$ telle que : 
+        \begin{equation}
+            L( \hat{\theta}, X_1, \dots, X_n) = \max_{\theta \in \Theta} L(\theta, X_1, \dots, X_n)
+        \end{equation} 
+    pour n'importe quel échantillon $(X_1, \dots, X_n)$ de loi $ \myP_{\theta_*}$. 
+\end{definition}
 
 % ===================================================================================================================
 % Informations Quantitatives
@@ -381,14 +428,18 @@ $(X_1, \dots, X_n)$ sur $ \theta$.
     $$ \forall \theta, \theta' \in \Theta, \quad \mathbb{P}_\theta^S = \mathbb{P}_{\theta'}^S $$
 \end{definition}
 
-Cette notion est fondamentale pour isoler le "bruit" du "signal" ($\theta$). Le lien avec l'exhaustivité est donné par le théorème suivant, très utile pour montrer l'indépendance de deux variables ou pour prouver qu'une statistique n'est pas exhaustive.
+Cette notion est fondamentale pour isoler le "bruit" du "signal" ($\theta$). Le lien avec l'exhaustivité est donné par 
+le théorème suivant, très utile pour montrer l'indépendance de deux variables ou pour prouver qu'une statistique n'est pas exhaustive.
 
 \begin{theorem}[Théorème de Basu]
-    Si $T$ est une statistique \textbf{exhaustive complète} et $S$ est une statistique \textbf{libre}, alors $T$ et $S$ sont \textbf{indépendantes} sous toute loi $\mathbb{P}_\theta$.
+    Si $T$ est une statistique \emph{exhaustive complète} et $S$ est une statistique \emph{libre}, alors $T$ et $S$ 
+    sont \emph{indépendantes} sous toute loi $\mathbb{P}_\theta$.
 \end{theorem}
 
 \begin{example}
-    Dans un modèle gaussien $\mathcal{N}(\mu, \sigma^2)$ avec $\sigma^2$ connu, la moyenne empirique $\bar{X}_n$ est exhaustive complète. La variance empirique $S_n^2$ (ou toute valeur centrée $X_i - \bar{X}_n$) est libre. Par le théorème de Basu, $\bar{X}_n$ et $S_n^2$ sont indépendantes.
+    Dans un modèle gaussien $\mathcal{N}(\mu, \sigma^2)$ avec $\sigma^2$ connu, la moyenne empirique $\bar{X}_n$ est 
+    exhaustive complète. La variance empirique $S_n^2$ (ou toute valeur centrée $X_i - \bar{X}_n$) est libre. 
+    Par le théorème de Basu, $\bar{X}_n$ et $S_n^2$ sont indépendantes.
 \end{example}
 
 % ===================================================================================================================
@@ -424,9 +475,9 @@ symétrique ($K(\theta_0|\theta_1) \neq K(\theta_1|\theta_0)$) et ne respecte pa
 
 
 % ===================================================================================================================
-% Informations Quantitatives
+% Informations Qualitatives
 
-\section{Informations Quantitatives}
+\section{Informations Qualitatives}
 
 \subsection{Vecteur Score}
 
@@ -470,9 +521,8 @@ Voyons à présent un modèle régulier très utilisé : le \emph{modèle expone
     Avec $ \gamma( \Theta) \subset \R^q$, $T : \mathcal{X} \longrightarrow \R^q$ et 
     $h : \mathcal{X} \longrightarrow \R$ la fonction de changement de mesure. 
 
-    Il sera qualifié \emph{de plein rang} si $p=q$. On dira aussi qu'il est \emph{canonique} sir $ p=q$ et 
+    Il sera qualifié \emph{de plein rang} si $p=q$. On dira aussi qu'il est \emph{canonique} si $ p=q$ et 
     $ \gamma$ est l'identité. On appellera enfin $T(X)$ la \emph{statistique privilégiée du modèle}. 
-
     Par soucis de clarté, on notera souvent $ \kappa_\theta = \log k_\theta$. 
 \end{definition}
 
@@ -497,8 +547,12 @@ Voyons à présent un modèle régulier très utilisé : le \emph{modèle expone
         $$ \mathbb{E}_\theta(T(X)) = - \left( J_\gamma ^{-1}\right)^t \times \nabla_\theta \kappa_\theta $$
 \end{prop}
 
-\subsection{Information de Fisher}
+\begin{prop}[Statistique privilégiée]
+    Dans le cas d'un modèle exponentiel, la statistique $T$ est \emph{exhaustive, complète} et 
+    \emph{minimale}.
+\end{prop}
 
+\subsection{Information de Fisher}
 
 Passons à la définition principale de cette partie : l'information de Fisher. Elle quantifie 
 l'information contenue sur $ \theta$ dans l'acte d'observer $X$. 
@@ -507,7 +561,7 @@ l'information contenue sur $ \theta$ dans l'acte d'observer $X$.
     Sous $(H_{1,2})$, la \emph{quantité d'information de Fisher} en $ \theta$ apportée par l'acte d'observer 
     une réalisation $X( \omega)$ sous $ \myP_\theta$ est : 
     \begin{equation}
-        \mathcal{I}_\theta(X) = \mathbb{E}_\theta(S_\theta(X) \times S_\theta^t(X))
+        \boxed{\mathcal{I}_\theta(X) = \mathbb{E}_\theta(S_\theta(X) \times S_\theta^t(X))}
     \end{equation}
     Si $(H_4)$ est vérifiée, alors $ \mathcal{I}_\theta(X) = \V_\theta(S_\theta(X))$, la 
     matrice de covariance du vecteur score. 
@@ -519,8 +573,10 @@ l'information contenue sur $ \theta$ dans l'acte d'observer $X$.
         la mesure dominante $ \mu$). 
         \item Sous $(H_{1,2,3,4})$, on a : 
         $$ 
+            \boxed{
             \mathcal{I}_\theta(X) = - \mathbb{E}_\theta(J_{S_\theta(X)}) 
             = - \mathbb{E}_\theta \left( \left( \frac{\partial ^2 \log f_\theta(X)}{\partial \theta_i \partial \theta_j}\right)_{i,j}\right)
+            }
         $$
         avec $J_{S_\theta(X)}$ la Jacobienne du score. 
     \end{itemize}
@@ -529,8 +585,9 @@ l'information contenue sur $ \theta$ dans l'acte d'observer $X$.
 Ces propriétés seront donc privilégiées pour le calcul pratique de l'information de Fisher. 
 
 \begin{prop}[Cas du modèle exponentiel canonique]
-    Dans le cas d'un modèle exponentiel canonique, on a $ \mathcal{I}_\theta(X) = \V_\theta(T(X)) = - H_{ \kappa_\theta}$ 
-    la hessienne de $ \kappa_\theta = \log k_\theta$. 
+    Dans le cas d'un modèle exponentiel canonique, on a : 
+        $$ \mathcal{I}_\theta(X) = \V_\theta(T(X)) = - H_{ \kappa_\theta} $$
+    où $ H_{ \kappa_\theta}$ est la hessienne de $ \kappa_\theta = \log k_\theta$. 
     Donc si $ p = 1$, alors $ \mathcal{I}_\theta(X) = - \frac{ \partial ^2}{ \partial \theta^2} \log k_\theta$. 
 \end{prop}
 
