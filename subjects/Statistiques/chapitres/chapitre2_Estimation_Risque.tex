@@ -203,3 +203,316 @@ de risque).
 
 \subsection{Biais}
 
+La notion de biais permet de quantifier la façon dont un estimateur $ \delta$ approche 
+$ g(\theta)$ en moyenne. Pour cela, il existe différents types de biais. 
+
+\begin{definition}[Biais Moyen]
+    On dira qu'un estimateyr $ \delta \in \Delta$ est \emph{sans biais moyen} pour $g(\theta)$ 
+    si : 
+        $$ \mathbb{E}_\theta( \delta(X_1, \dots, X_n)) = g(\theta).$$ 
+    On peut ainsi définir la \emph{fonction de biais} $b$ d'un estimateur : 
+        $$ 
+            b : \theta \in \Theta \longmapsto \mathbb{E}_\theta(\delta) - g(\theta). 
+        $$ 
+\end{definition}
+
+De même que pour l'optimalité, il est souhaitable que le biais d'un estimateur 
+diminue lorsque la taille de l'échantillon augmente. On parle alors de \emph{biais moyen asymptotique}. 
+
+\begin{definition}[Biais moyen asymptotique]
+    Un estimateur $ \delta$ est dit \emph{sans biais moyen asymptotique} si : 
+        $$ \forall \theta \in \Theta, \quad 
+            \lim_{n \to \infty} b(\delta_n) = 0. $$
+    Ce qui revient à $ \mathbb{E}_\theta( \delta_n) \underset{n \to \infty}{\longrightarrow} g(\theta)$. 
+\end{definition}
+
+\begin{remark}
+    Un estimateur centré n'est pas nécessairement sans biais moyen. La notion de centrage exprime 
+    seulement le fait que $ \mathbb{E}_\theta( \delta(X_1, \dots, X_n)) = 0_q $ pour tout 
+    $ \theta \in \Theta$. Or, si $ g(\theta) \not = 0_q$ pour tout $ \theta$, alors 
+    l'estimateur est biaisé. 
+\end{remark}
+
+\begin{definition}[Biais Général]
+    Un estimateur $ \delta$ est dit \emph{sans biais général} pour une fonction de perte $ \ell$ si : 
+        $$ \forall \theta, \theta' \in \Theta, \quad 
+            R(\theta, \delta) = \mathbb{E}_\theta( \ell(\theta, \delta)) \leqslant \mathbb{E}_\theta(\ell(\theta', \delta)).
+        $$
+    On notera $ \Delta_{sb}$ la classe des estimateurs sans biais. 
+\end{definition}
+
+\begin{definition}[Biais Médian]
+    Si $ q = 1$, un estimateur $ \delta \in \Delta$ est \emph{sans biais médian} si : 
+        $$ \forall \theta \in \Theta, \quad 
+            \begin{cases}
+                \myP_\theta( \delta(X_1, \dots, X_n) > g(\theta)) \leqslant 1/2 \\
+                \myP_\theta( \delta(X_1, \dots, X_n) < g(\theta)) \leqslant 1/2
+            \end{cases}.
+        $$
+\end{definition}
+
+La notion de biais médian signifie qu'un estimateur a autant de chances de surestimer $ g(\theta)$ que 
+de le sous-estimer. Elle traduit de façon plus fine la dispersion possible de l'estimateur 
+autout de $ g(\theta)$. 
+
+\begin{proposition}
+    % TODO : Ajouter lien entre les biais via fonction de perte. 
+\end{proposition}
+
+
+% ===================================================================================================================
+% Risque Quadratique 
+
+\section{Risque Quadratique}
+
+La notion de biais vue précédement traduit le fait qu'un estimateur soit en moyenne 
+"précis" ou pas pour estimer $ g(\theta)$, mais elle ne donne aucune notion sur 
+la dispersion d'un estimateur autout du paramètre. Or, il serait parfois préférable 
+de travailler avec un estimateur moins "précis" (biaisé) mais moins dispersé. 
+
+\subsection{Cas $q = 1$}
+
+On cherche donc une mesure permettant d'additionner la notion de biais et de 
+variance d'un estimateur. En effet, un estimateur sans biais peut être complètement 
+divergent pour $n$ grand (non consistant) et inversement. 
+
+Au lieu d'utiliser une métrique différente, on pourrait adapter celles 
+déjà introduites telles que la \emph{perte} et le \emph{risque moyen}. Une bonne fonction 
+de perte pourrait être la \emph{perte quadratique} : 
+    $$ \ell_Q(\theta, \delta) = ( \delta - g(\theta))^2 $$ 
+possédant de bonnes propriétés de convexité et de différentiabilité. De plus elle pénalise 
+de façon égale les erreurs négatives ou positives tout en pénalisant fortement les grosses erreurs. 
+
+\begin{definition}[Risque Quadratique Moyen]
+    On définit le \emph{risque quadratique moyen} $ R_Q$ d'un estimateur $ \delta$ 
+    comme le risque de cet estimateur appliqué à la fonction de perte quedratique. 
+    D'où : 
+        $$ \forall \theta \in \Theta, \quad 
+            R_Q(\theta, \delta) = \mathbb{E}_\theta(\ell_Q(\theta, \delta)) = \mathbb{E}_\theta((\delta - g(\theta))^2). 
+        $$
+\end{definition}
+
+\begin{prop}[Décomposition]
+    Comme souhaité, le risque quadratique moyen vérifiera : 
+        $$ \forall \delta \in \Delta, \forall \theta \in \Theta, \quad 
+            \boxed{ R_Q(\theta, \delta) = \V_\theta(\delta) + b(\theta, \delta)^2}.
+        $$
+\end{prop}
+
+\begin{proof}
+    Soient $ \delta \in \Delta$ et $ \theta \in \Theta$, on a : 
+        \begin{align*}
+            R_Q(\theta, \delta) &= \mathbb{E}_\theta((\delta - g(\theta))^2) \\ 
+            &= \mathbb{E}_\theta((\delta - \mathbb{E}_\theta(\delta) + \mathbb{E}_\theta(\delta) - g(\theta))^2) \\
+            &= \mathbb{E}_\theta((\delta - \mathbb{E}_\theta(\delta))^2) + \left( \mathbb{E}_\theta(\delta) - g(\theta)\right)^2 
+                + 2 \mathbb{E}_\theta(\underbrace{(\delta - \mathbb{E}_\theta(\delta))}_{\text{d'esp. nulle}}) \left( \mathbb{E}_\theta(\delta) - g(\theta)\right) \\ 
+            &= V_\theta(\delta) + b(\theta, \delta).
+        \end{align*}
+\end{proof}
+
+\begin{proposition}
+    Ainsi, sur $ \Delta_{sb}$, on aura $ \delta \succeq \delta'$ si $ R_Q(\theta, \delta) \leqslant R_Q(\theta, \delta')$ pour tout 
+    $ \theta \in \Theta$. Ce qui équivaut donc à $ V_\theta( \delta) \leqslant \V_\theta( \delta')$. 
+    Dire que $ \delta_{opt}$ est $\ell_Q$-optimal signifie que $ \delta_{opt}$ est \emph{sans biais de variance 
+    minimale} pour tout $ \theta \in \Theta$. 
+\end{proposition}
+
+\subsection{Cas $q > 1$}
+
+De même que précedement, on cherche à quantifier la pertience d'un estimateur en termes de dispersion 
+et de précision par rapport au paramètre. On souhaite ici à estimer plusieurs paramètres 
+$ \theta = (\theta_1, \dots, \theta_n)$. On notera alors un estimateur $ \delta(X_1, \dots, X_n) \in \R^q$ simplement 
+$ \delta$ de coordonnées $ \delta^t = ( \delta_1, \dots, \delta_q)$. De même, on aura : 
+    $$ \mathbb{E}_\theta( \delta) = ( \mathbb{E}_\theta(\delta_1), \dots, \mathbb{E}_\theta(\delta_q)) $$ 
+    $$ \V_\theta( \delta) = \mathbb{E}_\theta \left[ (\delta - \mathbb{E}_\theta(\delta))
+        ( \delta - \mathbb{E}_\theta(\delta)^t) \right] 
+        = \Bigl( (\text{cov}_\theta(\delta_i, \delta_j)_{i,j}) \Bigr).
+    $$
+
+\begin{definition}[Perte, Risque, Comparaison - Cas Multivarié]
+    Pour toute matrice $M$ semi-définie positive, on définit la perte $\ell$ d'un estimateur par rapport 
+    à un vecteur paramètre $ \theta$ comme l'application telle que :
+        $$ \ell_M(\theta, \delta) = (\delta - g(\theta))^t M (\delta - g(\theta)). $$
+    Aussi le \emph{risque quadratique associé} à $M$ sera : 
+        $$ \R_M(\theta, \delta) = \mathbb{E}_\theta(\ell_M(\theta, \delta)). $$
+    Si $M = Id$, on retrouve alors le risque quadratique moyen. On dira ainsi que $ \delta \succeq_Q \delta'$ 
+    (i.e il est $Q$-préférable à $ \delta'$) si : 
+        $$ R_M( \theta, \delta) \leqslant R_M( \theta, \delta') \quad \forall M. $$
+\end{definition}
+
+\begin{theorem}[Caractérisation]
+    On dira $ \delta \succeq_Q \delta'$ ssi la matrice de $ \mathcal{M}_q(\R)$ :
+        $$ \boxed{
+            \mathbb{E}_\theta(( \delta' - g( \theta)) ( \delta' - g( \theta))^t)
+            - \mathbb{E}_\theta(( \delta - g( \theta))( \delta - g( \theta))^t)
+        }
+        $$
+    est semi-définie positive. 
+\end{theorem}
+
+% \begin{proof}
+%     On part, du lemme immédiat : 
+%     \begin{quote}
+%         \begin{lemma}
+%             Il y a équivalence entre : 
+%                 $$ 
+%                     \forall \nu \in \R^q, \quad 
+%                     \int_{y \in \R^q} ( \nu^t y)^2 \; d \myP(y) \leqslant \int_{y \in \R^q} ( \nu^t y)^2 \; d Q(y) 
+%                 $$ 
+%             et : 
+%                 $$ 
+%                     \forall A \in \mathcal{M}(q, q), \quad 
+%                     \int_{y \in \R^q} y^t A y \; d \myP(y) \leqslant \int_{y \in \R^q} y^t A y \; d Q(y).
+%                 $$
+%             \emph{
+%                 En effet, pour (1) $ \Longrightarrow $ (2) on pose $A = u u^t$ et pour 
+%                 (2) $ \Longrightarrow$ (1), on utilise la décomposition de Gauss de A. 
+%             }
+%         \end{lemma}
+%     \end{quote}
+
+%     Donc dès que : 
+%         $$ R_M( \theta, \delta) \leqslant R_M( \theta, \delta') $$
+%     En posant : 
+%     \begin{align*}
+%         R_H( \theta, \delta) &= \int_{x \in \mathcal{X}^n} ( \delta(x) - g( \theta))^t M ( \delta(x) - g( \theta)) \; d \myP_\theta(x) \\ 
+%         &= \int_{y \in \R^q} y^t M y \; d \myP_\theta^{ \delta - g( \theta)}(y)
+%         \leqslant \int_{y \in \R^q} y^t M y \; d \myP_\theta ^{ \delta' - g( \theta)}(y)
+%     \end{align*}
+%     Ceci est donc équivalent à : 
+%         \begin{align*}
+%             \forall \nu \in \R^q, \quad & 
+%             \int_{y \in \R^q} ( \nu^t y)^2 \; d \myP_\theta^{ \delta - g( \theta)}(y) 
+%                 \leqslant \int^{y \in \R^q} ( \nu^t y)^2 \; d \myP_\theta^{ \delta' - g( \theta)} \\ 
+%             \iff & \int_{x \in \mathcal{X}^n} \nu^t ( \delta(x) - g( \theta))^2 \; d \myP_\theta^n(x) 
+%                 \leqslant \int^{y \in \R^q} ( \nu^t y)^2 \; d \myP_\theta^{ \delta' - g( \theta)} \\ 
+%             \iff & \nu^t \left( \int_{x \in \mathcal{X}^n } ( \delta(x) - g( \theta)) ( \delta(x) - g( \theta))^t \; d \myP_\theta^n \right) u 
+%                 \leqslant \int^{y \in \R^q} ( \nu^t y)^2 \; d \myP_\theta^{ \delta' - g( \theta)}. \\ 
+%         \end{align*}
+% \end{proof}
+
+\subsection{Amélioration de Rao-Blackwell}
+
+\begin{theorem}[Rao-Blackwell]
+    Soit $ \delta \in L^2( \mathcal{P}_\Theta)$ sans biais (moyen) pour $g( \theta)$ et 
+    $S$ une statistique exhaustive en $ \theta$. Alors, l'estimateur 
+    $ \delta$ dit \emph{amélioré par} $S$, tel que $ \delta_S = \mathbb{E}_\theta( \delta \mid S)$ 
+    est $Q$-préférable à $ \delta$. 
+\end{theorem}
+
+Donc pour réduire une variance dans $L^2$ sans perte d'information, il suffit de conditionner 
+une statistique exhaustive. 
+
+\begin{proof}
+    $ \delta_S$ est un estimateur, car $S$ est exhaustive dont $ \mathbb{E}_\theta( \delta \mid S)$ 
+    ne dépend pas de $ \theta$. 
+    D'autre part, $ \delta_S$ est sans biais, puisque : 
+        $$ \mathbb{E}_\theta( \mathbb{E}_\theta( \delta \mid S)) = \mathbb{E}_\theta( \delta) = g( \theta). $$
+    Enfin, $ \delta_S$ est de moindre variance, comme $ \mathbb{E}_\theta( \delta \mid S)$ est 
+    la projection dans $L^2( \myP_\theta)$. 
+\end{proof}
+
+\begin{remark}
+    Dans le cas $ q = 1$, pour $ \Psi(x) = x^2$ convexe, on a : 
+        \begin{align*}
+            \mathbb{E}_\theta( ( \delta - g( \theta))^2 \mid S) & \geqslant \left[ \mathbb{E}_\theta( \delta - g( \theta)) \mid S\right]^2 \\ 
+            &= [ \delta_S - g( \theta)]^2
+        \end{align*}
+    par l'inégalité de Jensen conditionnelle. Donc en prenant $ \mathbb{E}_\theta(.)$ à gauche 
+    et à droite, on a : 
+        \begin{align*}
+            \mathbb{E}_\theta( ( \delta - g( \theta))^2) & \geqslant \mathbb{E}_\theta( \delta_S - g( \theta))^2 \\
+            R_Q( \theta, \delta) & \geqslant R_Q( \theta, \delta_S).
+        \end{align*}
+    Donc conditionner par une statistique exhaustive améliore toujours la fonction 
+    de risque. 
+\end{remark}
+
+\subsection{Optimalité de Lehman-Scheffe}
+
+\begin{theorem}[Lehman-Scheffe]
+    Si $ \delta$ est sans biais pour $ g( \theta)$ et $S$ exhaustive complète, alors 
+    $ \delta_S = \mathbb{E}_\theta( \delta \mid S)$ est l'unique estimateur sans biais 
+    de variance minimale (i.e l'optimal $ \delta_Q^{opt}$).
+\end{theorem}
+
+\begin{proof}
+    Montrons que cet estimateur ne peut plus être amélioré. Soit $ \delta' \in \Delta_{sb}$, 
+    posons $ \delta'_S = \mathbb{E}_\theta( \delta' \mid S)$. On a : 
+        $$ \mathbb{E}_\theta( \delta') = \mathbb{E}_\theta( \delta) = g( \theta) $$
+    Donc, pour tout $ \theta \in \Theta$ : 
+        \begin{align*}
+            \mathbb{E}_\theta( \underbrace{\delta'_S - \delta_S}_{= \varphi( \delta)}) = \mathbb{E}_\theta( \delta - \delta') = 0. 
+        \end{align*}
+    Avec $ \mathbb{E}_\theta( \varphi( S)) = 0$ pour tout $ \theta$. Or $S$ est complète donc 
+    $ \varphi(S) = 0 $. D'où $ \delta'_S = \delta_S$. 
+\end{proof}
+
+\begin{proposition}
+    Pour trouver le $ \delta_Q^{opt}$, il faut donc : 
+    \begin{itemize}
+        \item Trouver $S$ complète : on cherche $ \varphi (S)$ telle que $ \mathbb{E}_\theta( \varphi(S)) = g( \theta)$
+            et la solution est bien l'estimateur sans biais de variance minimale. 
+        \item On cherche $ \delta \in \Delta_{sb}$ simple. 
+        \item Puis, on conditionne $ \mathbb{E}_\theta( \delta \mid S)$. Si $S$ 
+            est complète, alors c'est gagné. 
+    \end{itemize}
+\end{proposition}
+
+
+% ===================================================================================================================
+% Bornes inférieures de variance
+
+\section{Bornes inférieures de variance et Efficacité}
+
+Nous avons précédemment défini $\Delta_{sb}$ comme la classe des estimateurs sans biais. 
+Par la suite, nous avons introduit le risque quadratique pour quantifier la pertinence d'un estimateur en 
+fonction de son biais et de sa variance. 
+
+Bien que nous sachions construire des estimateurs sans biais, l'enjeu est désormais d'étudier leur variance afin de réduire 
+leur dispersion autour du paramètre cible. Une question fondamentale se pose alors : au sein de $\Delta_{sb}$, 
+existe-t-il un estimateur dont la variance est minimale de manière uniforme ? Si oui, comment peut-on le caractériser ?
+
+Pour répondre à cette question, nous nous plaçons dans le cadre des modèles réguliers ($H_{1, 2, 3, 4}$). 
+L'utilisation de l'information de Fisher comme mesure de précision nous impose toutefois d'ajouter des conditions 
+sur la finitude de l'information ($H_5$) et sur la régularité de l'estimateur $\delta$ ($H_6$) pour permettre 
+l'interversion intégrale-dérivée :
+
+\begin{itemize}[label=--]
+    \item[$(H_5)$] : L'information de Fisher est finie et non nulle :
+    $$ \forall \theta \in \Theta, \quad \mathcal{I}_\theta(X) \in ]0, + \infty [ $$
+    
+    \item[$(H_6)$] : $\delta$ est de carré intégrable et permet la dérivation sous le signe somme :
+    $$ \delta \in L^2( \mathcal{P}_\Theta), \forall \theta \in \Theta, \quad \mathbb{E}_\theta( \delta(X)) = g( \theta) \quad \text{ et } \quad \frac{\partial f_\theta}{\partial \theta} \delta \in L^1( \mu) $$
+    Tels que pour tout $A \in \mathcal{A}$ et $\theta \in \Theta$ :
+    $$ \frac{\partial}{\partial \theta} \left( \int_A  \delta f_\theta \; d \mu \right) = \int_A  \frac{\partial f_\theta}{\partial \theta} \delta \; d \mu $$
+\end{itemize}
+
+\subsection{Inégalité de Fréchet-Darmois-Cramér-Rao (FDCR)}
+
+\begin{theorem}[Borne de Cramér-Rao]
+    Sous les hypothèses de régularité usuelles ($H_{1 \dots 5}$) et pour un estimateur $\delta_n$ sans biais de $g(\theta)$, on a :
+    \begin{equation}
+        \boxed{\V_\theta( \delta_n) \geqslant \frac{(g'( \theta))^2}{n \mathcal{I}_\theta(X)}}
+    \end{equation}
+\end{theorem}
+
+Plus l'information de Fisher est grande, plus la variance minimale possible est petite (le modèle est "précis").
+Il convient alors de définir proprement les estimateurs atteingnant cette borne. 
+
+\begin{definition}[Estimateur Efficace]
+    Un estimateur $\delta_n$ est dit \emph{efficace} s'il est sans biais et qu'il \emph{atteint la borne} de Cramér-Rao :
+        $$ \boxed{\V_\theta( \delta_n) = \frac{(g'(\theta))^2}{n \mathcal{I}_\theta(X)}} $$
+\end{definition}
+
+\subsection{La réciproque de Koopman (Cas d'égalité)}
+
+\begin{prop}[Lien avec les modèles exponentiels]
+    La borne de Cramér-Rao est atteinte (cas d'égalité) ssi le modèle est exponentiel de la forme :
+    $$ f_\theta(x) = h(x) k_\theta \exp( \gamma(\theta) \delta(x)) $$
+    Dans ce cas, $\delta(X)$ est l'unique estimateur efficace pour son espérance $g(\theta) = - \frac{\kappa_\theta'}{\gamma'(\theta)}$.
+\end{prop}
+
+\begin{example}[Application TD]
+    Pour une loi de Poisson $\mathcal{P}(\theta)$, on montre que $\bar{X}_n$ est efficace car le modèle est exponentiel. Pour une loi Uniforme $\mathcal{U}[0, \theta]$, la borne ne s'applique pas (support dépendant de $\theta$) : l'estimateur peut avoir une variance \textit{plus petite} que la borne de Fisher.
+\end{example}
