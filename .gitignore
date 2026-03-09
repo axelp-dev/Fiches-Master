@@ -9,6 +9,8 @@
 *.fdb_latexmk
 *.synctex.gz
 
+%OUTDIR%
+
 **/*.aux
 **/*.DS_Store
 .vscode

@@ -1,0 +1,264 @@
+\minitoc
+
+% ===================================================================================================================
+% Généralités 
+
+\section{Généralités}
+
+% TODO : Fill-in this part
+
+\subsection{Un peu d'histoire...}
+
+Nous sommes en été 1955 aux États-Unis. La naissance de l'informatique pousse les mathématiciens 
+John McCarthy, Marvin Minsky, Nathaniel Rochester et l'ingénieur Claude Shannon à proposer 
+un projet de recherche sur l'intelligence articielle au Dartmouth college "A proposal for the Dartmouth summer
+research project on artificial intelligence". Ils obtiennent ainsi 7500 \$ de la fonction Rockfeller 
+pour organiser un atelier de travail sur les machines pensantes durant deux mois. 
+Cependant, l'intérêt pour ce domaine de recherche est encore très faible parmi la communauté scientifique. 
+Les faibles performances des premières machines constituent aussi un important frein au développement de prototypes. 
+
+En 1957, Frank Rosenblatt présente le premier réseau de neurones tel que nous les connaissons aujourd'hui appelés 
+\emph{Perceptron}. En 1986, la notion de Perceptron multicouches est explorée et en 1955 Yann LeCun et Yoshua Bengio
+développe le premier réseau de neurones à convolution à la base de la vision par ordinateur. 
+
+La victoire de DeepBlue sur Garry Kasparov aux échecs en 1997 démontre la puissance et le potentiel de ces 
+nouvelles technologies. L'affluence de données disponibles ces 30 dernières années et l'évolution 
+des capacités de calcul des ordinateurs a ouvert la porte à des systèmes de plus en plus performants. 
+Enfin, 2015 marque l'apogée des modèles d'IA dits "classiques" avec la victoire d'AlphaGo sur les champions 
+d'Europe et du monde. 
+
+\subsection{Définition et terminologie}
+
+Selon Wikipédia, l'intelligence artificielle se définit comme suit : 
+\begin{quote}
+    \emph{"L'intelligence artificielle (IA) est l'ensemble des systèmes informatiques capables d'effectuer des tâches 
+    typiquement associées à l'intelligence, telles que l'apprentissage, le raisonnement, la résolution de problèmes, 
+    la perception ou la prise de décision."}
+\end{quote}
+Le but de l'IA est donc de reproduire numériquement le mode de pensée humaine. Ces concepts ont étés, et sont toujours, 
+à la base des réseaux de neurones actuels puisqu'ils sont contitués de neurones organisés en couches permettant de 
+traiter l'information. C'est donc une discipline très vaste dans lequel il est facile de confondre les notions. 
+
+\medskip 
+
+L'\emph{apprentissage automatique} en est un sous-domaine qui consiste en la création d'algorithmes capables 
+d'apprendre à partir de données précédement collectées. 
+Il faut donc distinguer plusieurs phases dans le processus de développement d'un tel modèle : 
+\begin{enumerate}
+    \item La collecte des données d'entraînement. 
+    \item L'entraînement du modèle. 
+    \item La phase de test des performances du modèle. 
+    \item La mise sur le marché pour une utilisation publique. 
+\end{enumerate}
+Nous traiterons ici les phases 1 et 2 de ce processus. Les autres appartiennent à des domaines différents de l'IA. 
+Pour le développement d'un tel modèle, nous devons donc avoir accès à des \textbf{observations} consituées d'exemples
+ou de données collectés. Ces données sont consituées de deux éléments : les \textbf{attributs}, appelés \emph{features}, 
+consituent des réprésentations numériques des observations et les \textbf{étiquettes}, ou \emph{labels}, qui 
+associent à chaque élément une catégorie ou une valeur. L'enjeu est donc d'entraîner un modèle à distinguer 
+les différents attributs pour chaque observation et d'être capable de répondre correctement à la question : 
+"Étant donné une observation, à quelle catégorie appartient-elle ?". 
+Pour cela, le jeu de données initial, appelée \emph{dataset}, sera séparé en deux, l'un pour l'entraînement, et l'autre 
+pour le test. 
+
+\medskip
+
+Plus formellement, pour un ensemble $E = \{(x_i, y_i) \mid i \in \llbracket 1, N \rrbracket\}$ de données consitué d'observation $X$ et de données $Y$, on 
+cherche à apprendre une fonction $f$ telle que : 
+    $$ f : 
+        \begin{cases}
+            X \longrightarrow Y \\ 
+            x_i \longmapsto y_j = f(x_i)
+        \end{cases}
+    $$
+et l'on souhaite que $i = j$ pour le plus de cas possibles. C'est-à-dire que notre modèle ne se trompe 
+pas dans la prédiction $y_i$ de la classe de $x_i$. En fonction de la nature de l'ensemble $Y$, on distinguera plusieurs 
+types de problèmes. Si $Y$ est un ensemble fini, on parlera de \emph{problème de classification}, si $Y = \{vrai, faux\}$, 
+on parlera de \emph{prédiction} et si $Y = \R$, on parlera de régression. 
+
+\subsection{L'apprentissage}
+
+L'apprentissage constitue le cœur de ce que nous allons voir ici. Cette phase permet de définir "les bonnes réponses" 
+au modèle. On distingue ainsi différents types d'apprentissages : 
+\begin{itemize}
+    \item \textbf{L'apprentissage supervisé} : on dispose ici de données étiquetées et le modèle 
+    doit apprendre à distinguer les classes des observations. 
+    \item \textbf{L'apprentissage non supervisé} : ici le modèle n'a accès qu'aux observations 
+    et doit déterminer lui-même leur classes. 
+    \item \textbf{L'apprentissage par renforcement} : le modèle est ici très différent, il se représente 
+    sous la forme d'un agent devant apprendre une série d'actions en fonction de la configuration de son 
+    environnement. Pour cela, à chaque essai, on lui attribue une récompense positive ou négative. 
+\end{itemize}
+
+Nous nous intéressons ici à l'apprentissage supervisé. 
+
+% ===================================================================================================================
+% Perceptron et MLP 
+
+\section{Du Perceptron au MLP}
+
+Le \emph{Perceptron} peut être vu comme le premier réseau de neurones moderne, bien que sa conception
+date de 1956. À cette époque, Frank Rosenblatt pense à une "solution à tout" basée sur une représentation 
+simplifiée du cerveau humain. L'idée est de recréer un ensemble de neurones connectés les uns aux autres 
+capables d'"apprendre". 
+
+\subsection{Concept}
+
+On se pose donc un problème à deux classes $(c_-, c_+)$ avec $m$ exemples : 
+    $$ \mathcal{D} = \{(x_i, y_i) \in \R^p \times \{-1, 1\} \mid j \in \llbracket 1,m \rrbracket\} $$
+Pour chaque exemple, $x_i$ représente l'observation et $y_i$ la classe correspondante. On veut 
+développer un modèle capable de déterminer la classe d'une observation brute. 
+On effectue donc une hypothèse forte qui est que les deux classes $c_-$ et $c_+$ sont séparables 
+par un hyperplan de $ \R^p$. Le problème revient donc à construire une famille $(w_1, \dots, w_p)$ 
+de \emph{poids} qui définiront cet hyperplan. Formellement, on veut "apprendre" une fonction $y$ telle que : 
+    $$ \forall i \in \llbracket 1, m \rrbracket, \quad 
+        y(x) = 
+            \begin{cases}
+                1 \text{ si } \sum_{j=1}^{p} w_j x_j > T \\
+                -1 \text{ sinon} 
+            \end{cases}.
+    $$
+On appellera cette fonction $y$, notée $ \hat{y}$ la \emph{prédiction}. Ici notre réseau de neurones a déjà 
+pris forme. Il se représente encore plutôt sous la forme d'un neurone : 
+    
+    \begin{figure}[H]
+        \centering
+        \includegraphics[scale=0.3]{./images/neurone_formel.png}
+        \label{img:neurone}
+        \caption{Schéma formel d'un neurone}
+    \end{figure}
+
+On utilisera aussi une \emph{fonction d'activation} représentée par le seuil $T$. Plus tard, nous utiliserons 
+des fonctions plus complexes pour donner une valeur de "probabilité" à la sortie d'un neurone. 
+
+\subsection{Apprentissage}
+
+Une fois la structure posée, nous devons définir un algorithme pour apprendre les poids 
+$(w_1, \dots, w_p)$ dans le but d'avoir une séparation optimale des deux classes dans $\R^p$. 
+L'idée est donc de faire passer des valeurs $x$ dans le perceptron et d'actualiser les poids 
+$w_j$ si la prédiction $ \hat{y}$ est différente de la classe $y$. 
+Une règle simple d'actualisation est de modifier $w_j$ en fonction de la valeur $x_j$ de l'entrée 
+qu'il pondère. On aura donc la règle suivante : 
+    $$ 
+        w = 
+        \begin{cases}
+            w + x \text{ si } y = 1 \text{ et } \hat{y} = -1 \\
+            w - x \text{ si } y = - 1 \text{ et } \hat{y} = 1
+        \end{cases}
+        \quad \iff \quad 
+        w = w + y x \text{ si } x \text{ est mal classé}.
+    $$
+
+\begin{remark}[Variantes]
+    Notre définition de l'actualisation des poids les modifie à chaque itération lors de l'apprentissage. 
+    Cela permet une convergence rapide de l'apprentissage, mais peut conduire à une instabilité 
+    si le nombre de poids à traiter est trop grand. 
+    Une solution est donc d'effectuer un \emph{apprentissage par batch}. Cela consiste à faire 
+    passer successivement plusieurs vecteurs $x$, on calcule ensuite l'erreur moyenne commise 
+    et on met à jour les poids en fonction de cette erreur moyenne. 
+    Un autre possibilité est d'utiliser un \emph{learning rate} $ \nu$ qui bride l'apprentissage. On utilise 
+    alors la règle suivante pour actualier $w$ : 
+        $$ w = \eta  (y - \hat{y}) x. $$
+\end{remark}
+
+Les perceptrons permettent donc de simuler des fonctions booléennes comme illustré ci-dessous : 
+
+% Style mis à jour
+\tikzset{
+    int/.style={draw, circle, fill=gray!20, minimum size=2.5em, thick},
+    input/.style={draw, circle, fill=white!10, minimum size=2em}
+}
+
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[auto, >=Stealth, node distance=1.5cm, scale=0.8, transform shape]
+        
+            % --- NOEUDS ---
+            % Le neurone central
+            \node [int] (a) {$\Sigma$};
+
+            % Entrées x1 et x2 (positionnées par rapport à 'a')
+            \node [input] (x2) [left=1.5cm of a] {$x_2$};
+            \node [input] (x1) [above=0.5cm of x2] {$x_1$};
+            \node [input] (x3) [below=0.5cm of x2] {$1$};
+
+            % Le Biais arrivant par le haut
+            \node (bias_in) [above=1.2cm of a] {$0$};
+
+            % --- FLÈCHES ET POIDS ---
+            % Entrées vers neurone avec poids sur les flèches
+            \path[->, thick] (x1) edge node[above] {$-1$} (a);
+            \path[->, thick] (x2) edge node[above] {$-1$} (a);
+            \path[->, thick] (x3) edge node[below] {$-1.5$} (a);
+            
+            % Flèche du biais
+            \path[->, thick] (bias_in) edge (a);
+
+            % Sortie vers la formule
+            \node (output) [right=1.0cm of a] {};
+            \path[->, thick] (a) edge (output);
+
+            % --- FORMULE À DROITE ---
+            \node[right=0cm of output, font=\Large] (formula) {
+                $y = x_1 \land x_2$
+            };
+
+            % Optionnel : annotation sous la formule pour expliquer la fonction
+            % \node[below=0.1cm of formula, font=\small\itshape, text width=4cm, align=center] {
+            %     Simule la fonction porte \\ \textbf{NON-ET (NAND)}
+            % };
+        \end{tikzpicture}
+        \captionof{figure}{Fonction AND avec un perceptron}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \begin{tikzpicture}[auto, >=Stealth, node distance=1.5cm, scale=0.8, transform shape]
+        
+            % --- NOEUDS ---
+            % Le neurone central
+            \node [int] (a) {$\Sigma$};
+
+            % Entrées x1 et x2 (positionnées par rapport à 'a')
+            \node [input] (x2) [left=1.5cm of a] {$x_2$};
+            \node [input] (x1) [above=0.5cm of x2] {$x_1$};
+            \node [input] (x3) [below=0.5cm of x2] {$1$};
+
+            % Le Biais arrivant par le haut
+            \node (bias_in) [above=1.2cm of a] {$0$};
+
+            % --- FLÈCHES ET POIDS ---
+            % Entrées vers neurone avec poids sur les flèches
+            \path[->, thick] (x1) edge node[above] {$-1$} (a);
+            \path[->, thick] (x2) edge node[above] {$-1$} (a);
+            \path[->, thick] (x3) edge node[below] {$-0.5$} (a);
+            
+            % Flèche du biais
+            \path[->, thick] (bias_in) edge (a);
+
+            % Sortie vers la formule
+            \node (output) [right=1.0cm of a] {};
+            \path[->, thick] (a) edge (output);
+
+            % --- FORMULE À DROITE ---
+            \node[right=0cm of output, font=\Large] (formula) {
+                $y = x_1 \lor x_2$
+            };
+
+            % Optionnel : annotation sous la formule pour expliquer la fonction
+            % \node[below=0.1cm of formula, font=\small\itshape, text width=4cm, align=center] {
+            %     Simule la fonction porte \\ \textbf{NON-ET (NAND)}
+            % };
+        \end{tikzpicture}        
+        \captionof{figure}{Fonction OR avec un perceptron}
+    \end{minipage}
+\end{figure}
+
+Après réflexion, on se rend compte qu'il est impossible de simuler la fonction XOR 
+avec un seul neurone. Ce sera donc l'objectif des \emph{MLP (Multi Layer Perceptron)} 
+composés de plusieurs couches de neurones interconnectés. 
+
+\subsection{Perceptron Multi-Couches (MLP)}
+
+
