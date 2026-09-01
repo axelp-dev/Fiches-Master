@@ -1,0 +1,168 @@
+% ========================================================================================================
+% Introduction 
+
+\minitoc 
+
+L'objectif de ce cours est de formaliser le processus d'apprentissage d'un modèle dans le cas d'un apprentissage supervisé. On commencera par définit ce qu'est ce type d'apprentissage puis ce que l'on entend par "apprendre". Différentes métriques seront introduites pour le quantifier. 
+
+% ======================================================================
+% Des données et des prédictions
+
+\section{Des données et des prédictions}
+
+L'ensemble du processus d'apprentissage s'appuie sur les concepts de \emph{données} et de \emph{prédictions}. 
+
+\begin{definition}[Observations]
+    Formellement, on définira les \emph{données} d'un problème de machine learning par un ensemble de couples $(x,y) \in \mathcal{X} \times \mathcal{Y}$ que l'on appellera \emph{données d'entraînement} ou \emph{observations}. On notera cet ensemble $D$ qui contiendra $N$ couples. 
+\end{definition}
+
+Ces entrées et sorties attendues peuvent être de différents types en fonction du problème considéré. Les entrées peuvent être des images, des vidéos, du son ou un texte. On les modélisera en général par des vecteurs de $\R^d$ lorsque c'est possible. On appellera donc $d \in \N$ la dimension des données à l'entrée du modèle. 
+
+Les sorties peuvent être de deux types différents en apprentissage supervisé :
+\begin{itemize}
+    \item Un ensemble d'entiers $\{1, \dots, k\}$. On parlera alors de problème de \emph{classification}. 
+    \item Un vecteur de $\R^{d'}$. On parlera alors d'un problème de \emph{régression}. 
+\end{itemize}
+
+% \begin{example}
+%     \begin{itemize}
+%         \item Un laboratoire en médecine cherche à développer un modèle permettant de prédire si un patient est sujet à développer une maladie rare. Pour cela, il dispose de l'ensemble de ses données médicales et d'un jeu de données composé des données médicales et du résultat 
+%     \end{itemize}
+% \end{example}
+
+L'objectif est d'être capable, à partir d'une nouvelle donnée $x \in \mathcal{X}$ d'inférer/prédire le $y$ qui lui correspond le mieux. Plus formellement, on cherche à \emph{apprendre} une fonction $f$ à partir des données d'entraînement telle que : 
+\begin{equation}
+    y \simeq f(x)
+\end{equation}
+
+% ======================================================================
+% Formalisation Mathématique
+
+\section{Formalisation mathématique}
+
+Pour apprendre une telle fonction, nous devons admettre différentes hypothèses sur le jeu de données de départ $D$. La première est que ce jeu de données suit une certaine loi de probabilité $ \myP$. La seconde est que chaque échantillon $(x_i, y_i), i \in \llbracket 1, N \rrbracket$ est indépendant des autres ($D$ est un ensemble de réalisation i.i.d de la loi $ \myP$). 
+
+\subsection{Fonction de Perte}
+
+Pour effectuer cet apprentissage, nous devons être capable de savoir à quel point notre modèle se trompe sur une prédiction donnée par rapport à la vraie valeur issue du jeu de données. Nous définissons pour cela une \emph{fonction de perte}. 
+
+\begin{definition}[Fonction de perte]
+    La \emph{fonction de perte}, notée $l$, calcule l'erreur induite par la prédiction de $z \in \mathcal{Y}$ alors que la valeur attendue était $y \in \mathcal{Y}$ pour une entrée $x \in \mathcal{x}$. Elle vérifie donc : 
+    \begin{equation}
+        l : \mathcal{Y} \times \mathcal{Y} \longrightarrow \R.
+    \end{equation}
+\end{definition}
+
+\begin{example}
+    Dans le cas d'une classification binaire (i.e $ \mathcal{Y} = \{0, 1\}$), on peut simplement utiliser la \emph{Zero/One Loss} définie par $l(y, z) = \mathbbm{1}_{z \not = y}$. 
+
+    Dans le cas de la régression, on utilisera plutôt les $L^1$ Loss ou $L^2$ Loss définies par : 
+    $$ l(y, z) = \|y - z\|^2, \quad \text{et} \quad l(y, z) = \|y - z\|$$ 
+\end{example}
+
+\subsection{Les Risques}
+
+Ces différentes fonctions de pertes, aussi bien définies soient-elles, ne nous donnent d'un apperçu des erreurs du modèle en temps réel. Nous avons aussi desoin d'avoir une idée plus fine des performances du modèle vis-à-vis de la distribution de probabilité $\myP$ du jeu de données $D$. 
+On définit pour cela les \emph{risques}. 
+
+\begin{definition}[Risque Moyen]
+    On définit le \emph{risque moyen}, noté $ \mathcal{R}(f)$, d'une fonction $f$ sur l'espace $ \mathcal{X} \times \mathcal{Y}$ par l'espérance de la perte du ce même jeu de données. 
+    \begin{equation}
+        \boxed{\mathcal{R}(f) := \int_{ \mathcal{X} \times \mathcal{Y}} l(y, f(x)) \; dp(x, y) \; dx \; dy = \mathbb{E} \left(l(y, f(x))\right)}
+    \end{equation}
+    où $p$ est le densité de la probabilité $ \myP$. 
+\end{definition}
+
+\begin{example}
+    Dans le cas de la classification binaire, le risque moyen se simplfie facilement : 
+    \begin{align*}
+        \mathcal{R}(f) &= \int_{ \mathcal{X} \times \mathcal{Y}} \mathbbm{1}_{y \not = f(x)} \; d \myP(x,y) \\ 
+        &= 0 \times \myP(f(x) = y) + 1 \times \myP(f(x) \not = y) \\ 
+        &= \myP(f(x) \not = y)
+    \end{align*}
+\end{example}
+
+À noter que ce risque est calculé sur l'espace entier des données possibles. En pratique, si celui-ci est infini, il est incalculable. On préférera donc utiliser le \emph{risque empirique}. 
+
+\begin{definition}[Risque Empirique]
+    Le risque empirique, noté $ \hat{\mathcal{R}}(f)$ est donné par la moyenne empirique des pertes sur un jeu de données $ D$. 
+    \begin{equation}
+        \boxed{\hat{ \mathcal{R}}(f) := \frac{1}{N} \sum_{i=1}^{N} l(y_i, f(x_i)).}
+    \end{equation}
+\end{definition}
+
+\begin{proposition}[Convergance]
+    Grâce aux hypothèses précédentes, on peut invoquer des théorèmes de convergence sur les suites de variables aléatoires pour caractériser la limite de ce risque empirique. 
+
+    Ainsi, si $ f \in L^1$ alors, d'après la \emph{Loi Forte des Grands Nombres}, on a que : 
+    \begin{equation}
+        \hat{ \mathcal{R}}(f) \underset{n \to \infty}{\overset{\text{p.s}}{\longrightarrow}} \mathcal{R}(f).
+    \end{equation}
+    Si, de plus $f \in L^2$, alors on a une idée de la vitesse de convergence de ce risque empirique : 
+    \begin{equation}
+        \sqrt{n}(\hat{ \mathcal{R}}(f) - \mathcal{R}(f)) \underset{n \to \infty}{\overset{\text{Loi}}{\longrightarrow}} \mathcal{N}(0, \V(l(y, f(x)))).
+    \end{equation}
+\end{proposition}
+
+En pratique, pour toute fonction apprise $f$, on aura $ \hat{ \mathcal{R}}(f) \simeq \mathcal{R}(f)$. 
+
+% ======================================================================
+% Risque et prédicteur de Bayes
+
+\section{Risque et prédicteur de Bayes}
+
+L'objectif théorique de l'apprentissage statistique est de trouver une fonction $f$ qui minimise le risque moyen $\mathcal{R}(f)$ parmi l'ensemble $\mathcal{F}_{\text{all}}$ de toutes les fonctions mesurables de $\mathcal{X}$ dans $\mathcal{Y}$. 
+
+\begin{definition}[Prédicteur et Risque de Bayes]
+    On appelle \emph{prédicteur de Bayes}, noté $f^*$, la fonction optimale (si elle existe) qui minimise le risque moyen sur l'espace de toutes les fonctions mesurables :
+    \begin{equation}
+        \boxed{f^* \in \arg \min_{f \in \mathcal{F}_{\text{all}}} \mathcal{R}(f)}
+    \end{equation}
+    Le risque associé, noté $\mathcal{R}^* = \mathcal{R}(f^*)$, est appelé le \emph{risque de Bayes} (ou erreur irréductible). Pour toute fonction mesurable $f$, on a trivialement :
+    \begin{equation}
+        \mathcal{R}(f) \geqslant \mathcal{R}^*
+    \end{equation}
+\end{definition}
+
+Pour calculer explicitement $f^*$, on utilise la loi des espérances itérées (conditionnement par rapport à $X$) :
+\begin{equation}
+    \mathcal{R}(f) = \mathbb{E}_{(X, Y)}\left[ l(Y, f(X)) \right] = \mathbb{E}_X \left[ \mathbb{E}_{Y|X} \left[ l(Y, f(X)) \mid X \right] \right]
+\end{equation}
+Minimiser $\mathcal{R}(f)$ revient donc à minimiser l'espérance conditionnelle point par point pour chaque $x \in \mathcal{X}$ :
+\begin{equation}
+    f^*(x) \in \arg \min_{z \in \mathcal{Y}} \mathbb{E}_{Y|X=x}\left[ l(Y, z) \mid X = x \right]
+\end{equation}
+
+\subsection{Forme explicite selon la tâche}
+
+\begin{proposition}[Cas de la régression quadratique ($L^2$)]
+    Pour la perte quadratique $l(y, z) = (y - z)^2$, le prédicteur de Bayes est l'espérance conditionnelle de $Y$ sachant $X$ :
+    \begin{equation}
+        \boxed{f^*(x) = \mathbb{E}[Y \mid X = x]}
+    \end{equation}
+\end{proposition}
+
+\begin{proof}
+    Fixons $x \in \mathcal{X}$. On cherche $z \in \R$ minimisant $\phi(z) = \mathbb{E}\left[(Y - z)^2 \mid X = x\right]$.
+    \begin{align*}
+        \phi(z) &= \mathbb{E}\left[Y^2 \mid X = x\right] - 2z \mathbb{E}\left[Y \mid X = x\right] + z^2
+    \end{align*}
+    $\phi$ est une fonction convexe et dérivable en $z$. En annulant la dérivée :
+    $$\phi'(z) = -2\mathbb{E}[Y \mid X = x] + 2z = 0 \iff z = \mathbb{E}[Y \mid X = x]$$
+\end{proof}
+
+\begin{proposition}[Cas de la classification binaire (perte 0/1)]
+    Pour $\mathcal{Y} = \{0, 1\}$ et la perte 0/1 $l(y, z) = \mathbbm{1}_{y \neq z}$, le prédicteur de Bayes attribue la classe la plus probable a posteriori :
+    \begin{equation}
+        \boxed{f^*(x) = \mathbbm{1}_{\myP(Y = 1 \mid X = x) \ge 1/2}}
+    \end{equation}
+\end{proposition}
+
+\begin{proof}
+    Pour un $x \in \mathcal{X}$ donné et pour $z \in \{0, 1\}$ :
+    \begin{align*}
+        \mathbb{E}\left[\mathbbm{1}_{Y \neq z} \mid X = x\right] &= \myP(Y \neq z \mid X = x) \\
+        &= 1 - \myP(Y = z \mid X = x)
+    \end{align*}
+    Minimiser cette quantité revient à maximiser $\myP(Y = z \mid X = x)$, ce qui donne la règle du maximum a posteriori (MAP).
+\end{proof}

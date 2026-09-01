@@ -8,6 +8,9 @@
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+*.mtc*
+*.maf
+*.thm
 
 %OUTDIR%
 
