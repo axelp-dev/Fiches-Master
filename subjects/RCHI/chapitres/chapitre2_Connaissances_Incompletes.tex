@@ -279,3 +279,109 @@ Cette hypothèse a donc plusieurs conséquences :
 
 Sous l'hypothèse DCA, toute formule du premier ordre devient équivalente à une formule de la logique propositionnelle.
 
+% ========================================================================================================
+% Raisonnement sur des connaissances incohérentes
+
+\section{Raisonnement sur des connaissances incohérentes}
+
+Maintenant que nous avons traité les principaux problèmes sur lesquels 
+on peut tomber en considérant des connaissances, attardons-nous sur l'inconsistance. 
+En effet, en logique porpositionnelle, dès lors qu'une base contient une contradiction, 
+tout et son contraire peuvent être déduit. 
+Or, en pratique, il se peut que nous devions traiter une base inconsistante. En effet, deux 
+capteurs peuvent fournir des données conflictuelles, des experts peuvent avoir des avis divergeants, etc... 
+Dans ce cas, il est nécessaire d'adopter des stratégies pour êre capable de raisonner 
+de façon "juste" sur ces connaissances. 
+
+Ce chapitre est la réelle continuité du précédent, toutes les notations et définitions seront donc 
+réutilisées. 
+
+\subsection{Restauration de la consistance avec la syntaxe}
+
+L'idée principale lors de la rencontre d'une base inconsistante $BC$ va être de la séparer 
+en deux types de connaissances : celles dont on est sûrs et les autres. 
+
+\begin{definition}[Base à Noyau]
+    On appellera \emph{base de connaissances à noyau} une base $BC$ telle que $ BC = (N, H)$ où :
+    \begin{itemize}
+        \item $N$ est le \textbf{noyau} de la base. Ce sont l'ensemble des connaissances 
+        sûres de la base. Il est nécessairement \emph{consistant}. 
+        \item $H$ sont les \textbf{croyances} de la base. Les connaissances qu'il contient 
+        peuvent être sujettes à révision. 
+    \end{itemize} 
+\end{definition}
+
+\begin{example}
+    La base $BC = \{ \text{Oiseau}, \lnot \text{Vole}, \text{Vole}\}$ est inconsistante. 
+    On peut donc la scinder en deux parties : son noyau et les croyantes. Ainsi : 
+        $$ N = \{ \text{Oiseau} \} \quad \text{et} \quad H = \{ \lnot \text{Vole}, Vole \} $$
+\end{example}
+
+Or les croyances d'une base ne doivent pas être ignorées pour autant. 
+Il convient alors de définir une extension possible des noyaux de base avec une partie
+des croyances. 
+
+\begin{definition}[Scenario]
+    Soit $BC = (N, H)$ une base à noyau. On appelle $S \subseteq BC$ un \emph{scénario} de $BC$ si : 
+    \begin{enumerate}[label=\roman*)]
+        \item $ N \subseteq S$
+        \item $S$ est consistant. 
+        \item $S$ est maximal pour l'inclusion ensembliste. 
+            $$ i.e \not \exists S' \subseteq BC \text{ tel que } S' \text{ est consistant et } S \subset S' $$ 
+    \end{enumerate}
+\end{definition}
+
+De tels scénarios vont donc nous permettre d'inférer différentes nouvelles connaissances de 
+la base $BC$, caractérisons-en quelques-unes. 
+
+\begin{definition}[Conséquences]
+    Soit $BC = (N, H)$. On définit différents types de connaissances $ \varphi$. 
+    \begin{itemize}
+        \item $ \varphi$ est une connaissance \emph{universelle (ou forte)} de $BC$ si $ \varphi$ 
+        se déduit de tout scénario de $BC$. 
+        \item $ \varphi$ est une connaissance \emph{existentielle (ou faible)} de $BC$ si $ \varphi$ 
+        se déduit d'au moins un scénario de $BC$. 
+        \item $ \varphi$ est une connaissance \emph{argumentative} de $BC$ si $ \varphi$ 
+        est une conséquence faible et $ \lnot \varphi$ n'est pas une conséquence faible de $ BC$. 
+    \end{itemize}
+\end{definition}
+
+
+% ========================================================================================================
+% L'Approche Sémantique : Modèles de Herbrand Préférés
+
+\subsection{Caractérisation Sémantique}
+
+Plutôt que de manipuler des sous-ensembles de formules, l'approche sémantique compare les \emph{interprétations} 
+(mondes possibles) du noyau $N$ en fonction de leur capacité à satisfaire un maximum de croyances de $H$.
+
+On utilise la notation $\omega \models H$ pour désigner l'ensemble des formules de $H$ qui sont vraies dans 
+l'interprétation $\omega$ : $\{ h \in H \mid \omega \models h \}$.
+
+\begin{definition}[Préférence Sémantique]
+    Soient $\omega$ et $\omega'$ deux modèles du noyau $N$. On dit que $\omega$ est \emph{préféré} à $\omega'$, 
+    noté $\omega \succeq_H \omega'$, si $\omega$ satisfait plus de croyances de $H$ que $\omega'$ au sens de l'inclusion :
+        $$ \{ h \in H \mid \omega' \models h \} \subseteq \{ h \in H \mid \omega \models h \} $$
+\end{definition}
+
+\begin{definition}[Modèle Préféré]
+    Un modèle $\omega$ de $N$ est dit \emph{préféré} s'il est maximal pour la relation $\succeq_H$. Autrement dit, il 
+    n'existe aucun autre modèle $\omega''$ de $N$ tel que $\omega'' \succeq_H \omega$.
+\end{definition}
+
+\subsection{Lien entre Syntaxe et Sémantique}
+
+Il existe une dualité parfaite entre les scénarios (approches syntaxiques) et les modèles préférés :
+
+\begin{theorem}[Équivalence Scénario/Modèle Préféré]
+    Soit $BC = (N, H)$ une base à noyau.
+    \begin{itemize}
+        \item Tout modèle d'un scénario $S$ est un modèle préféré de $BC$.
+        \item Inversement, tout modèle préféré de $BC$ est modèle d'un (et d'un seul) scénario $S$.
+    \end{itemize}
+\end{theorem}
+
+\begin{remark}
+    Une formule $\varphi$ est une conséquence \emph{universelle} de $(N, H)$ si et seulement si elle est satisfaite 
+    par tous les modèles préférés de la base.
+\end{remark}
