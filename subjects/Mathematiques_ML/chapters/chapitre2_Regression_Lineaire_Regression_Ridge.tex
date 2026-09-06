@@ -1,0 +1,244 @@
+% ===============================================================================
+% Introduction 
+
+\minitoc 
+
+On pose ici le contexte d'une régression linéaire. On cherche donc à apprendre une fonction pour décrire un jeu de données $(x_1, y_1), \dots, (x_n, y_n) \in \mathcal{X} \times \mathcal{Y}$. Dans le cas du modèle linéaire, on fera l'hypothèse forte suivante : 
+\begin{equation}
+    (H_0) : f_\theta = \varphi(x)^t \theta, \quad \theta \in \R^d.
+\end{equation} 
+Pour construire cette fonction, on utilisera l'estimateur du risque empirique définit (ERM) définit par : 
+\begin{equation}
+    \hat{R}( \theta) \in \underset{ \theta \in \Theta}{\arg \min} \frac{1}{n} \sum_{i=1}^{n} \left(y_i - f_\theta(x_i)\right)^2. 
+\end{equation}
+
+\begin{example}
+    La forme de l'application $ \varphi$ caractérisera la \emph{feature map} (i.e l'ensemble des fonctions possibles pour interpoler le nuage de points). 
+    \begin{itemize}
+        \item si $ \varphi(x) = x$, alors on aura une estimation linéaire en $x$, 
+        \item si $ \varphi(x) = \begin{pmatrix} x \\ 1 \end{pmatrix}$ alors l'estimation sera \emph{affine} en $x$, 
+        \item si $ \varphi(x) \in \R^d[x]$, alors l'estimation sera \emph{polynômiale} en $x$. On pourra aller jusqu'au degré $d$ pour utiliser des polynômes de Lagrange. 
+    \end{itemize}
+\end{example}
+
+\begin{notation}
+    On notera $y = \begin{pmatrix} y_1 \\ \dots \\ y_n \end{pmatrix}$ le vecteur des étiquettes du jeu de données et $ \Phi = \begin{pmatrix} \varphi(x_1)^t \\ \dots \\ \varphi(x_n)^t\end{pmatrix} \in \R^{n \times d}$ la matrice contenant toutes les prédictions données par la \emph{feature map}. 
+    On aura donc : $ \hat{R}(\theta) = \frac{1}{n} \| y - \Phi \theta \|_2^2$. 
+\end{notation}
+
+% =======================================================
+% Moindres Carrés 
+
+\section{Moindres Carrés}
+
+\subsection{Calcul}
+
+\begin{proposition}
+    On cherche à calculer explicitement $\hat{\theta} \in \arg \min_{\theta \in \R^d} \hat{R}(\theta)$. Utilisons la condition d'optimalité d'ordre 1 :
+    \begin{equation}
+        \hat{R}(\theta) = \frac{1}{n} \| y - \Phi \theta \|_2^2
+    \end{equation}
+    \begin{equation}
+        \nabla_\theta \hat{R}(\theta) = \frac{2}{n} \Phi^\top (\Phi \theta - y)
+    \end{equation}
+    En résolvant l'équation $\nabla_\theta \hat{R}(\hat{\theta}) = 0$, on obtient les \emph{équations normales} :
+    \begin{equation}
+        (*) : \Phi^\top \Phi \hat{\theta} = \Phi^\top y
+    \end{equation}
+    En supposant que $\Phi$ est de rang plein ($rg(\Phi) = d$, soit des colonnes linéairement indépendantes), la matrice de Gram $\Phi^\top \Phi \in \R^{d \times d}$ est inversible, ce qui donne :
+    \begin{equation}
+        (*) \iff \boxed{\hat{\theta} = \left( \Phi^\top \Phi\right)^{-1} \Phi^\top y}
+    \end{equation}
+    La fonction $\hat{R}$ étant convexe, ce point stationnaire est un minimum global.
+\end{proposition}
+
+On calcule ainsi explicitement l'estimateur des moindres carrés (OLS), qui fournit le prédicteur linéaire optimal sur l'échantillon d'entraînement.
+
+\subsection{Interprétation Géométrique}
+
+Géométriquement, les prédictions $\hat{y} = \Phi \hat{\theta}$ correspondent à la projection orthogonale du vecteur d'observations $y \in \R^n$ sur le sous-espace vectoriel $\operatorname{Im}(\Phi) \subset \R^n$ engendré par les colonnes de $\Phi$ :
+\begin{equation}
+    \hat{\theta} \in \underset{\theta \in \R^d}{\arg \min} \; \frac{1}{n} \left\| y - \Phi \theta \right\|_2^2 \quad
+    \iff \quad \hat{y} \in \underset{z \in \operatorname{Im}(\Phi)}{\arg \min} \; \frac{1}{n} \left\| y - z \right\|_2^2
+\end{equation}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}[
+        x={(1cm, 0cm)}, 
+        y={(0.6cm, 0.35cm)}, 
+        z={(0cm, 1cm)}, 
+        scale=1.2, 
+        >=latex
+    ]
+        % --- Coordonnées des points ---
+        \coordinate (O)  at (0, 0, 0);           % Origine
+        \coordinate (Yh) at (2.2, 1.8, 0);       % Projection orthogonale \hat{y}
+        \coordinate (Y)  at (2.2, 1.8, 2.5);     % Point y au-dessus du plan
+
+        % --- Plan horizontal : \mathrm{Im}(\phi) ---
+        \filldraw[fill=blue!5, draw=blue!40, thick] 
+            (-1.5, -1.0, 0) -- (4.2, -1.0, 0) -- (4.2, 3.5, 0) -- (-1.5, 3.5, 0) -- cycle;
+
+        % Label du sous-espace / plan
+        \node[blue!70!black, anchor=north east] at (4.0, 3.3, 0) {$\operatorname{Im}(\phi)$};
+
+        % --- Vecteur projeté de O vers \hat{y} ---
+        \draw[->, very thick, teal] (O) -- (Yh) 
+            node[midway, below right, text=teal] {$\hat{y} = \Pi_{\operatorname{Im}(\phi)}(y)$};
+
+        % --- Ligne de projection orthogonale (y vers \hat{y}) ---
+        \draw[dashed, thick, red!70!black] (Y) -- (Yh);
+
+        % --- Symbole de l'angle droit en 3D au niveau de \hat{y} ---
+        % Construit à l'aide des directions vers O et vers Y
+        \draw[thick, gray!70!black] 
+            ($(Yh)!0.3cm!(O)$) -- 
+            ($($(Yh)!0.3cm!(O)$) + (0, 0, 0.3)$) -- 
+            ($(Yh) + (0, 0, 0.3)$);
+
+        % --- Vecteur reliant l'origine à y ---
+        \draw[->, thick, purple!80!black] (O) -- (Y) 
+            node[midway, left=2pt] {$y$};
+
+        % --- Vecteur résidu / erreur (de \hat{y} vers y) ---
+        \draw[->, thick, dashed, red!80!black] (Yh) -- (Y) 
+            node[midway, right] {$y - \hat{y}$};
+
+        % --- Points (marquage) ---
+        \filldraw[black] (O) circle (1.5pt) node[below left] {$O$};
+        \filldraw[red!70!black] (Yh) circle (1.5pt) node[below right] {$\hat{y}$};
+        \filldraw[purple!80!black] (Y) circle (1.5pt) node[above] {$y$};
+
+    \end{tikzpicture}
+    \caption{Projection orthogonale du vecteur d'observations $y$ sur le sous-espace affine $\operatorname{Im}(\phi)$ et décomposition de l'erreur résiduelle $y - \hat{y} \perp \operatorname{Im}(\phi)$.}
+    \label{fig:projection_orthogonale_phi}
+\end{figure}
+
+
+% =======================================================
+% Analyse statistique -- design fixe
+
+\section{Analyse statistique -- design fixe}
+
+Dans cette section, on se place sous l'hypothèse du \emph{design fixe} : les points $x_i \in \mathcal{X}$ (et donc la matrice $\Phi \in \R^{n \times d}$) sont déterministes et fixés. Seules les étiquettes $y_i$ sont aléatoires.
+
+\begin{definition}[Modèle à design fixe]
+    Le modèle probabiliste d'observation s'écrit :
+    \begin{enumerate}
+        \item $y = \Phi \theta_* + \varepsilon$, avec $\theta_* \in \R^d$ le paramètre vrai inconnu.
+        \item Le vecteur de bruit $\varepsilon = (\varepsilon_1, \dots, \varepsilon_n)^\top \in \R^n$ vérifie $\mathbb{E}(\varepsilon) = 0$ et $\operatorname{Var}(\varepsilon) = \mathbb{E}(\varepsilon \varepsilon^\top) = \sigma^2 I_n$.
+    \end{enumerate}
+    Le risque moyen sous design fixe est défini par :
+    \begin{equation}
+        R(\theta) = \frac{1}{n} \mathbb{E}_y \left[ \left\| y - \Phi \theta \right\|_2^2 \right].
+    \end{equation}
+\end{definition}
+
+On introduit la matrice de covariance empirique $\hat{\Sigma} := \frac{1}{n} \Phi^\top \Phi \in \R^{d \times d}$, associée à la semi-norme $\|u\|_{\hat{\Sigma}}^2 := u^\top \hat{\Sigma} u = \frac{1}{n} \|\Phi u\|_2^2$.
+
+\begin{proposition}[Décomposition Biais-Variance]
+    Pour tout vecteur fixe $\theta \in \R^d$ :
+    \begin{align*}
+        R(\theta) &= \frac{1}{n} \mathbb{E}_\varepsilon \left[ \left\| \Phi (\theta_* - \theta) + \varepsilon \right\|_2^2 \right] \\
+        &= \frac{1}{n} \|\Phi (\theta_* - \theta)\|_2^2 + \frac{1}{n} \mathbb{E}\left[\|\varepsilon\|_2^2\right] + \frac{2}{n} (\theta_* - \theta)^\top \Phi^\top \mathbb{E}[\varepsilon] \\
+        &= \|\theta - \theta_*\|_{\hat{\Sigma}}^2 + \sigma^2.
+    \end{align*}
+    Le risque de Bayes est atteint en $\theta_*$ : $R^* = R(\theta_*) = \sigma^2$. Par conséquent, pour un estimateur aléatoire $\hat{\theta}$ dépendant de $y$ (donc de $\varepsilon$) :
+    \begin{equation}
+        \boxed{\mathbb{E}_{\hat{\theta}}\left[ R(\hat{\theta}) \right] - R^* = \underbrace{\left\| \mathbb{E}(\hat{\theta}) - \theta_* \right\|_{\hat{\Sigma}}^2}_{\text{Biais}^2} + \underbrace{\mathbb{E}_{\hat{\theta}}\left[ \left\| \hat{\theta} - \mathbb{E}(\hat{\theta}) \right\|_{\hat{\Sigma}}^2 \right]}_{\text{Variance}}}
+    \end{equation}
+\end{proposition}
+
+\begin{theorem}[Biais et Variance des Moindres Carrés]
+    Dans le cas de l'estimateur des moindres carrés $\hat{\theta} = (\Phi^\top \Phi)^{-1} \Phi^\top y$ :
+    \begin{equation}
+        \text{Biais}^2 = 0 \quad \text{et} \quad \mathbb{E}\left[ R(\hat{\theta}) \right] - R^* = \frac{\sigma^2 d}{n}.
+    \end{equation}
+\end{theorem}
+
+\begin{proof}
+    \begin{itemize}
+        \item \emph{Calcul du biais} : 
+        \begin{align*}
+            \mathbb{E}(\hat{\theta}) &= \mathbb{E}\left[ (\Phi^\top \Phi)^{-1} \Phi^\top (\Phi \theta_* + \varepsilon) \right] \\
+            &= \theta_* + (\Phi^\top \Phi)^{-1} \Phi^\top \mathbb{E}[\varepsilon] = \theta_*.
+        \end{align*}
+        L'estimateur est sans biais, d'où $\text{Biais}^2 = 0$.
+
+        \item \emph{Calcul de la variance} : On exprime la variance sous forme de trace :
+        \begin{align*}
+            \text{Variance} &= \mathbb{E}\left[ (\hat{\theta} - \theta_*)^\top \hat{\Sigma} (\hat{\theta} - \theta_*) \right] \\
+            &= \mathbb{E}\left[ \operatorname{tr}\left( \hat{\Sigma} (\hat{\theta} - \theta_*) (\hat{\theta} - \theta_*)^\top \right) \right] \\
+            &= \operatorname{tr}\left( \hat{\Sigma} \, \mathbb{E}\left[ (\hat{\theta} - \theta_*) (\hat{\theta} - \theta_*)^\top \right] \right).
+        \end{align*}
+        Or, $\hat{\theta} - \theta_* = (\Phi^\top \Phi)^{-1} \Phi^\top \varepsilon$, donc :
+        \begin{align*}
+            \mathbb{E}\left[ (\hat{\theta} - \theta_*) (\hat{\theta} - \theta_*)^\top \right] &= (\Phi^\top \Phi)^{-1} \Phi^\top \mathbb{E}[\varepsilon \varepsilon^\top] \Phi (\Phi^\top \Phi)^{-1} \\
+            &= \sigma^2 (\Phi^\top \Phi)^{-1} \Phi^\top I_n \Phi (\Phi^\top \Phi)^{-1} \\
+            &= \sigma^2 (\Phi^\top \Phi)^{-1} = \frac{\sigma^2}{n} \hat{\Sigma}^{-1}.
+        \end{align*}
+        En réinjectant dans l'expression de la trace :
+        \begin{align*}
+            \text{Variance} &= \operatorname{tr}\left( \hat{\Sigma} \cdot \frac{\sigma^2}{n} \hat{\Sigma}^{-1} \right) = \frac{\sigma^2}{n} \operatorname{tr}(I_d) = \frac{\sigma^2 d}{n}.
+        \end{align*}
+    \end{itemize}
+\end{proof}
+
+% =======================================================
+% Régression Ridge -- design fixe
+
+\section{Régression Ridge -- design fixe}
+
+Dans le modèle linéaire usuel, l'erreur de variance vaut $\frac{\sigma^2 d}{n}$. Lorsque les covariables sont fortement corrélées (multicolinéarité), la matrice $\hat{\Sigma}$ possède des valeurs propres très proches de $0$, ce qui rend $(\Phi^\top \Phi)^{-1}$ instable et fait exploser la norme du paramètre appris.
+
+La régression Ridge (pénalisation de Tikhonov / régularisation $L^2$) remédie à ce problème en contractant les coefficients vers zéro via une pénalisation quadratique. On accepte d'introduire un léger biais en échange d'une réduction drastique de la variance.
+
+\begin{definition}[Estimateur Ridge]
+    Pour un paramètre de régularisation $\lambda > 0$, l'estimateur Ridge est défini par :
+    \begin{equation}
+        \hat{\theta}_\lambda \in \underset{\theta \in \R^d}{\arg \min} \; \frac{1}{n} \left\| y - \Phi \theta \right\|_2^2 + \lambda \|\theta\|_2^2.
+    \end{equation}
+    En annulant le gradient, la solution explicite est unique et donnée par :
+    \begin{equation}
+        \boxed{\hat{\theta}_\lambda = \left(\hat{\Sigma} + \lambda I_d\right)^{-1} \frac{1}{n} \Phi^\top y = \left(\Phi^\top \Phi + n \lambda I_d\right)^{-1} \Phi^\top y}
+    \end{equation}
+    où $\hat{\Sigma} = \frac{1}{n} \Phi^\top \Phi$. La matrice $\hat{\Sigma} + \lambda I_d$ est symétrique définie positive pour tout $\lambda > 0$, donc inversible même si $\Phi^\top \Phi$ ne l'est pas.
+\end{definition}
+
+\begin{proposition}[Décomposition Biais-Variance de Ridge]
+    Sous le modèle à design fixe $y = \Phi \theta_* + \varepsilon$ :
+    \begin{itemize}
+        \item \emph{Biais} : L'espérance de l'estimateur vaut $\mathbb{E}(\hat{\theta}_\lambda) = (\hat{\Sigma} + \lambda I_d)^{-1} \hat{\Sigma} \theta_*$. Le terme de biais s'écrit donc :
+        \begin{equation}
+            \text{Biais}^2 = \left\| \mathbb{E}(\hat{\theta}_\lambda) - \theta_* \right\|_{\hat{\Sigma}}^2 = \lambda^2 \theta_*^\top \left(\hat{\Sigma} + \lambda I_d\right)^{-1} \hat{\Sigma} \left(\hat{\Sigma} + \lambda I_d\right)^{-1} \theta_*.
+        \end{equation}
+        \item \emph{Variance} : En utilisant $\operatorname{Var}(\hat{\theta}_\lambda) = \frac{\sigma^2}{n} (\hat{\Sigma} + \lambda I_d)^{-1} \hat{\Sigma} (\hat{\Sigma} + \lambda I_d)^{-1}$, on obtient :
+        \begin{equation}
+            \text{Variance} = \frac{\sigma^2}{n} \operatorname{tr}\left( \hat{\Sigma}^2 \left(\hat{\Sigma} + \lambda I_d\right)^{-2} \right).
+        \end{equation}
+    \end{itemize}
+    Le risque d'excès s'écrit donc :
+    \begin{equation}
+        \mathbb{E}\left[ R(\hat{\theta}_\lambda) \right] - R^* = \lambda^2 \theta_*^\top \left(\hat{\Sigma} + \lambda I_d\right)^{-2} \hat{\Sigma} \, \theta_* + \frac{\sigma^2}{n} \operatorname{tr}\left( \hat{\Sigma}^2 \left(\hat{\Sigma} + \lambda I_d\right)^{-2} \right).
+    \end{equation}
+\end{proposition}
+
+\begin{remark}[Degrés de liberté effectifs]
+    La quantité $df(\lambda) = \operatorname{tr}\left( \hat{\Sigma} (\hat{\Sigma} + \lambda I_d)^{-1} \right) = \sum_{j=1}^d \frac{\mu_j}{\mu_j + \lambda}$ mesure les \emph{degrés de liberté effectifs} du modèle. Pour $\lambda = 0$, on retrouve $df(0) = d$ et la variance des moindres carrés $\frac{\sigma^2 d}{n}$. Lorsque $\lambda \to \infty$, $df(\lambda) \to 0$.
+\end{remark}
+
+\begin{proposition}[Contrôle spectral et borne d'erreur]
+    Soit $\hat{\Sigma} = U \operatorname{diag}(\mu_1, \dots, \mu_d) U^\top$ la décomposition spectrale de $\hat{\Sigma}$ (avec $\mu_j \ge 0$).
+    \begin{itemize}
+        \item Pour le biais : pour tout $\mu \ge 0$ et $\lambda > 0$, on a $\frac{\lambda^2 \mu}{(\mu + \lambda)^2} \le \frac{\lambda}{4}$ (car $(\mu+\lambda)^2 \ge 4\lambda\mu$), d'où :
+        \begin{equation}
+            \text{Biais}^2 \le \frac{\lambda}{4} \|\theta_*\|_2^2.
+        \end{equation}
+        \item Pour la variance : comme $\frac{\mu_j^2}{(\mu_j + \lambda)^2} \le \frac{\mu_j}{\lambda}$, on a :
+        \begin{equation}
+            \text{Variance} \le \frac{\sigma^2}{n \lambda} \operatorname{tr}(\hat{\Sigma}).
+        \end{equation}
+    \end{itemize}
+    En équilibrant les deux bornes avec le choix optimal $\lambda^* \propto \frac{\sigma}{\sqrt{n}}$, on garantit une vitesse de convergence de l'excès de risque en $\mathcal{O}(1/\sqrt{n})$, indépendante du plus petit spectre de $\hat{\Sigma}$.
+\end{proposition}

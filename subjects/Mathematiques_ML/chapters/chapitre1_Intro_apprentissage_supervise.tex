@@ -91,7 +91,7 @@ On définit pour cela les \emph{risques}.
     \end{equation}
 \end{definition}
 
-\begin{proposition}[Convergance]
+\begin{proposition}[Convergence]
     Grâce aux hypothèses précédentes, on peut invoquer des théorèmes de convergence sur les suites de variables aléatoires pour caractériser la limite de ce risque empirique. 
 
     Ainsi, si $ f \in L^1$ alors, d'après la \emph{Loi Forte des Grands Nombres}, on a que : 
@@ -104,7 +104,11 @@ On définit pour cela les \emph{risques}.
     \end{equation}
 \end{proposition}
 
-En pratique, pour toute fonction apprise $f$, on aura $ \hat{ \mathcal{R}}(f) \simeq \mathcal{R}(f)$. 
+\begin{remark}[Indépendance]
+    En pratique, pour toute fonction apprise $f$, on aura $ \hat{ \mathcal{R}}(f) \simeq \mathcal{R}(f)$. Or, lorsque l'on calcule $f$ sur des données empiriques (ex: jeu de données), on casse l'indépendance de la suite de variables aléatoires et donc le TCL. Formellement, en prenant l'estimateur : 
+    $$ \frac{1}{n} \sum_{i=1}^{n} l(x_i, \hat{f}(x_i)), $$ 
+    on remarque que le $\hat{f}$ est calculé à partir des $(x_1, y_1), \dots, (x_n, y_n)$. On peut solutionner ce problème en séparant le jeu de données en deux : \emph{entraînement} et \emph{test} (et éventuellement \emph{validation}). Puisque le modèle ne voit pas les données de test et de validation, la fonction apprise ne dépend pas de ces données, ce qui permet de conserver l'indépendance des variables. On peut ensuite ustiliser le TCL pour estimer le risque $\mathcal{R}$ à partir du risque empirique $\hat{\mathcal{R}}$. 
+\end{remark}
 
 % ======================================================================
 % Risque et prédicteur de Bayes
@@ -166,3 +170,147 @@ Minimiser $\mathcal{R}(f)$ revient donc à minimiser l'espérance conditionnelle
     \end{align*}
     Minimiser cette quantité revient à maximiser $\myP(Y = z \mid X = x)$, ce qui donne la règle du maximum a posteriori (MAP).
 \end{proof}
+
+Pour résumer, dans le cas d'une \emph{classification}, le prédicteur de Bayes associe la classe la plus probable selon la distribution de probabilité simulée. 
+Dans le cas d'une \emph{régression}, ce prédicteur retournera la moyenne de la distribution de probabilité générée sur les $y_i$. 
+
+
+% ======================================================================
+% Paradigmes classiques d'apprentissage  
+
+\section{Paradigmes classiques d'apprentissage}
+
+Le prédicteur de Bayes $f^*$ étant inconnu car il dépend de la distribution $\myP$, différentes stratégies existent pour l'approcher à partir du jeu de données $S = ((x_1, y_1), \dots, (x_n, y_n))$.
+
+\subsection{Minimisation du Risque Empirique (ERM)}
+
+\begin{definition}[Estimateur ERM]
+    On restreint la recherche à une classe paramétrique de fonctions $\mathcal{F}_\Theta = \{f_\theta : \mathcal{X} \to \mathcal{Y}, \; \theta \in \Theta\}$. L'estimateur par \emph{minimisation du risque empirique} (ERM) est défini par :
+    \begin{equation}
+        \boxed{\hat{\theta}_n \in \arg \min_{\theta \in \Theta} \hat{\mathcal{R}}_S(f_\theta) = \arg \min_{\theta \in \Theta} \frac{1}{n} \sum_{i=1}^n l(y_i, f_\theta(x_i))}
+    \end{equation}
+\end{definition}
+
+\begin{example}[Régression linéaire et polynomiale]
+    Pour $f_\theta(x) = \theta^\top \varphi(x)$ (où $\varphi$ est un morphisme d'extraction de caractéristiques / \emph{feature map}) et la perte quadratique $L^2$, le problème s'écrit :
+    \begin{equation}
+        \hat{\theta}_n \in \arg \min_{\theta \in \Theta} \frac{1}{n} \sum_{i=1}^n (y_i - \theta^\top \varphi(x_i))^2
+    \end{equation}
+    Si $\varphi(x) = (1, x, x^2, \dots, x^k)^\top$, on retrouve la régression polynomiale de degré $k$.
+\end{example}
+
+\begin{proposition}[Décomposition de l'erreur d'excès de risque]
+    Pour tout estimateur $\hat{\theta}$, l'excès de risque par rapport au risque de Bayes se décompose canoniquement en :
+    \begin{equation}
+        \boxed{\mathcal{R}(f_{\hat{\theta}}) - \mathcal{R}^* = \underbrace{\left(\mathcal{R}(f_{\hat{\theta}}) - \inf_{\theta \in \Theta} \mathcal{R}(f_\theta)\right)}_{\text{Erreur d'estimation}} + \underbrace{\left(\inf_{\theta \in \Theta} \mathcal{R}(f_\theta) - \mathcal{R}^*\right)}_{\text{Erreur d'approximation}}}
+    \end{equation}
+    \begin{itemize}
+        \item \textbf{Erreur d'approximation} : Déterministe et indépendante de $n$, elle mesure la perte due au choix de la classe restreinte $\Theta$ (diminue si la richesse de $\Theta$ augmente).
+        \item \textbf{Erreur d'estimation} : Aléatoire (dépend de $S$), elle mesure le coût lié au nombre fini d'échantillons $n$ (décroît avec $n$, croît avec la richesse/complexité de $\Theta$).
+    \end{itemize}
+\end{proposition}
+
+\begin{remark}[Contrôle de l'erreur d'estimation]
+    En notant $\theta^* \in \arg \min_{\theta \in \Theta} \mathcal{R}(f_\theta)$, on majore l'erreur d'estimation par :
+    \begin{equation}
+        \mathcal{R}(f_{\hat{\theta}}) - \mathcal{R}(f_{\theta^*}) \le 2 \sup_{\theta \in \Theta} |\hat{\mathcal{R}}_S(f_\theta) - \mathcal{R}(f_\theta)| + \sup_{\theta \in \Theta} (\hat{\mathcal{R}}_S(f_{\hat{\theta}}) - \hat{\mathcal{R}}_S(f_\theta))
+    \end{equation}
+    Le premier terme est une déviation uniforme (objet central de la théorie de l'apprentissage statistique), et le second représente l'erreur d'optimisation numérique (nulle si le minimum empirique est calculé exactement).
+\end{remark}
+
+\subsubsection{Sous-apprentissage, Sur-apprentissage et Régularisation}
+\begin{itemize}
+    \item \textbf{Sous-apprentissage (\emph{Underfitting})} : Modèle trop simple (faible complexité de $\Theta$), dominé par l'erreur d'approximation.
+    \item \textbf{Sur-apprentissage (\emph{Overfitting})} : Modèle trop expressif (par exemple interpolation polynomiale de Lagrange de degré $n-1$), l'erreur empirique est quasi-nulle mais l'erreur d'estimation explose sur les nouvelles données.
+\end{itemize}
+
+Pour contrôler ce phénomène, on introduit une pénalisation de complexité $\Omega(\theta)$ :
+\begin{equation}
+    \hat{\theta}_{\text{reg}} \in \arg \min_{\theta \in \Theta} \left\{ \hat{\mathcal{R}}_S(f_\theta) + \lambda \Omega(\theta) \right\}
+\end{equation}
+où $\lambda > 0$ est un hyperparamètre calibré sur le jeu de validation (exemples : Ridge avec $\Omega(\theta) = \|\theta\|_2^2$, Lasso avec $\Omega(\theta) = \|\theta\|_1$).
+
+% ----------------------------------------------------------------------
+\subsection{Méthodes probabilistes et Maximum de Vraisemblance}
+
+L'idée consiste à postuler une famille paramétrique de densités conditionnelles $\{p_\theta(y \mid x) : \theta \in \Theta\}$ et à choisir le paramètre qui maximise la log-vraisemblance sur l'échantillon i.i.d :
+\begin{equation}
+    \hat{\theta}_{\text{MLE}} \in \arg \max_{\theta \in \Theta} \frac{1}{n} \sum_{i=1}^n \ln p_\theta(x_i, y_i)
+\end{equation}
+
+\begin{example}[Régression Logistique]
+    Pour des labels $y \in \{-1, 1\}$, en posant la fonction sigmoïde $\sigma(z) = \frac{1}{1 + e^{-z}}$, le modèle postule :
+    \begin{equation}
+        p_\theta(y \mid x) = \sigma(y \, \theta^\top x) = \frac{1}{1 + e^{-y \, \theta^\top x}}
+    \end{equation}
+    Maximiser la vraisemblance revient exactement à un problème d'ERM :
+    \begin{equation}
+        \hat{\theta} \in \arg \min_{\theta} \frac{1}{n} \sum_{i=1}^n \ln \left( 1 + e^{-y_i \theta^\top x_i} \right)
+    \end{equation}
+    avec la perte logistique convexe $l(y, z) = \ln(1 + e^{-yz})$.
+\end{example}
+
+\begin{remark}[Pont entre Maximum de Vraisemblance et ERM]
+    En posant $l(y, \hat{y}) = -\ln p_\theta(y \mid x)$, toute maximisation de vraisemblance s'interprète comme une minimisation de risque empirique :
+    \begin{itemize}
+        \item Bruit gaussien $\varepsilon \sim \mathcal{N}(0, \sigma^2) \implies$ Perte quadratique (moindres carrés).
+        \item Loi de Bernoulli $\implies$ Perte logistique.
+    \end{itemize}
+    En classification, on utilise ces fonctions de perte convexes (surrogates) car minimiser directement la perte $0/1$ est un problème NP-difficile et non dérivable (gradient nul presque partout).
+\end{remark}
+
+% ----------------------------------------------------------------------
+\subsection{Méthodes par moyennage local ($k$-plus proches voisins)}
+
+Ces méthodes non paramétriques exploitent une hypothèse de régularité locale : des points proches dans $\mathcal{X}$ partagent des distributions conditionnelles $\myP_{y|x}$ similaires.
+
+\begin{definition}[$k$-Nearest Neighbours ($k$-NN)]
+    Pour une entrée $x'$, on considère l'ensemble $\mathcal{V}_k(x')$ de ses $k$ plus proches voisins dans le jeu d'entraînement :
+    \begin{itemize}
+        \item \textbf{En classification} : Règle du vote majoritaire :
+        \begin{equation}
+            \hat{f}(x') = \arg \max_{c \in \mathcal{Y}} \sum_{i \in \mathcal{V}_k(x')} \mathbbm{1}_{y_i = c}
+        \end{equation}
+        \item \textbf{En régression} : Moyenne empirique locale :
+        \begin{equation}
+            \hat{f}(x') = \frac{1}{k} \sum_{i \in \mathcal{V}_k(x')} y_i
+        \end{equation}
+    \end{itemize}
+\end{definition}
+
+\begin{remark}[Compromis biais-variance pour $k$-NN]
+    Pour $k$-NN, l'axe de complexité est inversé :
+    \begin{itemize}
+        \item $k$ petit (ex. $k=1$) $\implies$ Modèle très flexible, risque de sur-apprentissage (faible approximation, forte estimation).
+        \item $k$ grand $\implies$ Modèle rigide/lissé, risque de sous-apprentissage (forte approximation, faible estimation).
+    \end{itemize}
+\end{remark}
+
+% ----------------------------------------------------------------------
+\subsection{Méthodes génératives}
+
+Au lieu de modéliser directement $f(x)$ ou $\myP(Y \mid X)$, les modèles génératifs estiment la loi conjointe en modélisant :
+\begin{enumerate}
+    \item La loi a priori des classes $p(y)$.
+    \item Les densités conditionnelles de chaque classe $p(x \mid y)$.
+\end{enumerate}
+On en déduit ensuite la loi a posteriori par la règle de Bayes :
+\begin{equation}
+    p(y \mid x) = \frac{p(x \mid y) p(y)}{\sum_{c} p(x \mid y=c) p(y=c)} \propto p(x \mid y) p(y)
+\end{equation}
+La règle de décision optimale est donnée par le maximum a posteriori (MAP) : $\hat{f}(x') = \arg \max_{\hat{y}} p(x' \mid \hat{y}) p(\hat{y})$.
+
+% ----------------------------------------------------------------------
+\subsection{Théorème No Free Lunch}
+
+Il n'existe pas d'algorithme d'apprentissage universel optimal sur toutes les distributions possibles sans hypothèse préalable sur les données.
+
+\begin{theorem}[No Free Lunch (Devroye, Györfi, Lugosi)]
+    Soit le problème de classification binaire avec la perte 0/1 et $\mathcal{X}$ un ensemble infini. Soit $\mathcal{P}$ l'ensemble de toutes les lois de probabilité sur $\mathcal{X} \times \{0, 1\}$. Pour tout entier $n$ et tout algorithme d'apprentissage $\mathcal{A}$, on a :
+    \begin{equation}
+        \sup_{\myP \in \mathcal{P}} \left\{ \mathbb{E}_{S \sim \myP^{\otimes n}} \left[ \mathcal{R}_{\myP}(\mathcal{A}(S)) \right] - \mathcal{R}_{\myP}^* \right\} \ge \frac{1}{2}
+    \end{equation}
+\end{theorem}
+
+Ce résultat implique que pour n'importe quel algorithme fixé, il existe une distribution sous-jacente défavorable pour laquelle l'algorithme ne fait pas mieux qu'un choix aléatoire (même si le risque de Bayes $\mathcal{R}^* = 0$). Il est donc mathématiquement indispensable de poser des hypothèses régularité, marge, séparabilité ou compacité pour garantir des résultats d'apprentissage.
+
