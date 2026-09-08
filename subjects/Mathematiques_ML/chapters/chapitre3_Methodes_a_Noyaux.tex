@@ -1,0 +1,203 @@
+% =============================================================================
+% Chapitre : Méthodes à noyaux et SVM
+% =============================================================================
+
+\minitoc
+
+L'objectif des méthodes à noyaux est de transformer une mesure heuristique de similarité entre données en un algorithme d'apprentissage non linéaire. En s'appuyant implicitement sur un espace de Hilbert de dimension arbitraire (potentiellement infinie), on conserve toute la simplicité de l'optimisation linéaire tout en évitant d'avoir à calculer explicitement les plongements.
+
+% ======================================================================
+% Motivation et Théorème du Représentant
+
+\section{De la similarité au Théorème du Représentant}
+
+\subsection{Intuition géométrique et plongement}
+
+La plupart des jeux de données ne sont pas linéairement séparables dans leur espace d'entrée d'origine $\mathcal{X}$. L'idée fondamentale consiste à envoyer les données dans un espace de caractéristiques de plus grande dimension (un espace de Hilbert $\mathcal{H}$) via une \emph{feature map} :
+\begin{equation}
+    \varphi : \mathcal{X} \longrightarrow \mathcal{H}
+\end{equation}
+Dans $\mathcal{H}$, un hyperplan linéaire peut alors séparer des classes qui formaient des régions géométriques complexes ou intriquées dans $\mathcal{X}$. 
+
+On formule alors le problème sous la forme d'une minimisation de risque empirique régularisé sur la totalité de l'espace hilbertien $\mathcal{H}$ :
+\begin{equation}
+    \hat{\theta}_S \in \arg\min_{\theta \in \mathcal{H}} \; \frac{1}{n} \sum_{i=1}^n l\left(y_i, \langle \varphi(x_i), \theta \rangle_{\mathcal{H}}\right) + \frac{\lambda}{2} \|\theta\|_{\mathcal{H}}^2
+\end{equation}
+où $\lambda > 0$ contrôle la régularisation. 
+
+\begin{remark}[Obstruction numérique]
+    Si $\mathcal{H}$ est de dimension infinie, on ne peut ni représenter le vecteur de paramètres $\theta \in \mathcal{H}$, ni évaluer explicitement $\varphi(x)$ par descente de gradient standard. Le théorème suivant résout ce paradoxe.
+\end{remark}
+
+\subsection{Le Théorème du Représentant}
+
+\begin{theorem}[Théorème du Représentant]
+    Soit $\mathcal{X}$ un ensemble, $\mathcal{H}$ un espace de Hilbert réel muni du produit scalaire $\langle \cdot, \cdot \rangle_{\mathcal{H}}$ et $\varphi : \mathcal{X} \to \mathcal{H}$. Soit un échantillon $S = (x_1, \dots, x_n)$ et le sous-espace engendré par les observations :
+    \begin{equation}
+        \mathcal{H}_D := \operatorname{vect}\{\varphi(x_1), \dots, \varphi(x_n)\} \subset \mathcal{H}
+    \end{equation}
+    Soit $\Psi : \R^n \times \R_+ \to \R$ une fonction croissante par rapport à son second argument. En notant $u(\theta) = (\langle \varphi(x_1), \theta \rangle_{\mathcal{H}}, \dots, \langle \varphi(x_n), \theta \rangle_{\mathcal{H}})^\top \in \R^n$, on a :
+    \begin{equation}
+        \inf_{\theta \in \mathcal{H}} \Psi\left(u(\theta), \|\theta\|_{\mathcal{H}}^2\right) = \inf_{\theta \in \mathcal{H}_D} \Psi\left(u(\theta), \|\theta\|_{\mathcal{H}}^2\right)
+    \end{equation}
+    Si l'infimum est atteint, il l'est en un point $\hat{\theta}_S \in \mathcal{H}_D$. De plus, si $\Psi$ est \emph{strictement croissante} par rapport à son second argument, tout minimiseur appartient nécessairement à $\mathcal{H}_D$.
+\end{theorem}
+
+% [PLACE POUR LA DÉMO DU THÉORÈME DU REPRÉSENTANT]
+% Idée : décomposer \theta = \theta_D + \theta_D^\perp. Par Pythagore \|\theta\|^2 = \|\theta_D\|^2 + \|\theta_D^\perp\|^2.
+% Les prédictions ne dépendent que de \theta_D car \langle \varphi(x_i), \theta_D^\perp \rangle = 0.
+% La stricte croissance élimine tout composant orthogonal non nul.
+
+\subsection{Paramétrisation duale finie}
+
+Grâce au théorème du représentant, la solution optimale s'écrit comme une combinaison linéaire finie des plongements d'entraînement :
+\begin{equation}
+    \theta = \sum_{j=1}^n \alpha_j \varphi(x_j), \quad \text{avec } \alpha = (\alpha_1, \dots, \alpha_n)^\top \in \R^n
+\end{equation}
+En introduisant la \emph{matrice de Gram} $K \in \R^{n \times n}$ définie par $K_{i,j} = \langle \varphi(x_i), \varphi(x_j) \rangle_{\mathcal{H}}$ :
+\begin{itemize}
+    \item Les prédictions sur les données d'entraînement deviennent $(K\alpha)_i$.
+    \item La régularisation se réécrit quadratiquement : $\|\theta\|_{\mathcal{H}}^2 = \alpha^\top K \alpha$.
+\end{itemize}
+Le problème en dimension infinie se réduit alors à une minimisation sur $\R^n$ :
+\begin{equation}
+    \boxed{\hat{\alpha}_S \in \arg\min_{\alpha \in \R^n} \; \frac{1}{n} \sum_{i=1}^n l\left(y_i, (K\alpha)_i\right) + \frac{\lambda}{2} \alpha^\top K \alpha}
+\end{equation}
+Pour prédire sur une nouvelle observation $x \in \mathcal{X}$, il suffit d'évaluer :
+\begin{equation}
+    f_{\hat{\theta}}(x) = \langle \varphi(x), \hat{\theta}_S \rangle_{\mathcal{H}} = \sum_{j=1}^n \hat{\alpha}_{S,j} \langle \varphi(x), \varphi(x_j) \rangle_{\mathcal{H}}
+\end{equation}
+L'application $\varphi$ n'a jamais besoin d'être explicitée : seuls les produits scalaires $\langle \varphi(x), \varphi(x') \rangle_{\mathcal{H}}$ sont requis.
+
+% ======================================================================
+% Noyaux Définis Positifs et RKHS
+
+\section{Noyaux définis positifs et théorème d'Aronszajn}
+
+\subsection{Définition et propriétés}
+
+Au lieu de définir $\mathcal{H}$ puis $\varphi$, on choisit directement une fonction $k : \mathcal{X} \times \mathcal{X} \to \R$ et on cherche à quelles conditions elle correspond à un produit scalaire hilbertien.
+
+\begin{definition}[Noyau semi-défini positif]
+    Une application $k : \mathcal{X} \times \mathcal{X} \to \R$ est appelée un \emph{noyau semi-défini positif} (noyau SDP ou PDSK) si elle vérifie :
+    \begin{enumerate}
+        \item \textbf{Symétrie} : $\forall x, x' \in \mathcal{X}, \quad k(x, x') = k(x', x)$.
+        \item \textbf{Positivité} : $\forall n \ge 1, \; \forall (x_1, \dots, x_n) \in \mathcal{X}^n, \; \forall (\alpha_1, \dots, \alpha_n) \in \R^n$ :
+        \begin{equation}
+            \sum_{i,j=1}^n \alpha_i \alpha_j k(x_i, x_j) \ge 0 \iff K \in \mathcal{S}_n^+(\R)
+        \end{equation}
+        La matrice de Gram associée à toute famille finie est symétrique semi-définie positive.
+    \end{enumerate}
+\end{definition}
+
+\begin{proposition}[Tout produit scalaire définit un noyau SDP]
+    Si $\mathcal{H}$ est un espace de Hilbert et $\varphi : \mathcal{X} \to \mathcal{H}$, alors $k(x, x') := \langle \varphi(x), \varphi(x') \rangle_{\mathcal{H}}$ est un noyau SDP.
+\end{proposition}
+
+% [PLACE POUR LA DÉMO : bilinéarité et positivité de la norme \|\sum \alpha_i \varphi(x_i)\|^2 >= 0]
+
+\subsection{Théorème d'Aronszajn et espaces de Hilbert à noyau reproduisant (RKHS)}
+
+La réciproque fondamentale affirme que tout noyau SDP cache une géométrie hilbertienne.
+
+\begin{theorem}[Théorème d'Aronszajn]
+    Soit $k : \mathcal{X} \times \mathcal{X} \to \R$ un noyau symétrique semi-défini positif. Alors, il existe un unique espace de Hilbert $\mathcal{H}_k$ constitué de fonctions de $\mathcal{X}$ dans $\R$, et une application $\varphi_k : \mathcal{X} \to \mathcal{H}_k$, tels que :
+    \begin{enumerate}
+        \item $\forall x \in \mathcal{X}, \quad k_x := k(x, \cdot) \in \mathcal{H}_k$.
+        \item \textbf{Propriété de reproduction} : $\forall f \in \mathcal{H}_k, \; \forall x \in \mathcal{X}, \quad f(x) = \langle f, k_x \rangle_{\mathcal{H}_k}$.
+        \item $\forall x, x' \in \mathcal{X}, \quad k(x, x') = \langle k_x, k_{x'} \rangle_{\mathcal{H}_k} = \langle \varphi_k(x), \varphi_k(x') \rangle_{\mathcal{H}_k}$.
+    \end{enumerate}
+    $\mathcal{H}_k$ est appelé l'\emph{espace de Hilbert à noyau reproduisant} (RKHS) associé à $k$.
+\end{theorem}
+
+% [PLACE POUR LES ÉTAPES DE LA PREUVE D'ARONSZAJN :
+% 1. Construction du pré-hilbertien \mathcal{H}_0 = Vect({k_x}) muni du produit canonique
+% 2. Séparation / Caractère défini via Cauchy-Schwarz et reproduction
+% 3. Complétion par suites de Cauchy et lemme de convergence simple vers 0
+% 4. Densité de \mathcal{H}_0 dans \mathcal{H}_k]
+
+\subsection{Algèbre des noyaux et théorème de Bochner}
+
+\begin{theorem}[Règles de clôture / Stabilité]
+    L'ensemble des noyaux SDP sur $\mathcal{X}$ est stable par :
+    \begin{itemize}
+        \item Multiplication par un scalaire positif : $\lambda k$ avec $\lambda \ge 0$.
+        \item Somme finie : $k_1 + k_2$.
+        \item Produit point par point : $k_1 \cdot k_2$ (via le produit de Schur et produit scalaire de Frobenius).
+        \item Limite simple (si elle existe).
+        \item Exponentiation : $\exp(k)$.
+    \end{itemize}
+\end{theorem}
+
+\begin{theorem}[Théorème de Bochner -- Invariance par translation]
+    Soit $q : \R^d \to \R$ continue. Le noyau stationnaire $k(x, x') := q(x - x')$ est semi-défini positif si et seulement si $q$ est la transformée de Fourier inverse d'une mesure borélienne positive finie $\rho$ :
+    \begin{equation}
+        q(z) = \frac{1}{(2\pi)^d} \int_{\R^d} e^{i z^\top \omega} \, \mathrm{d}\rho(\omega)
+    \end{equation}
+\end{theorem}
+
+\begin{example}[Noyaux usuels]
+    \begin{itemize}
+        \item \textbf{Noyau linéaire} : $k(x, x') = x^\top x'$ sur $\R^d$.
+        \item \textbf{Noyau polynomial} : $k(x, x') = (x^\top x' + c)^q$, avec $c \ge 0, q \in \N^*$.
+        \item \textbf{Noyau gaussien (RBF)} : $k(x, x') = \exp\left(-a \|x - x'\|_2^2\right)$ avec $a > 0$ (SDP par Bochner).
+    \end{itemize}
+\end{example}
+
+% ======================================================================
+% Séparateurs à Vaste Marge (SVM)
+
+\section{Séparateurs à Vaste Marge (SVM)}
+
+\subsection{Cas linéairement séparable : Maximisation de la marge}
+
+On considère un problème de classification binaire $y_i \in \{-1, 1\}$. On cherche l'hyperplan de décision $\{\theta^\top x = 0\}$ qui sépare les données tout en maximisant la distance minimale aux points d'entraînement (la marge géométrique).
+
+\begin{proposition}[Distance à l'hyperplan et formulation canonique]
+    La distance d'un point $x$ à l'hyperplan $H(\theta) = \{z \mid \theta^\top z = 0\}$ est donnée par $\operatorname{dist}(x, H(\theta)) = \frac{|\theta^\top x|}{\|\theta\|_2}$.
+    Sous l'hypothèse de séparabilité stricte ($y_i (\theta^\top x_i) > 0$), maximiser la marge géométrique $\min_i \frac{y_i(\theta^\top x_i)}{\|\theta\|_2}$ avec la normalisation $\min_i y_i (\theta^\top x_i) = 1$ équivaut au problème quadratique convexe :
+    \begin{equation}
+        \min_{\theta \in \R^d} \; \frac{1}{2} \|\theta\|_2^2 \quad \text{s.c.} \quad \forall i \in \llbracket 1, n \rrbracket, \; y_i(\theta^\top x_i) \ge 1
+    \end{equation}
+\end{proposition}
+
+\subsection{Cas non séparable : Variables d'écart et perte charnière}
+
+Pour tolérer les erreurs de classement ou le chevauchement, on introduit des variables d'écart (\emph{slack variables}) $\xi_i \ge 0$ pénalisées par $C > 0$ :
+\begin{equation}
+    \min_{\theta \in \R^d, \; \xi \in \R^n} \; \frac{1}{2} \|\theta\|_2^2 + C \sum_{i=1}^n \xi_i \quad \text{s.c.} \quad \forall i, \; y_i(\theta^\top x_i) \ge 1 - \xi_i \quad \text{et} \quad \xi_i \ge 0
+\end{equation}
+
+\begin{remark}[Équivalence avec la Hinge Loss]
+    À l'optimum, $\xi_i = \max(0, 1 - y_i(\theta^\top x_i)) = (1 - y_i(\theta^\top x_i))_+$. En posant $\lambda = \frac{1}{nC}$, ce problème est rigoureusement identique à la minimisation du risque empirique régularisé pour la perte charnière (\emph{hinge loss}) :
+    \begin{equation}
+        \min_{\theta \in \R^d} \; \frac{1}{n} \sum_{i=1}^n \left(1 - y_i (\theta^\top x_i)\right)_+ + \frac{\lambda}{2} \|\theta\|_2^2
+    \end{equation}
+\end{remark}
+
+\subsection{Dualité de Wolfe et astuce du noyau (Kernel Trick)}
+
+Le problème primal étant convexe et qualifié (conditions de Slater vérifiées), la dualité forte s'applique. 
+
+\begin{proposition}[Problème dual des SVM linéaires]
+    En introduisant les multiplicateurs de Lagrange et en annulant le gradient par rapport aux variables primales, le problème dual s'écrit :
+    \begin{equation}
+        \max_{\alpha \in \R^n} \; \sum_{i=1}^n \alpha_i - \frac{1}{2} \sum_{i,j=1}^n \alpha_i \alpha_j y_i y_j (x_i^\top x_j) \quad \text{s.c.} \quad \forall i, \; 0 \le \alpha_i \le C
+    \end{equation}
+\end{proposition}
+
+% [PLACE POUR LA DÉRIVATION DU LAGRANGIEN : \mathcal{L}(\theta, \xi, \alpha, \beta), élimination de \beta via \alpha_i + \beta_i = C]
+
+Dans le problème dual, les données n'interviennent que par leurs produits scalaires $x_i^\top x_j$. En vertu du théorème d'Aronszajn et du théorème du représentant, on remplace simplement $x_i^\top x_j$ par un noyau SDP $k(x_i, x_j)$ : c'est le \textbf{Kernel Trick}.
+
+\begin{theorem}[SVM à noyau -- Forme duale]
+    Pour tout noyau SDP $k$, le problème SVM régularisé dans le RKHS $\mathcal{H}_k$ se résout via le programme quadratique à contraintes de boîte :
+    \begin{equation}
+        \boxed{\max_{\mu \in \R^n} \; \sum_{i=1}^n \mu_i - \frac{1}{2\lambda} \sum_{i,j=1}^n y_i y_j \mu_i \mu_j k(x_i, x_j) \quad \text{s.c.} \quad \forall i, \; 0 \le \mu_i \le \frac{1}{n}}
+    \end{equation}
+    Le classifieur optimal prend alors la forme explicite :
+    \begin{equation}
+        f(x) = \operatorname{sign}\left( \sum_{i=1}^n \hat{\alpha}_{S,i} k(x, x_i) \right)
+    \end{equation}
+    où seuls les points d'entraînement associés à un multiplicateur non nul ($\alpha_i > 0$, les \emph{vecteurs de support}) interviennent dans la décision.
+\end{theorem}
