@@ -1,0 +1,46 @@
+% =============================================================================
+% Modèles de Markov Caché
+% =============================================================================
+
+\minitoc
+
+Ce chapitre développe les HMM dits \emph{Modèles de Markov Caché} ou \emph{Hide Markov Models}. 
+Historiquement, ces modèles étaient utilisés dans le traitement du langage naturel. Notamment la prédiction d'un token à la suite d'une série de tokens. Aujourd'hui, les LLM sont bien plus performants pour ce type de tâches, mais les HMM utilisent des algorithmes intéressants à développer et toujours utilisés. 
+
+Ces modèles peuvent aussi être utilisés dans l'alignement de mots de deux texte différents (traduction ou transcription) ou le traitement automatique de la parole (\emph{Speech-to-Text}). 
+
+\section{Généralités}
+
+\subsection{Définitions et premier modèle}
+
+Pour définir de tels modèles, nous devons commencer par définir leur support de données qui correspondra aux éléments qui seront générés par le modèle. En gardant l'exemple du langage naturel, celui-ci est composé de mots que l'on peut séparer en \emph{tokens}. 
+
+\begin{definition}[n-grammes]
+    Soit $ \mathcal{A}$ un alphabet regroupant l'ensemble des symboles possibles pour notre langage. On appellera \emph{n-grammes}, pour $n \geqslant 1$ l'ensemble des mots à $n$ symboles que l'on peut construire à partir de $ \mathcal{A}$. 
+\end{definition}
+
+L'idée intuitive des modèles de Markov est de générer le token suivant à partir des tokens précédents. Pour cela, différentes approches sont utilisées comportant différentes hypothèses sur les tokens. 
+
+\begin{proposition}
+    Une première approche pourrait être de tirer aléatoirement des tokens $(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop})$ conditonnellement aux tokens précédement tirés : 
+    \begin{equation}
+        \myP(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop}) = \prod_{i=1}^{n} \myP(O_i \mid \operatorname{start}, O_1, \dots, O_{i-1}). 
+    \end{equation}
+\end{proposition}
+
+Pour modéliser cela algorithmiquement, supposons que nous avons $N$ tokens possibles et que nous devons générer une phrase de $L$ tokens. 
+Pour cela, on peut considérer un certain nombre de dés. Chaque dé représente une phrase possible au temps $i$ et contient tous les $N$ tokens suivant possibles. Pour génerer une séquence de $L$ mots à l'étape $i$, il faut donc prendre le dé qui correspond au début de la phrase générée et le lancer pour obtenir le mot suivant. 
+Si l'on compte les dés, il nous en faudrait $N^L$. Pour un dictionnaire de 100 000 tokens, et une phrase de 10 tokens, cela fait exploser le nombre de possibilités et l'emplacement mémoire pris. 
+
+D'autre part, une fois les probabilités apprises à partir d'un jeu de données de séquences, il serait impossible de générer une séquence non vue à l'apprentissage car aucun dé ne correspondrait à celle-ci. 
+
+\subsection{Bag-of-words et Modèle Markov du Premier Ordre}
+
+La solution est donc de 
+
+
+
+
+% \subsection{Algorithme Forward}
+
+%  TODO : Compléter cette partie avec les notes de TD
