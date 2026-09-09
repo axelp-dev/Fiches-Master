@@ -47,7 +47,7 @@ Pour apprendre une telle fonction, nous devons admettre différentes hypothèses
 Pour effectuer cet apprentissage, nous devons être capable de savoir à quel point notre modèle se trompe sur une prédiction donnée par rapport à la vraie valeur issue du jeu de données. Nous définissons pour cela une \emph{fonction de perte}. 
 
 \begin{definition}[Fonction de perte]
-    La \emph{fonction de perte}, notée $l$, calcule l'erreur induite par la prédiction de $z \in \mathcal{Y}$ alors que la valeur attendue était $y \in \mathcal{Y}$ pour une entrée $x \in \mathcal{X}$. Elle vérifie donc : 
+    La \emph{fonction de perte}, notée $l$, calcule l'erreur induite par la prédiction de $z \in \mathcal{Y}$ alors que la valeur attendue était $y \in \mathcal{Y}$ pour une entrée $x \in \mathcal{x}$. Elle vérifie donc : 
     \begin{equation}
         l : \mathcal{Y} \times \mathcal{Y} \longrightarrow \R.
     \end{equation}
@@ -62,7 +62,7 @@ Pour effectuer cet apprentissage, nous devons être capable de savoir à quel po
 
 \subsection{Les Risques}
 
-Ces différentes fonctions de pertes, aussi bien définies soient-elles, ne nous donnent d'un aperçu des erreurs du modèle en temps réel. Nous avons aussi besoin d'avoir une idée plus fine des performances du modèle vis-à-vis de la distribution de probabilité $\myP$ du jeu de données $D$. 
+Ces différentes fonctions de pertes, aussi bien définies soient-elles, ne nous donnent d'un apperçu des erreurs du modèle en temps réel. Nous avons aussi desoin d'avoir une idée plus fine des performances du modèle vis-à-vis de la distribution de probabilité $\myP$ du jeu de données $D$. 
 On définit pour cela les \emph{risques}. 
 
 \begin{definition}[Risque Moyen]
@@ -107,7 +107,7 @@ On définit pour cela les \emph{risques}.
 \begin{remark}[Indépendance]
     En pratique, pour toute fonction apprise $f$, on aura $ \hat{ \mathcal{R}}(f) \simeq \mathcal{R}(f)$. Or, lorsque l'on calcule $f$ sur des données empiriques (ex: jeu de données), on casse l'indépendance de la suite de variables aléatoires et donc le TCL. Formellement, en prenant l'estimateur : 
     $$ \frac{1}{n} \sum_{i=1}^{n} l(x_i, \hat{f}(x_i)), $$ 
-    on remarque que le $\hat{f}$ est calculé à partir des $(x_1, y_1), \dots, (x_n, y_n)$. On peut solutionner ce problème en séparant le jeu de données en deux : \emph{entraînement} et \emph{test} (et éventuellement \emph{validation}). Puisque le modèle ne voit pas les données de test et de validation, la fonction apprise ne dépend pas de ces données, ce qui permet de conserver l'indépendance des variables. On peut ensuite utiliser le TCL pour estimer le risque $\mathcal{R}$ à partir du risque empirique $\hat{\mathcal{R}}$. 
+    on remarque que le $\hat{f}$ est calculé à partir des $(x_1, y_1), \dots, (x_n, y_n)$. On peut solutionner ce problème en séparant le jeu de données en deux : \emph{entraînement} et \emph{test} (et éventuellement \emph{validation}). Puisque le modèle ne voit pas les données de test et de validation, la fonction apprise ne dépend pas de ces données, ce qui permet de conserver l'indépendance des variables. On peut ensuite ustiliser le TCL pour estimer le risque $\mathcal{R}$ à partir du risque empirique $\hat{\mathcal{R}}$. 
 \end{remark}
 
 % ======================================================================
@@ -158,7 +158,7 @@ Minimiser $\mathcal{R}(f)$ revient donc à minimiser l'espérance conditionnelle
 \begin{proposition}[Cas de la classification binaire (perte 0/1)]
     Pour $\mathcal{Y} = \{0, 1\}$ et la perte 0/1 $l(y, z) = \mathbbm{1}_{y \neq z}$, le prédicteur de Bayes attribue la classe la plus probable a posteriori :
     \begin{equation}
-        \boxed{f^*(x) = \mathbbm{1}_{\myP(Y = 1 \mid X = x) \geqslant 1/2}}
+        \boxed{f^*(x) = \mathbbm{1}_{\myP(Y = 1 \mid X = x) \ge 1/2}}
     \end{equation}
 \end{proposition}
 
@@ -213,20 +213,16 @@ Le prédicteur de Bayes $f^*$ étant inconnu car il dépend de la distribution $
 \begin{remark}[Contrôle de l'erreur d'estimation]
     En notant $\theta^* \in \arg \min_{\theta \in \Theta} \mathcal{R}(f_\theta)$, on majore l'erreur d'estimation par :
     \begin{equation}
-        \mathcal{R}(f_{\hat{\theta}}) - \mathcal{R}(f_{\theta^*}) 
-        \quad \leqslant \quad 2 \sup_{\theta \in \Theta} |\hat{\mathcal{R}}_S(f_\theta) - \mathcal{R}(f_\theta)| + \sup_{\theta \in \Theta} (\hat{\mathcal{R}}_S(f_{\hat{\theta}}) - \hat{\mathcal{R}}_S(f_\theta))
+        \mathcal{R}(f_{\hat{\theta}}) - \mathcal{R}(f_{\theta^*}) \le 2 \sup_{\theta \in \Theta} |\hat{\mathcal{R}}_S(f_\theta) - \mathcal{R}(f_\theta)| + \sup_{\theta \in \Theta} (\hat{\mathcal{R}}_S(f_{\hat{\theta}}) - \hat{\mathcal{R}}_S(f_\theta))
     \end{equation}
     Le premier terme est une déviation uniforme (objet central de la théorie de l'apprentissage statistique), et le second représente l'erreur d'optimisation numérique (nulle si le minimum empirique est calculé exactement).
 \end{remark}
 
-La décomposition du risque comme présentée ci-dessus peut être observée sur l'apprentissage du modèle. On parlera alors de sur-apprentissage ou de sous-apprentissage en fonction de la complexité du modèle. 
-
+\subsubsection{Sous-apprentissage, Sur-apprentissage et Régularisation}
 \begin{itemize}
     \item \textbf{Sous-apprentissage (\emph{Underfitting})} : Modèle trop simple (faible complexité de $\Theta$), dominé par l'erreur d'approximation.
     \item \textbf{Sur-apprentissage (\emph{Overfitting})} : Modèle trop expressif (par exemple interpolation polynomiale de Lagrange de degré $n-1$), l'erreur empirique est quasi-nulle mais l'erreur d'estimation explose sur les nouvelles données.
 \end{itemize}
-
-% TODO : Ajouter graphe des risques en fonction de la complexité du modèle
 
 Pour contrôler ce phénomène, on introduit une pénalisation de complexité $\Omega(\theta)$ :
 \begin{equation}
@@ -268,7 +264,7 @@ L'idée consiste à postuler une famille paramétrique de densités conditionnel
 
 Ces méthodes non paramétriques exploitent une hypothèse de régularité locale : des points proches dans $\mathcal{X}$ partagent des distributions conditionnelles $\myP_{y|x}$ similaires.
 
-\begin{definition}[$k$-Nearest Neighbours -- $k$-NN]
+\begin{definition}[$k$-Nearest Neighbours ($k$-NN)]
     Pour une entrée $x'$, on considère l'ensemble $\mathcal{V}_k(x')$ de ses $k$ plus proches voisins dans le jeu d'entraînement :
     \begin{itemize}
         \item \textbf{En classification} : Règle du vote majoritaire :
@@ -312,7 +308,7 @@ Il n'existe pas d'algorithme d'apprentissage universel optimal sur toutes les di
 \begin{theorem}[No Free Lunch (Devroye, Györfi, Lugosi)]
     Soit le problème de classification binaire avec la perte 0/1 et $\mathcal{X}$ un ensemble infini. Soit $\mathcal{P}$ l'ensemble de toutes les lois de probabilité sur $\mathcal{X} \times \{0, 1\}$. Pour tout entier $n$ et tout algorithme d'apprentissage $\mathcal{A}$, on a :
     \begin{equation}
-        \sup_{\myP \in \mathcal{P}} \left\{ \mathbb{E}_{S \sim \myP^{\otimes n}} \left[ \mathcal{R}_{\myP}(\mathcal{A}(S)) \right] - \mathcal{R}_{\myP}^* \right\} \geqslant\frac{1}{2}
+        \sup_{\myP \in \mathcal{P}} \left\{ \mathbb{E}_{S \sim \myP^{\otimes n}} \left[ \mathcal{R}_{\myP}(\mathcal{A}(S)) \right] - \mathcal{R}_{\myP}^* \right\} \ge \frac{1}{2}
     \end{equation}
 \end{theorem}
 

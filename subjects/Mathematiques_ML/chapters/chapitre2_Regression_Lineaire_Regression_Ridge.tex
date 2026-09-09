@@ -3,11 +3,11 @@
 
 \minitoc 
 
-On pose ici le contexte d'une régression linéaire. On cherche donc à apprendre une fonction pour décrire un jeu de données $(x_1, y_1), \dots, (x_n, y_n) \in \mathcal{X} \times \mathcal{Y}$. Dans le cas du modèle linéaire, on fera l'hypothèse forte suivante : 
+On pose ici le contexte d'une \emph{régression linéaire}. On cherche donc à apprendre une fonction pour décrire un jeu de données $(x_1, y_1), \dots, (x_n, y_n) \in \mathcal{X} \times \mathcal{Y}$. Dans le cas du modèle linéaire, on fera l'hypothèse forte suivante : 
 \begin{equation}
-    (H_0) : f_\theta = \varphi(x)^t \theta, \quad \theta \in \R^d.
+    (H) : f_\theta = \varphi(x)^t \theta, \quad \theta \in \R^d.
 \end{equation} 
-Pour construire cette fonction, on utilisera l'estimateur du risque empirique définit (ERM) définit par : 
+Pour construire cette fonction, on utilisera l'estimateur du risque empirique (ERM) définit par : 
 \begin{equation}
     \hat{R}( \theta) \in \underset{ \theta \in \Theta}{\arg \min} \frac{1}{n} \sum_{i=1}^{n} \left(y_i - f_\theta(x_i)\right)^2. 
 \end{equation}
@@ -31,36 +31,36 @@ Pour construire cette fonction, on utilisera l'estimateur du risque empirique d�
 
 \section{Moindres Carrés}
 
-\subsection{Calcul}
+Nous sommes en présence d'un problème de régression. Grâces aux notations matricielles précédement posées, nous sommes capable de calculer une solution explicite à la main. 
 
-\begin{proposition}
-    On cherche à calculer explicitement $\hat{\theta} \in \arg \min_{\theta \in \R^d} \hat{R}(\theta)$. Utilisons la condition d'optimalité d'ordre 1 :
-    \begin{equation}
-        \hat{R}(\theta) = \frac{1}{n} \| y - \Phi \theta \|_2^2
-    \end{equation}
-    \begin{equation}
-        \nabla_\theta \hat{R}(\theta) = \frac{2}{n} \Phi^\top (\Phi \theta - y)
-    \end{equation}
-    En résolvant l'équation $\nabla_\theta \hat{R}(\hat{\theta}) = 0$, on obtient les \emph{équations normales} :
-    \begin{equation}
-        (*) : \Phi^\top \Phi \hat{\theta} = \Phi^\top y
-    \end{equation}
-    En supposant que $\Phi$ est de rang plein ($rg(\Phi) = d$, soit des colonnes linéairement indépendantes), la matrice de Gram $\Phi^\top \Phi \in \R^{d \times d}$ est inversible, ce qui donne :
-    \begin{equation}
-        (*) \iff \boxed{\hat{\theta} = \left( \Phi^\top \Phi\right)^{-1} \Phi^\top y}
-    \end{equation}
-    La fonction $\hat{R}$ étant convexe, ce point stationnaire est un minimum global.
-\end{proposition}
+On cherche à calculer explicitement $\hat{\theta} \in \arg \min_{\theta \in \R^d} \hat{R}(\theta)$. Pour cela, on utilise la condition nécessaire d'optimalité d'ordre 1 : $\nabla_\theta \hat{R}(\hat{\theta}) = 0$. Commençons donc par calculer le gradient : 
+\begin{equation}
+    \hat{R}(\theta) = \frac{1}{n} \| y - \Phi \theta \|_2^2
+\end{equation}
+\begin{equation}
+    \nabla_\theta \hat{R}(\theta) = \frac{2}{n} \Phi^\top (\Phi \theta - y)
+\end{equation}
 
+En résolvant l'équation $\nabla_\theta \hat{R}(\hat{\theta}) = 0$, on obtient les \emph{équations normales} :
+\begin{equation}
+    (*) : \Phi^\top \Phi \hat{\theta} = \Phi^\top y
+\end{equation}
+
+En supposant que $\Phi$ est de rang plein ($rg(\Phi) = d$, soit des colonnes linéairement indépendantes), la matrice de Gram $\Phi^\top \Phi \in \R^{d \times d}$ est inversible, ce qui donne :
+\begin{equation}
+    (*) \iff \boxed{\hat{\theta} = \left( \Phi^\top \Phi\right)^{-1} \Phi^\top y}
+\end{equation}
+
+La fonction $\hat{R}$ étant convexe, ce point stationnaire est un minimum global.
 On calcule ainsi explicitement l'estimateur des moindres carrés (OLS), qui fournit le prédicteur linéaire optimal sur l'échantillon d'entraînement.
 
-\subsection{Interprétation Géométrique}
-
-Géométriquement, les prédictions $\hat{y} = \Phi \hat{\theta}$ correspondent à la projection orthogonale du vecteur d'observations $y \in \R^n$ sur le sous-espace vectoriel $\operatorname{Im}(\Phi) \subset \R^n$ engendré par les colonnes de $\Phi$ :
-\begin{equation}
-    \hat{\theta} \in \underset{\theta \in \R^d}{\arg \min} \; \frac{1}{n} \left\| y - \Phi \theta \right\|_2^2 \quad
-    \iff \quad \hat{y} \in \underset{z \in \operatorname{Im}(\Phi)}{\arg \min} \; \frac{1}{n} \left\| y - z \right\|_2^2
-\end{equation}
+\begin{proposition}
+    Géométriquement, les prédictions $\hat{y} = \Phi \hat{\theta}$ correspondent à la projection orthogonale du vecteur d'observations $y \in \R^n$ sur le sous-espace vectoriel $\operatorname{Im}(\Phi) \subset \R^n$ engendré par les colonnes de $\Phi$ :
+    \begin{equation}
+        \hat{\theta} \in \underset{\theta \in \R^d}{\arg \min} \; \frac{1}{n} \left\| y - \Phi \theta \right\|_2^2 \quad
+        \iff \quad \hat{y} \in \underset{z \in \operatorname{Im}(\Phi)}{\arg \min} \; \frac{1}{n} \left\| y - z \right\|_2^2
+    \end{equation}
+\end{proposition}
 
 \begin{figure}[htbp]
     \centering
@@ -135,7 +135,7 @@ Dans cette section, on se place sous l'hypothèse du \emph{design fixe} : les po
     \end{equation}
 \end{definition}
 
-On introduit la matrice de covariance empirique $\hat{\Sigma} := \frac{1}{n} \Phi^\top \Phi \in \R^{d \times d}$, associée à la semi-norme $\|u\|_{\hat{\Sigma}}^2 := u^\top \hat{\Sigma} u = \frac{1}{n} \|\Phi u\|_2^2$.
+On introduit la matrice de covariance empirique $\hat{\Sigma} := \displaystyle \frac{1}{n} \Phi^\top \Phi \in \R^{d \times d}$, associée à la semi-norme $\|u\|_{\hat{\Sigma}}^2 := u^\top \hat{\Sigma} u = \displaystyle \frac{1}{n} \|\Phi u\|_2^2$.
 
 \begin{proposition}[Décomposition Biais-Variance]
     Pour tout vecteur fixe $\theta \in \R^d$ :
@@ -144,6 +144,9 @@ On introduit la matrice de covariance empirique $\hat{\Sigma} := \frac{1}{n} \Ph
         &= \frac{1}{n} \|\Phi (\theta_* - \theta)\|_2^2 + \frac{1}{n} \mathbb{E}\left[\|\varepsilon\|_2^2\right] + \frac{2}{n} (\theta_* - \theta)^\top \Phi^\top \mathbb{E}[\varepsilon] \\
         &= \|\theta - \theta_*\|_{\hat{\Sigma}}^2 + \sigma^2.
     \end{align*}
+
+    % TODO : Ajouter calcul risque de Bayes + le calculer à la main
+    
     Le risque de Bayes est atteint en $\theta_*$ : $R^* = R(\theta_*) = \sigma^2$. Par conséquent, pour un estimateur aléatoire $\hat{\theta}$ dépendant de $y$ (donc de $\varepsilon$) :
     \begin{equation}
         \boxed{\mathbb{E}_{\hat{\theta}}\left[ R(\hat{\theta}) \right] - R^* = \underbrace{\left\| \mathbb{E}(\hat{\theta}) - \theta_* \right\|_{\hat{\Sigma}}^2}_{\text{Biais}^2} + \underbrace{\mathbb{E}_{\hat{\theta}}\left[ \left\| \hat{\theta} - \mathbb{E}(\hat{\theta}) \right\|_{\hat{\Sigma}}^2 \right]}_{\text{Variance}}}
