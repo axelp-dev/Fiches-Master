@@ -1,0 +1,129 @@
+\minitoc
+
+% =============================================================================
+% Fondements Theoriques et Cadre de Risque
+
+\section{Fondements Théoriques et Risques Systémiques}
+
+L'apprentissage automatique profond repose sur des principes d'optimisation numérique empirique dont la robustesse n'est pas inconditionnelle.
+
+\subsection{Le théorème du \emph{No Free Lunch}}
+
+Formulé par David Wolpert (1996), le théorème du \emph{No Free Lunch} stipule qu'aucun algorithme d'apprentissage n'est universellement supérieur à tous les autres sur l'ensemble des distributions de données imaginables :
+\begin{equation}
+    \sum_{\mathcal{D}} \mathbb{E}\left[\mathcal{E}_{\mathrm{test}} \mid \mathcal{A}_1, \mathcal{D}\right] = \sum_{\mathcal{D}} \mathbb{E}\left[\mathcal{E}_{\mathrm{test}} \mid \mathcal{A}_2, \mathcal{D}\right].
+\end{equation}
+L'efficacité d'un modèle (ex: l'invariance par translation d'un CNN ou la dépendance temporelle ordonnée d'un RNN) repose exclusivement sur l'adéquation de ses \textbf{biais inductifs} avec les propriétés physiques du problème traité.
+
+\subsection{Cadre légal européen : L'AI Act}
+
+Face à l'opacité inhérente aux modèles dits "boîte noire", l'Union Européenne a introduit en 2024 un cadre législatif gradué selon quatre niveaux de criticité :
+\begin{itemize}
+    \item \textbf{Risque inacceptable} : interdiction absolue (ex : évaluation sociale généralisée, manipulation cognitive subliminale, identification biométrique en temps réel dans l'espace public à des fins policières).
+    \item \textbf{Haut risque} : conformité, traçabilité et explicabilité strictes (ex : systèmes de tri automatisé de CV, justice prédictive, calcul des aides sociales).
+    \item \textbf{Risque limité} : obligations de transparence (ex : systèmes génératifs d'images / deepfakes, agents conversationnels / chatbots).
+    \item \textbf{Risque minimal} : usage libre (ex : filtres anti-spam, jeux vidéo).
+\end{itemize}
+
+% =============================================================================
+% Biais et Equite Algorithmique
+
+\section{Biais de Données et Métriques d'Équité (\emph{Fairness})}
+
+\subsection{Typologie des biais dans le cycle de vie du modèle}
+
+Un algorithme n'est jamais neutre : il optimise une fonction de coût sur des distributions historiques parfois biaisées.
+\begin{enumerate}
+    \item \textbf{Biais d'échantillonnage (Sampling bias)} : illustré historiquement par les travaux d'Abraham Wald sur les bombardiers de la Seconde Guerre mondiale (l'observation des impacts sur les avions revenus omettait les zones critiques des avions abattus).
+    \item \textbf{Biais historique et stéréotypage} : propagation des corrélations fallacieuses présentes dans la langue écrite (ex: l'analogie vectorielle dans Word2Vec où $\vec{v}_{\text{docteur}} - \vec{v}_{\text{homme}} + \vec{v}_{\text{femme}} \approx \vec{v}_{\text{infirmière}}$).
+    \item \textbf{Biais de mesure et disparités intersectionnelles} : travaux de Buolamwini et Gebru (2018) démontrant que les classifieurs commerciaux présentaient un taux d'erreur inférieur à $1\%$ pour les hommes à peau claire, mais supérieur à $34\%$ pour les femmes à peau sombre en raison de bases d'entraînement déséquilibrées.
+\end{enumerate}
+
+\subsection{Critères mathématiques d'équité}
+
+Soit $X$ les attributs descriptifs, $A \in \{0, 1\}$ un attribut sensible protégé (genre, origine), $Y \in \{0, 1\}$ la vérité terrain et $\hat{Y} = f(X, A)$ la décision binaire du modèle :
+\begin{definition}[Mesures formelles d'équité de groupe]
+    \begin{itemize}
+        \item \textbf{Parité statistique (Démographique)} : l'accès à la classe favorable est indépendant du groupe :
+        \begin{equation}
+            \mathbb{P}(\hat{Y} = 1 \mid A = 0) = \mathbb{P}(\hat{Y} = 1 \mid A = 1).
+        \end{equation}
+        \item \textbf{Égalité des chances (Equal Opportunity)} : le taux de vrais positifs est identique entre les groupes :
+        \begin{equation}
+            \mathbb{P}(\hat{Y} = 1 \mid A = 0, Y = 1) = \mathbb{P}(\hat{Y} = 1 \mid A = 1, Y = 1).
+        \end{equation}
+    \end{itemize}
+\end{definition}
+
+% =============================================================================
+% Robustesse et Exemples Adversariaux
+
+\section{Robustesse et Exemples Adversariaux}
+
+\subsection{Vulnérabilité aux perturbations imperceptibles}
+
+En grande dimension, la géométrie des réseaux de neurones engendre des discontinuités locales brutales : une micro-perturbation vectorielle $\delta$, non discernable pour l'œil humain, peut faire basculer la classification vers une cible aberrante avec une confiance proche de $100\%$.
+
+\begin{definition}[Problème d'optimisation d'une attaque adversariale]
+    Étant donné un classifieur $f(x) = \arg\max_c p(c \mid x)$ et une cible voulue $y_{\mathrm{adv}} \neq y$, la recherche d'une attaque minimale sous contrainte de norme $\ell_p$ s'écrit :
+    \begin{equation}
+        \min_{\delta} \|\delta\|_p \quad \text{tel que} \quad f(x + \delta) = y_{\mathrm{adv}}.
+    \end{equation}
+\end{definition}
+
+\begin{proposition}[Attaque FGSM (\emph{Fast Gradient Sign Method})]
+    Goodfellow et al. (2014) ont démontré qu'une attaque efficace sous contrainte $\ell_\infty$ ($\|\delta\|_\infty \le \epsilon$) s'obtient analytiquement par une passe linéaire inverse sur le gradient de la perte :
+    \begin{equation}
+        x_{\mathrm{adv}} = x + \epsilon \cdot \operatorname{sign}\left( \nabla_x \mathcal{L}(\theta, x, y) \right).
+    \end{equation}
+\end{proposition}
+
+\subsection{Implémentation d'une attaque FGSM sous PyTorch}
+
+\begin{lstlisting}[language=Python, caption={Génération d'un exemple adversarial FGSM sous PyTorch}]
+import torch
+import torch.nn as nn
+
+def fgsm_attack(image: torch.Tensor, epsilon: float, data_grad: torch.Tensor) -> torch.Tensor:
+    # Recupere le signe des gradients de la perte par rapport aux pixels d'entree
+    sign_data_grad = data_grad.sign()
+    # Ajout de la perturbation directionnelle bornee par epsilon
+    perturbed_image = image + epsilon * sign_data_grad
+    # Re-ecretage pour conserver des valeurs de pixels physiques valides [0, 1]
+    perturbed_image = torch.clamp(perturbed_image, 0, 1)
+    return perturbed_image
+
+# Exemple d'execution
+model.eval()
+input_img.requires_grad = True
+
+output = model(input_img)
+loss = criterion(output, target_label)
+model.zero_grad()
+loss.backward()
+
+# Perturbation de l'entree
+grad_x = input_img.grad.data
+perturbed_data = fgsm_attack(input_img, epsilon=0.05, data_grad=grad_x)
+\end{lstlisting}
+
+% =============================================================================
+% Explicabilite et Interpretabilite (XAI)
+
+\section{Explicabilité et Interprétabilité (XAI)}
+
+\subsection{Cartes de saillance (\emph{Saliency Maps})}
+
+Pour une entrée $x_0$ et une classe d'intérêt $c$, la carte de saillance de Simonyan et al. (2013) mesure l'influence linéaire locale au premier ordre de chaque coordonnée d'entrée sur le score $S_c$ avant normalisation Softmax :
+\begin{equation}
+    M_{\mathrm{saliency}}(x_0) = \left| \nabla_x S_c(x) \big|_{x = x_0} \right|.
+\end{equation}
+Cette méthode permet notamment de détecter si un classifieur s'appuie sur des artéfacts fallacieux d'arrière-plan (effet dit "Clever Hans") plutôt que sur les caractéristiques intrinsèques de l'objet.
+
+\subsection{Perturbations locales : La méthode LIME}
+
+Ribeiro et al. (2016) ont proposé l'approche LIME (\emph{Local Interpretable Model-agnostic Explanations}). Le modèle complexe $f$ est considéré comme une boîte noire complète. Autour d'un point d'intérêt $x$, on échantillonne un ensemble de points perturbés $z'$, pondérés par une mesure de proximité $\pi_x(z) = \exp(-D(x, z)^2 / \sigma^2)$, puis on ajuste un modèle linéaire simple et interprétable $g(z') = w_g^\top z'$ en minimisant :
+\begin{equation}
+    \arg\min_{g \in \mathcal{G}} \sum_{z, z'} \pi_x(z) \left( f(z) - g(z') \right)^2 + \Omega(g)
+\end{equation}
+où $\Omega(g)$ force la parcimonie sur les coefficients, révélant directement la contribution marginale locale de chaque composante d'entrée.

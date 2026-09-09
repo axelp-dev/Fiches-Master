@@ -1,0 +1,135 @@
+\minitoc
+
+% =============================================================================
+% Modelisation Sequentielle et RNN Standard
+
+\section{Modélisation Séquentielle et Réseaux Récurrents (RNN)}
+
+Contrairement aux images dont les dimensions peuvent être ajustées à des formats fixes, les signaux temporels, acoustiques ou textuels se présentent sous la forme de séquences de longueur variable :
+\begin{equation}
+    X = (x^{(1)}, x^{(2)}, \dots, x^{(T)}), \quad x^{(t)} \in \R^d.
+\end{equation}
+
+\subsection{Architecture et Dépliement Temporel}
+
+Un réseau récurrent traite séquentiellement chaque élément en maintenant un vecteur d'état interne $h^{(t)} \in \R^m$, constituant la mémoire synthétique du passé.
+
+\begin{definition}[Équations du RNN simple d'Elman]
+    Pour chaque pas temporel $t \in \llbracket 1, T \rrbracket$ :
+    \begin{align}
+        h^{(t)} &= \tanh\left( W h^{(t-1)} + U x^{(t)} + b_h \right) \\
+        \hat{y}^{(t)} &= \operatorname{Softmax}\left( V h^{(t)} + b_y \right)
+    \end{align}
+    où $U \in \R^{m \times d}$ est la matrice de projection des entrées, $W \in \R^{m \times m}$ la matrice de récurrence état-à-état, et $V \in \R^{K \times m}$ la matrice de décodage vers l'espace de sortie. Les paramètres $\{U, W, V, b_h, b_y\}$ sont \textbf{partagés} à travers tous les pas de temps.
+\end{definition}
+
+% =============================================================================
+% Retropropagation a travers le temps (BPTT) et Pathologies
+
+\section{Rétropropagation à travers le Temps (\emph{BPTT}) et Pathologies}
+
+\subsection{Calcul du gradient BPTT}
+
+L'erreur globale commise sur la séquence est la somme des coûts temporels $E = \sum_{t=1}^T E_t$. Pour dériver le gradient par rapport à la matrice de récurrence $W$, on déroule la dépendance temporelle :
+\begin{equation}
+    \frac{\partial E}{\partial W} = \sum_{t=1}^T \sum_{k=1}^t \frac{\partial E_t}{\partial h^{(t)}} \cdot \left( \prod_{j=k+1}^t \frac{\partial h^{(j)}}{\partial h^{(j-1)}} \right) \cdot \frac{\partial h^{(k)}}{\partial W}.
+\end{equation}
+
+\subsection{Évanescence et explosion du gradient}
+
+Le produit matriciel cumulé $\prod_{j=k+1}^t \frac{\partial h^{(j)}}{\partial h^{(j-1)}}$ gouverne la propagation temporelle du signal d'erreur. Si la matrice jacobienne présente des valeurs singulières strictement supérieures à 1, la norme du gradient diverge exponentiellement vers l'infini pour de grandes séquences : c'est l'\textbf{explosion du gradient}. On y remédie par la troncature heuristique (*Gradient Clipping*) :
+\begin{equation}
+    g \leftarrow g \cdot \min\left(1, \; \frac{\text{seuil}}{\|g\|_2}\right).
+\end{equation}
+Inversement, si les valeurs propres sont inférieures à 1, le gradient s'évanouit exponentiellement vers zéro au fur et à mesure que $t - k$ croît (\textbf{dissipation du gradient}), interdisant l'apprentissage de corrélations à long terme.
+
+% =============================================================================
+% Cellules a Portes : LSTM et GRU
+
+\section{Cellules à Portes de Contrôle : LSTM et GRU}
+
+\subsection{Long Short-Term Memory (LSTM)}
+
+Conçue par Hochreiter et Schmidhuber (1997), l'architecture LSTM résout l'évanescence du gradient via un état cellulaire interne $C_t$ mis à jour par des opérations additives protégées par des portes logiques différentiables.
+
+\begin{definition}[Formulation complète d'un bloc LSTM]
+    Soit $x_t$ l'entrée au temps $t$ et $h_{t-1}$ l'état caché antérieur. Les portes sont régies par :
+    \begin{align}
+        f_t &= \sigma\left(W_f [h_{t-1}, x_t] + b_f\right) \quad &\text{(porte d'oubli / Forget Gate)} \\
+        i_t &= \sigma\left(W_i [h_{t-1}, x_t] + b_i\right) \quad &\text{(porte d'entrée / Input Gate)} \\
+        \tilde{C}_t &= \tanh\left(W_C [h_{t-1}, x_t] + b_C\right) \quad &\text{(état candidat)} \\
+        C_t &= f_t \odot C_{t-1} + i_t \odot \tilde{C}_t \quad &\text{(\textbf{mise à jour cellulaire additive})} \\
+        o_t &= \sigma\left(W_o [h_{t-1}, x_t] + b_o\right) \quad &\text{(porte de sortie / Output Gate)} \\
+        h_t &= o_t \odot \tanh(C_t) \quad &\text{(état caché final)}.
+    \end{align}
+\end{definition}
+
+Grâce à la relation linéaire $C_t = f_t \odot C_{t-1} + \dots$, si la porte d'oubli est activée à saturation ($f_t \approx 1$), le gradient d'erreur se propage à travers l'axe temporel sans aucune atténuation multiplicative exponentielle.
+
+\subsection{Gated Recurrent Unit (GRU)}
+
+Proposé par Cho et al. (2014), le bloc GRU fusionne l'état cellulaire et l'état caché tout en réduisant le nombre de portes à deux :
+\begin{align}
+    z_t &= \sigma\left(W_z [h_{t-1}, x_t] + b_z\right) \quad &\text{(porte de mise à jour / Update Gate)} \\
+    r_t &= \sigma\left(W_r [h_{t-1}, x_t] + b_r\right) \quad &\text{(porte de réinitialisation / Reset Gate)} \\
+    \tilde{h}_t &= \tanh\left(W [r_t \odot h_{t-1}, x_t] + b\right) \\
+    h_t &= (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t.
+\end{align}
+
+% =============================================================================
+% Modeles Seq2Seq et Mecanismes d'Attention
+
+\section{Modèles Encodeur-Décodeur et Mécanismes d'Attention}
+
+\subsection{Le paradigme Sequence-to-Sequence (Seq2Seq)}
+
+Dans une tâche de traduction ou de résumé, la longueur de la séquence générée est distincte de la séquence source. L'encodeur compresse l'intégralité de la séquence d'entrée en un vecteur contexte unique $c = h^{(T_{\mathrm{in}})}$. Le décodeur génère les sorties mot par mot en conditionnant chaque tirage sur ce vecteur. Ce goulot d'étranglement unique entraîne une forte détérioration des performances lorsque la phrase dépasse une vingtaine de mots.
+
+\subsection{Mécanisme d'attention d'alignement dynamique}
+
+L'attention (Bahdanau et al., 2015 ; Luong et al., 2015) lève cette contrainte en permettant au décodeur de consulter l'ensemble des états intermédiaires de l'encodeur $(s_1, \dots, s_S)$ à chaque pas de génération $t$.
+
+\begin{definition}[Calcul du vecteur de contexte par attention]
+    Pour un état courant du décodeur $h_t$ et un état source $s_k$ :
+    \begin{align}
+        \text{Score d'alignement} : \quad e_{t, k} &= 
+        \begin{cases}
+            v_a^\top \tanh\left( W_a h_t + U_a s_k \right) & \text{(Attention additive de Bahdanau)} \\
+            h_t^\top W_a s_k & \text{(Attention générale de Luong)} \\
+            h_t^\top s_k & \text{(Attention par produit scalaire direct)}
+        \end{cases} \\
+        \text{Poids d'attention} : \quad \alpha_{t, k} &= \frac{\exp(e_{t, k})}{\sum_{j=1}^S \exp(e_{t, j})} \quad \in [0, 1] \\
+        \text{Vecteur de contexte} : \quad c_t &= \sum_{k=1}^S \alpha_{t, k} s_k.
+    \end{align}
+\end{definition}
+
+\subsection{Implémentation PyTorch d'un module Seq2Seq récurrent}
+
+\begin{lstlisting}[language=Python, caption={Encodeur LSTM et Décodeur avec projection sous PyTorch}]
+import torch
+import torch.nn as nn
+
+class Seq2SeqRNN(nn.Module):
+    def __init__(self, vocab_size: int, embed_dim: int, hidden_dim: int):
+        super(Seq2SeqRNN, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embed_dim)
+        self.encoder = nn.LSTM(embed_dim, hidden_dim, batch_first=True, bidirectional=True)
+        # Decodeur prenant en compte la bidirectionnalite (hidden_dim * 2)
+        self.decoder = nn.LSTM(embed_dim, hidden_dim * 2, batch_first=True)
+        self.fc_out = nn.Linear(hidden_dim * 2, vocab_size)
+
+    def forward(self, src: torch.Tensor, trg: torch.Tensor) -> torch.Tensor:
+        # Encodage
+        embedded_src = self.embedding(src)
+        enc_outputs, (h_n, c_n) = self.encoder(embedded_src)
+        
+        # Concatener les etats terminaux des deux directions de l'encodeur
+        h_dec = torch.cat((h_n[0:1], h_n[1:2]), dim=2)
+        c_dec = torch.cat((c_n[0:1], c_n[1:2]), dim=2)
+        
+        # Decodage autoregressif
+        embedded_trg = self.embedding(trg)
+        dec_outputs, _ = self.decoder(embedded_trg, (h_dec, c_dec))
+        logits = self.fc_out(dec_outputs)
+        return logits
+\end{lstlisting}
