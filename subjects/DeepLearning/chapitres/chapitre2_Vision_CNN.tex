@@ -1,0 +1,161 @@
+\minitoc
+
+% ===================================================
+% Intro
+
+Dans le cadre du traitement d'images numériques, l'utilisation de couches entièrement connectées (MLP) devient vite impraticable :
+\begin{enumerate}
+    \item \textbf{Explosion du nombre de paramètres} : pour une image couleur haute définition de taille $1000 \times 1000 \times 3$, un premier neurone connecté à chaque pixel requiert $3 \times 10^6$ poids, induisant un coût mémoire prohibitif et un sur-apprentissage critique.
+    \item \textbf{Perte de corrélation spatiale} : vectoriser une image 2D/3D détruit la proximité géométrique locale entre pixels adjacents.
+    \item \textbf{Absence d'invariance par translation} : si un motif d'intérêt (un œil, une roue) se déplace dans l'image, un MLP doit réapprendre ce motif sur chacun des emplacements distincts.
+\end{enumerate}
+
+La solution réside dans l'exploitation de la structure spatiale via deux principes directeurs : la \emph{connectivité locale} (chaque neurone n'observe qu'un sous-voisinage) et le \emph{partage des paramètres} (weight sharing).
+
+% =============================================================================
+% Opérateur de Convolution 2D
+
+\section{L'Opérateur de Convolution en Vision Artificielle}
+
+L'objectif est donc d'être capable d'identifier des schémas caractéristiques dans une image, indépendament de sa position dans celle-ci. Pour cela, on utilisera un opérateur de \emph{convolution}. L'idée est de balayer la surface de l'image par une matrice plus petite appelée \emph{noyau}. À chaque déplacement, on effectuera le produit de la partie de l'image couverte par le noyau. L'image ainsi obtenue sera plus petite et contiendra la même information mais sous forme condensée. 
+
+En effectuant cette étape de façon successive, on sera capable de réduire la taille de l'image d'origine à celle d'un vecteur qui pourra être facilement interprété par un MLP. 
+
+\subsection{Formulation mathématique}
+
+En traitement du signal numérique, l'opération discrète bidimensionnelle appliquée entre une entrée matricielle $I$ et un noyau (\emph{kernel}) $K \in \R^{k_h \times k_w}$ est définie usuellement sous la forme d'une corrélation croisée :
+\begin{equation}
+    S(i, j) = (I * K)(i, j) = \sum_{m=0}^{k_h-1} \sum_{n=0}^{k_w-1} I(i + m, \, j + n) \, K(m, n).
+\end{equation}
+
+Dans une couche de convolution standard d'un CNN, l'entrée est un tenseur à trois dimensions $\mathcal{X} \in \R^{C_{\mathrm{in}} \times H_{\mathrm{in}} \times W_{\mathrm{in}}}$ où $C_{\mathrm{in}}$ est le nombre de canaux (ex: Rouge, Vert, Bleu). La couche est paramétrée par $C_{\mathrm{out}}$ filtres tridimensionnels $W_k \in \R^{C_{\mathrm{in}} \times k_h \times k_w}$ et un vecteur de biais $b \in \R^{C_{\mathrm{out}}}$. La $k$-ième carte de caractéristiques de sortie s'exprime par :
+\begin{equation}
+    S_k = b_k + \sum_{c=1}^{C_{\mathrm{in}}} \mathcal{X}_c * W_{k, c}.
+\end{equation}
+
+% TODO : Rajouter schéma + image convolution
+
+\subsection{Dimensions, Stride, Padding et Dilatation}
+
+\begin{prop}[Régression des dimensions spatiales]
+    Soit une entrée de taille $(H_{\mathrm{in}}, W_{\mathrm{in}})$, convoluée avec un noyau de taille $(K_h, K_w)$, un rembourrage (\emph{padding}) $P$, un pas (\emph{stride}) $S$, et un taux de dilatation (\emph{dilation}) $D$. La taille de la carte de sortie $(H_{\mathrm{out}}, W_{\mathrm{out}})$ vérifie :
+    \begin{equation}
+        H_{\mathrm{out}} = \left\lfloor \frac{H_{\mathrm{in}} + 2P_h - D_h(K_h - 1) - 1}{S_h} + 1 \right\rfloor, \quad 
+    \end{equation}
+    \begin{equation}
+        W_{\mathrm{out}} = \left\lfloor \frac{W_{\mathrm{in}} + 2P_w - D_w(K_w - 1) - 1}{S_w} + 1 \right\rfloor.
+    \end{equation}
+\end{prop}
+
+\begin{proposition}[Nombre de paramètres d'une couche convolutive]
+    Pour une couche convolutive associant $C_{\mathrm{in}}$ canaux d'entrée à $C_{\mathrm{out}}$ canaux de sortie au travers de noyaux $K_h \times K_w$, le nombre de paramètres scalaires libres vaut :
+    \begin{equation}
+        N_{\mathrm{params}} = C_{\mathrm{out}} \times \left( C_{\mathrm{in}} \times K_h \times K_w + 1 \right)
+    \end{equation}
+    où le terme $+1$ comptabilise le biais scalaire associé à chaque carte de sortie. Ce nombre est strictement indépendant de la résolution spatiale $(H_{\mathrm{in}}, W_{\mathrm{in}})$ de l'image.
+\end{proposition}
+
+\begin{remark}
+    Les couches de convolutions servent donc à \emph{extraire} des schémas (\emph{pattern}) et les caractéristiques (\emph{features}) de l'image et de les compresser en vecteurs. 
+    Ensuite, un MLP est chargé \emph{d'interpréter} ces \emph{features} en prédiction (voir chapitre précédent). L'utilisation des convolutions permet de réduire drastiquement le nombre de paramètres et de couches à utiliser pour l'extraction de ces \emph{features}. 
+\end{remark}
+
+% =============================================================================
+% Sous-echantillonnage et Champ Receptif
+
+\section{Sous-Échantillonnage, Champ Réceptif et Calcul}
+
+L'opération de convolution est très simple à mettre en place algorithmiquement. En fonction de l'opération effectuée avec son résultat et de la dimension de son noyau, on peut observer plusieurs propriétés remarquables. Elles permettent ensuite de définir de nouvelles couches de convolutions ayant différents cas d'usages. 
+
+\subsection{Couches de Pooling}
+
+Les couches de regroupement (\emph{pooling}) réduisent la résolution spatiale des tenseurs intermédiaires pour accroître l'invariance aux translations locales et diminuer la charge computationnelle :
+\begin{itemize}
+    \item \textbf{Max-Pooling} : extrait la valeur maximale sur une fenêtre $p_h \times p_w$. Il conserve le signal d'activation dominant tout en rejetant les variations de fond.
+    \item \textbf{Average-Pooling} : calcule la moyenne arithmétique sur la fenêtre, agissant comme un filtre passe-bas régularisant.
+\end{itemize}
+
+\subsection{Notion de champ réceptif (\emph{Receptive Field})}
+
+Le champ réceptif d'un neurone correspond à la zone d'extension dans l'image d'entrée d'origine qui influence directement son activation.
+\begin{proposition}[Croissance du champ réceptif]
+    Pour une succession de couches convolutives à noyaux de taille $k_l$ et de pas unitaire, le champ réceptif cumulé $R_L$ à la couche $L$ vérifie :
+    \begin{equation}
+        R_L = R_{L-1} + (k_L - 1) = 1 + \sum_{l=1}^L (k_l - 1).
+    \end{equation}
+    Ainsi, l'empilement de deux convolutions successives de taille $3 \times 3$ possède un champ réceptif équivalent de $5 \times 5$, tout en utilisant $2 \times (3^2) = 18$ poids au lieu de $5^2 = 25$ pour un noyau direct, tout en introduisant deux non-linéarités intermédiaires au lieu d'une.
+\end{proposition}
+
+\subsection{Algorithmique Bas Niveau : L'Approche Im2Col et GEMM}
+
+Les unités graphiques de calcul (GPU) n'exécutent pas les convolutions spatiales par boucles imbriquées, mais projettent l'opération sous forme de multiplication matricielle dense hautement vectorisée (\emph{General Matrix Multiply}, GEMM) :
+
+\begin{enumerate}
+    \item \textbf{L'algorithme Im2Col} déplie chaque bloc spatial réceptif $C_{\mathrm{in}} \times K_h \times K_w$ présent dans le tenseur d'entrée en un vecteur colonne, formant une vaste matrice :
+    \begin{equation}
+        X_{\mathrm{col}} \in \R^{(C_{\mathrm{in}} \cdot K_h \cdot K_w) \times (H_{\mathrm{out}} \cdot W_{\mathrm{out}})}.
+    \end{equation}
+    \item Les poids des filtres sont aplatis en lignes pour construire une matrice :
+    \begin{equation}
+        W_{\mathrm{row}} \in \R^{C_{\mathrm{out}} \times (C_{\mathrm{in}} \cdot K_h \cdot K_w)}.
+    \end{equation}
+    \item Le produit matriciel dense calcule l'ensemble des réponses en une passe :
+    \begin{equation}
+        Y_{\mathrm{flat}} = W_{\mathrm{row}} \cdot X_{\mathrm{col}} \in \R^{C_{\mathrm{out}} \times (H_{\mathrm{out}} \cdot W_{\mathrm{out}})}.
+    \end{equation}
+    \item La matrice résultante est réorganisée (\emph{reshapée}) en dimension $(C_{\mathrm{out}}, H_{\mathrm{out}}, W_{\mathrm{out}})$.
+\end{enumerate}
+
+% =============================================================================
+% Variantes architecturales : Normalisation et ResNet
+
+\section{Techniques de Normalisation et Réseaux Résiduels}
+
+\subsection{Normalisation par Lots (\emph{Batch Normalization})}
+
+Pour stabiliser la covariance interne des couches profondes (\emph{Internal Covariate Shift}), on introduit la couche de Batch Normalization.
+\begin{definition}[Batch Normalization]
+    Pour un mini-lot d'activations scalaires $\mathcal{B} = \{x_1, \dots, x_m\}$ correspondant à un canal donné :
+    \begin{align}
+        \mu_{\mathcal{B}} &= \frac{1}{m} \sum_{i=1}^m x_i, \qquad \sigma_{\mathcal{B}}^2 = \frac{1}{m} \sum_{i=1}^m (x_i - \mu_{\mathcal{B}})^2 \\
+        \hat{x}_i &= \frac{x_i - \mu_{\mathcal{B}}}{\sqrt{\sigma_{\mathcal{B}}^2 + \epsilon}} \\
+        y_i &= \gamma \hat{x}_i + \beta \quad \text{avec } \gamma, \beta \text{ paramètres différentiables appris.}
+    \end{align}
+\end{definition}
+
+\subsection{Réseaux Résiduels (ResNet)}
+
+Au-delà d'une vingtaine de couches, l'entraînement d'un réseau standard subit une dégradation critique due à l'évanescence des gradients. He et al. (2015) introduisent les connexions résiduelles directes (\emph{skip connections}) :
+\begin{equation}
+    \mathcal{H}(x) = \mathcal{F}(x, \{W_i\}) + x
+\end{equation}
+où $\mathcal{F}$ représente la transformation non linéaire de quelques couches convolutives. Si la solution optimale est l'identité, le réseau n'a besoin que d'annuler les poids $\mathcal{F}(x) \to 0$, ce qui est infiniment plus aisé à apprendre. Lors de la rétropropagation, le gradient transite sans atténuation multiplicative via la dérivation directe :
+\begin{equation}
+    \frac{\partial \mathcal{L}}{\partial x} = \frac{\partial \mathcal{L}}{\partial \mathcal{H}} \left( \frac{\partial \mathcal{F}}{\partial x} + I \right).
+\end{equation}
+
+\subsection{Implémentation d'un bloc résiduel sous PyTorch}
+
+\begin{lstlisting}[language=Python, caption={Bloc résiduel classique sous PyTorch}]
+import torch
+import torch.nn as nn
+
+class ResidualBlock(nn.Module):
+    def __init__(self, channels: int):
+        super(ResidualBlock, self).__init__()
+        self.conv_block = nn.Sequential(
+            nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channels, channels, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(channels)
+        )
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        identity = x
+        out = self.conv_block(x)
+        out += identity  # Connexion residuelle directe
+        out = self.relu(out)
+        return out
+\end{lstlisting}
