@@ -1,42 +1,134 @@
 % =============================================================================
-% Modèles de Markov Caché
+% Modèles de Markov Cachés
 % =============================================================================
 
 \minitoc
 
-Ce chapitre développe les HMM dits \emph{Modèles de Markov Caché} ou \emph{Hide Markov Models}. 
-Historiquement, ces modèles étaient utilisés dans le traitement du langage naturel. Notamment la prédiction d'un token à la suite d'une série de tokens. Aujourd'hui, les LLM sont bien plus performants pour ce type de tâches, mais les HMM utilisent des algorithmes intéressants à développer et toujours utilisés. 
+Ce chapitre traite des \emph{Modèles de Markov Cachés} (Hidden Markov Models, HMM). 
+Historiquement développés pour le traitement automatique de la parole (\emph{Automatic Speech Recognition}, Rabiner, 1989) et le traitement du langage naturel (étiquetage morpho-syntaxique \emph{POS tagging}, modèles de langage, alignement bilingue), les HMM offrent un cadre probabiliste rigoureux pour les séquences discrètes. Bien que les modèles de fondation neuronaux (Transformers) dominent aujourd'hui ces applications, les algorithmes sous-jacents aux HMM (Forward-Backward, Viterbi, Baum-Welch/EM) constituent les bases fondamentales des modèles graphiques probabilistes et de la programmation dynamique.
 
-Ces modèles peuvent aussi être utilisés dans l'alignement de mots de deux texte différents (traduction ou transcription) ou le traitement automatique de la parole (\emph{Speech-to-Text}). 
+% =============================================================================
+\section{Modèles de Langage et Hypothèses Markoviennes}
 
-\section{Généralités}
+\subsection{Modélisation séquentielle par règle de la chaîne}
 
-\subsection{Définitions et premier modèle}
+Soit $\mathcal{V}$ un vocabulaire fini de symboles (mots ou \emph{tokens}). On cherche à définir une loi de probabilité conjointe sur des séquences de longueur arbitraire bordées par deux balises déterministes $\operatorname{start}$ et $\operatorname{stop}$ :
+\begin{equation}
+    O = (\operatorname{start}, O_1, O_2, \dots, O_n, \operatorname{stop}) \in \mathcal{V}^*.
+\end{equation}
 
-Pour définir de tels modèles, nous devons commencer par définir leur support de données qui correspondra aux éléments qui seront générés par le modèle. En gardant l'exemple du langage naturel, celui-ci est composé de mots que l'on peut séparer en \emph{tokens}. 
+Par application exacte de la règle de décomposition en chaîne des probabilités conditionnelles, toute distribution sur une séquence s'écrit de manière causale (contexte gauche) :
+\begin{equation}
+    \myP(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop}) = \prod_{i=1}^{n+1} \myP(O_i \mid \operatorname{start}, O_1, \dots, O_{i-1})
+\end{equation}
+en posant conventionnellement $O_{n+1} = \operatorname{stop}$.
 
-\begin{definition}[n-grammes]
-    Soit $ \mathcal{A}$ un alphabet regroupant l'ensemble des symboles possibles pour notre langage. On appellera \emph{n-grammes}, pour $n \geqslant 1$ l'ensemble des mots à $n$ symboles que l'on peut construire à partir de $ \mathcal{A}$. 
+\begin{remark}[Intuition des dés de Noah Smith et explosion combinatoire]
+    On peut interpréter ce processus génératif à l'aide d'une collection de dés dont les faces représentent les mots de $\mathcal{V}$. À chaque étape, l'historique complet $h = (\operatorname{start}, O_1, \dots, O_{i-1})$ détermine le dé à lancer, dont la distribution sur les faces fournit le mot suivant $O_i$. 
+    Bien que d'une expressivité totale, ce modèle présente deux écueils rédhibitoires :
+    \begin{enumerate}
+        \item \textbf{Explosion paramétrique} : pour un historique de longueur au plus $n$ et un vocabulaire de taille $V = |\mathcal{V}|$, le nombre d'historiques possibles vaut $\sum_{k=0}^{n-1} V^k = \frac{V^n - 1}{V - 1}$. Pour $V = 10^5$ et $n = 10$, cela exigerait de stocker les paramètres d'environ $10^{50}$ distributions catégorielles, ce qui est matériellement impossible.
+        \item \textbf{Défaut de généralisation} : toute séquence contenant un préfixe non observé lors de l'apprentissage se voit affecter une probabilité nulle.
+    \end{enumerate}
+\end{remark}
+
+% -----------------------------------------------------
+\subsection{Du Sac de Mots au Modèle de Markov d'ordre $m$}
+
+Pour rendre l'estimation calculable, on réduit l'historique conditionnel via des hypothèses d'indépendance conditionnelle.
+
+\begin{definition}[Modèle Sac de Mots / Unigramme]
+    L'hypothèse la plus forte pose l'indépendance mutuelle totale de chaque observation vis-à-vis du contexte passé :
+    \begin{equation}
+        \myP(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop}) = \prod_{i=1}^{n} \myP(O_i).
+    \end{equation}
+    Ce modèle ne requiert que $V - 1$ paramètres libres. En revanche, il détruit toute syntaxe : la probabilité d'une séquence est invariante par permutation de ses termes.
 \end{definition}
 
-L'idée intuitive des modèles de Markov est de générer le token suivant à partir des tokens précédents. Pour cela, différentes approches sont utilisées comportant différentes hypothèses sur les tokens. 
+Le compromis canonique consiste à borner la mémoire du processus aux $m$ derniers symboles émis.
 
-\begin{proposition}
-    Une première approche pourrait être de tirer aléatoirement des tokens $(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop})$ conditonnellement aux tokens précédement tirés : 
+\begin{definition}[Chaîne de Markov d'ordre $m$ / $n$-grammes]
+    Un modèle de Markov stationnaire d'ordre $m \ge 1$ pose que la loi conditionnelle du token courant ne dépend que des $m$ tokens immédiatement antérieurs :
     \begin{equation}
-        \myP(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop}) = \prod_{i=1}^{n} \myP(O_i \mid \operatorname{start}, O_1, \dots, O_{i-1}). 
+        \myP(O_i \mid \operatorname{start}, O_1, \dots, O_{i-1}) = \myP(O_i \mid O_{i-m}, \dots, O_{i-1}).
     \end{equation}
-\end{proposition}
+    La probabilité conjointe de la séquence s'écrit alors :
+    \begin{equation}
+        \myP(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop}) = \prod_{i=1}^{n+1} \myP(O_i \mid O_{i-m}^{i-1})
+    \end{equation}
+    où $O_{i-m}^{i-1} = (O_{i-m}, \dots, O_{i-1})$.
+\end{definition}
 
-Pour modéliser cela algorithmiquement, supposons que nous avons $N$ tokens possibles et que nous devons générer une phrase de $L$ tokens. 
-Pour cela, on peut considérer un certain nombre de dés. Chaque dé représente une phrase possible au temps $i$ et contient tous les $N$ tokens suivant possibles. Pour génerer une séquence de $L$ mots à l'étape $i$, il faut donc prendre le dé qui correspond au début de la phrase générée et le lancer pour obtenir le mot suivant. 
-Si l'on compte les dés, il nous en faudrait $N^L$. Pour un dictionnaire de 100 000 tokens, et une phrase de 10 tokens, cela fait exploser le nombre de possibilités et l'emplacement mémoire pris. 
+\begin{remark}[Taxonomie et complexité des $n$-grammes]
+    Dans la terminologie du traitement automatique du langage :
+    \begin{itemize}
+        \item $m = 0$ correspond au modèle \textbf{unigramme} ($V-1$ paramètres) ;
+        \item $m = 1$ correspond au modèle \textbf{bigramme} ($V(V-1)$ paramètres de transition) ;
+        \item $m = 2$ correspond au modèle \textbf{trigramme} ($V^2(V-1)$ paramètres).
+    \end{itemize}
+    Au-delà de $m = 3$ ou $4$, la matrice des comptes devient extrêmement creuse (\emph{sparsity}), rendant indispensables des techniques de lissage statistique (Good-Turing, Kneser-Ney).
+\end{remark}
 
-D'autre part, une fois les probabilités apprises à partir d'un jeu de données de séquences, il serait impossible de générer une séquence non vue à l'apprentissage car aucun dé ne correspondrait à celle-ci. 
+% -----------------------------------------------------
+\subsection{Modèles à classes de Brown}
 
-\subsection{Bag-of-words et Modèle Markov du Premier Ordre}
+Pour injecter de la régularité syntaxique sans subir l'explosion combinatoire des $n$-grammes lexicaux, Brown et al. (1992) partitionnent le vocabulaire $\mathcal{V}$ en $C \ll V$ classes syntaxiques disjointes via une application déterministe $\operatorname{cl} : \mathcal{V} \to \llbracket 1, C \rrbracket$ obtenue par partitionnement statistique :
 
-La solution est donc de 
+\begin{definition}[Modèle de séquence fondé sur des classes]
+    La génération d'une observation $O_i$ est scindée en deux lois : une transition d'état à état entre classes, suivie de l'émission du mot conditionnellement à sa propre classe :
+    \begin{equation}
+        \myP(\operatorname{start}, O_1, \dots, O_n, \operatorname{stop}) = \prod_{i=1}^{n+1} \myP(O_i \mid \operatorname{cl}(O_i)) \cdot \myP(\operatorname{cl}(O_i) \mid \operatorname{cl}(O_{i-1})).
+    \end{equation}
+\end{definition}
+
+En notant $A \in \R^{C \times C}$ la matrice de transition inter-classes et $B \in \R^{C \times V}$ la matrice d'émission des mots sachant la classe, ce modèle ne requiert que $C^2 + C \times V$ paramètres. 
+
+Cependant, ce modèle suppose que la fonction de projection $\operatorname{cl}$ est déterministe et connue à l'avance. Or, dans la langue naturelle, un mot est fondamentalement polysémique : le mot « \emph{flies} » peut être un verbe ou un nom selon le contexte. L'état syntaxique sous-jacent est donc par essence \textbf{non observé} : c'est l'acte de naissance des \emph{Modèles de Markov Cachés}.
+
+% =============================================================================
+\section{Formalisme des Modèles de Markov Cachés (HMM)}
+
+\subsection{Définition mathématique}
+
+Un modèle de Markov caché de premier ordre modélise un processus bivarié $(S_t, O_t)_{t \ge 1}$ où la suite des états $(S_t)$ forme une chaîne de Markov non observable (latente), et $(O_t)$ est la suite des observations visibles émises à chaque instant conditionnellement à l'état courant.
+
+\begin{definition}[Paramètres canoniques d'un HMM]
+    Un HMM à états discrets est formellement caractérisé par le triplet $\lambda = (\pi, A, B)$ :
+    \begin{enumerate}
+        \item Un ensemble fini d'états cachés $\mathcal{S} = \{s_1, \dots, s_N\}$.
+        \item Un alphabet fini d'observations $\mathcal{V} = \{v_1, \dots, v_M\}$.
+        \item La distribution initiale des états $\pi = (\pi_i)_{i=1}^N$ avec $\pi_i = \myP(S_1 = s_i)$.
+        \item La matrice de transition $A = (a_{ij}) \in \R^{N \times N}$ régie par l'hypothèse markovienne :
+        \begin{equation}
+            a_{ij} = \myP(S_{t+1} = s_j \mid S_t = s_i), \quad \sum_{j=1}^N a_{ij} = 1.
+        \end{equation}
+        \item La matrice d'émission $B = (b_j(k)) \in \R^{N \times M}$ vérifiant l'hypothèse d'indépendance conditionnelle :
+        \begin{equation}
+            b_j(k) = \myP(O_t = v_k \mid S_t = s_j), \quad \sum_{k=1}^M b_j(k) = 1.
+        \end{equation}
+    \end{enumerate}
+\end{definition}
+
+Pour une séquence d'états $S = (S_1, \dots, S_T)$ et d'observations $O = (O_1, \dots, O_T)$, la loi conjointe se factorise immédiatement grâce aux indépendances conditionnelles du graphe :
+\begin{equation}
+    \myP(O, S \mid \lambda) = \pi_{S_1} b_{S_1}(O_1) \prod_{t=2}^T a_{S_{t-1}, S_t} b_{S_t}(O_t).
+\end{equation}
+
+\subsection{Les trois problèmes fondamentaux de Rabiner (1989)}
+
+% L'exploitation opérationnelle des HMM s'articule autour de trois problèmes canoniques (Rabiner, 1989) résolus par programmation dynamique :
+% \begin{enumerate}
+%     \item \textbf{Évaluation (Vraisemblance)} : étant donnés le modèle $\lambda$ et une séquence observée $O$, calculer efficacement la vraisemblance marginale $\myP(O \mid \lambda) = \sum_S \myP(O, S \mid \lambda)$ $\implies$ \textbf{Algorithme Forward-Backward}.
+%     \item \textbf{Décodage (Inférence)} : étant donnés $\lambda$ et $O$, identifier la séquence d'états latents $S^*$ la plus probable $\implies$ \textbf{Algorithme de Viterbi}.
+%     \item \textbf{Apprentissage (Estimation des paramètres)} : étant donnée une collection d'observations $\{O^{(k)}\}$, estimer les paramètres optimaux $\hat{\lambda} = \arg\max_\lambda \myP(O \mid \lambda)$ $\implies$ \textbf{Algorithme de Baum-Welch (EM)}.
+% \end{enumerate}
+
+
+
+
+
+
+
 
 
 

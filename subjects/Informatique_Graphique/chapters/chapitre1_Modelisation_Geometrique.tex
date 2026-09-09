@@ -1,0 +1,256 @@
+% ========================================================
+% Introduction 
+
+\minitoc
+
+L'informatique graphique est une discipline définissant différents modèles et algorithmes pour modéliser numériquement des scènes et des objets. Pour cela, elle se base sur des notions de Mathématiques Appliquées, Géométrie Différentielle et d'Optimisation. 
+L'ojectif est de proposer à des graphistes, des dessinateurs, ou des ingénieurs des algorithmes et logiciels capables de modéliser et visualiser tout types de formes d'un personnage d'animation à une pièce à usiner. 
+
+Historiquement, l'informatique graphique se regroupe sur trois sous-disciplines transverses. La première se concentre sur \emph{l'animation} : on cherche ici à développer des modèles pour animer des pièces déjà créées. Par exemple on peut chercher à définir des rotations à appliquer à des objets pour décrire le mouvement d'un personnage. 
+La seconde est le \emph{rendu en temps réel}. On cherche ici à donner de la texture à une animation en temps réel pour donner à un utilisateur une vision acceptable de sa scène. Par exemple, on peut s'intéresser au rendu temps réel dans un jeu vidéo où l'utilisateur doit avoir sous les yeux des images qui rentrent dans la charte graphique de son jeu tout en gardant une fluidité suffisante d'affichage à l'écran. 
+Enfin, le \emph{rendu physiquement réaliste} cherche à rendre une image ou une scène la plus réaliste possible. Ici, on cherchera à simuler au plus près les jeux de lumière sur la matière pour donner une vision la plus réaliste possible à l'utilisateur. 
+
+L'objectif de ce cours et de proposer des méthodes mathématiques et algorithmiques permettant la création et la modélisation d'environnements en 3D et le traitement d'une géométrie à partir d'une capture. 
+
+% ======================================================================
+% Section 1 : Cadre mathématique et prérequis géométriques
+
+\section{Cadre mathématique et prérequis géométriques}
+
+La modélisation géométrique vise à représenter et manipuler des formes numériques par des outils d'analyse et d'algèbre linéaire. Contrairement à une description discrète (maillages polygonaux), on privilégie ici une modélisation paramétrique continue à haut niveau.
+
+% ----------------------------------------------------------------------
+\subsection{Espaces affines et arithmétique des points}
+
+En synthèse d'images et en modélisation, il est fondamental de distinguer les notions d'\emph{emplacements} (points) et de \emph{déplacements} (vecteurs).
+
+\begin{definition}[Espace affine]
+    Soit $E$ un $\R$-espace vectoriel. Un \emph{espace affine} attaché à $E$ est un ensemble non vide $\mathcal{E}$ muni d'une action libre et transitive du groupe additif $(E, +)$ sur $\mathcal{E}$ :
+    \begin{equation}
+        \begin{aligned}
+            \Phi : \mathcal{E} \times E &\longrightarrow \mathcal{E} \\
+            (A, \vec{v}) &\longmapsto A + \vec{v}
+        \end{aligned}
+    \end{equation}
+    qui vérifie :
+    \begin{enumerate}
+        \item $\forall A \in \mathcal{E}, \; A + \vec{0} = A$ ;
+        \item $\forall A \in \mathcal{E}, \; \forall \vec{u}, \vec{v} \in E, \; (A + \vec{u}) + \vec{v} = A + (\vec{u} + \vec{v})$ ;
+        \item $\forall A, B \in \mathcal{E}$, il existe un unique vecteur noté $\vec{AB} \in E$ tel que $B = A + \vec{AB}$.
+    \end{enumerate}
+    La dimension de $\mathcal{E}$ est par définition la dimension de $E$. Dans la suite, on considérera $\mathcal{E} \simeq \R^2$ ou $\R^3$.
+\end{definition}
+
+\begin{remark}[Opérations licites]
+    L'espace affine n'est pas muni d'une addition interne naturelle sur ses éléments. Ainsi :
+    \begin{itemize}
+        \item La somme de deux points $A + B$ n'a \textbf{aucun sens géométrique} intrinsèque (elle dépendrait de l'origine choisie).
+        \item La différence de deux points $B - A$ est un vecteur bien défini ($\vec{AB} \in E$).
+        \item La translation d'un point par un vecteur $A + \vec{v}$ est un point bien défini de $\mathcal{E}$.
+    \end{itemize}
+\end{remark}
+
+% ----------------------------------------------------------------------
+\subsection{Combinaisons affines et barycentres}
+
+Pour interpoler ou moyenner des positions de points de contrôle, nous avons besoin d'une opération linéaire adaptée à l'espace affine.
+
+\begin{definition}[Combinaison affine et Barycentre]
+    Soit $(P_0, \dots, P_n) \in \mathcal{E}^{n+1}$ une famille finie de points et $(\alpha_0, \dots, \alpha_n) \in \R^{n+1}$ une famille de scalaires.
+    
+    L'expression formelle $\sum_{i=0}^n \alpha_i P_i$ n'est indépendante de tout repère d'origine $O \in \mathcal{E}$ si et seulement si la somme des poids vérifie la \emph{condition de partition de l'unité} :
+    \begin{equation}
+        \sum_{i=0}^n \alpha_i = 1
+    \end{equation}
+    Dans ce cas, le point $G \in \mathcal{E}$ défini de manière unique par :
+    \begin{equation}
+        \sum_{i=0}^n \alpha_i \vec{GP_i} = \vec{0} \iff G = O + \sum_{i=0}^n \alpha_i \vec{OP_i} \quad (\forall O \in \mathcal{E})
+    \end{equation}
+    est appelé le \emph{barycentre} du système pondéré $\{(P_i, \alpha_i)\}_{i=0}^n$, noté par abus $G = \sum_{i=0}^n \alpha_i P_i$.
+\end{definition}
+
+\begin{definition}[Enveloppe convexe]
+    Une combinaison affine est dite \emph{convexe} si de plus tous les coefficients sont positifs ou nuls :
+    \begin{equation}
+        \forall i \in \llbracket 0, n \rrbracket, \; \alpha_i \ge 0 \quad \text{avec} \quad \sum_{i=0}^n \alpha_i = 1
+    \end{equation}
+    L'\emph{enveloppe convexe} d'un ensemble de points $\mathcal{P} = \{P_0, \dots, P_n\}$, notée $\mathrm{Conv}(\mathcal{P})$, est l'ensemble de toutes leurs combinaisons convexes :
+    \begin{equation}
+        \boxed{\mathrm{Conv}(\mathcal{P}) := \left\{ \sum_{i=0}^n \alpha_i P_i \;\middle|\; \alpha_i \ge 0, \; \sum_{i=0}^n \alpha_i = 1 \right\}}
+    \end{equation}
+    En topologie affine, $\mathrm{Conv}(\mathcal{P})$ correspond au plus petit ensemble convexe fermé contenant $\mathcal{P}$. C'est une propriété stabilisatrice clé : toute courbe construite par mélange convexe reste confinée dans cette zone sans divergence numérique.
+\end{definition}
+
+% ----------------------------------------------------------------------
+\subsection{Courbes paramétrées et régularité géométrique}
+
+\begin{definition}[Courbe paramétrée]
+    Une \emph{courbe paramétrée} de classe $C^k$ ($k \ge 0$) dans $\mathcal{E}$ est la donnée d'une application :
+    \begin{equation}
+        \begin{aligned}
+            P : I \subset \R &\longrightarrow \mathcal{E} \\
+            u &\longmapsto P(u)
+        \end{aligned}
+    \end{equation}
+    où $I = [u_{\min}, u_{\max}]$ est un intervalle fermé de $\R$. L'ensemble des points $P(I)$ est le \emph{support} (ou trace) de la courbe.
+\end{definition}
+
+\begin{definition}[Régularité locale et vecteur tangent]
+    La courbe $P$ est dite \emph{régulière} en un paramètre $u_0 \in I$ si $P$ est dérivable en $u_0$ et que son vecteur vitesse ne s'annule pas :
+    \begin{equation}
+        P'(u_0) = \frac{d P}{d u}(u_0) \neq \vec{0}
+    \end{equation}
+    La droite tangente géométrique au support de la courbe au point $P(u_0)$ est alors la droite affine passant par $P(u_0)$ dirigée par le vecteur $P'(u_0)$.
+\end{definition}
+
+% En informatique graphique, il est capital de découpler le comportement analytique de la paramétrisation choisie de la forme intrinsèque de la courbe tracée à l'écran.
+
+% \begin{definition}[Continuité paramétrique $C^k$ vs géométrique $G^k$]
+%     Soient deux arcs de courbes réguliers $P_1 : [a, b] \to \mathcal{E}$ et $P_2 : [b, c] \to \mathcal{E}$ se raccordant en $P_1(b) = P_2(b)$ :
+%     \begin{itemize}
+%         \item \textbf{Continuité paramétrique $C^k$} : Les $k$ premières dérivées vectorielles coïncident au raccord :
+%         \begin{equation}
+%             \forall j \in \llbracket 0, k \rrbracket, \quad \frac{d^j P_1}{d u^j}(b^-) = \frac{d^j P_2}{d u^j}(b^+)
+%         \end{equation}
+%         Elle dépend explicitement de la vitesse de parcours du paramètre $u$.
+%         \item \textbf{Continuité géométrique $G^k$} : Il existe un reparamétrage régulier $\varphi$ admissible tel que la courbe résultante soit de classe $C^k$. En particulier :
+%         \begin{itemize}
+%             \item $G^0 \iff C^0$ : continuité simple des positions ($P_1(b) = P_2(b)$) ;
+%             \item $G^1$ : les vecteurs tangents ont même direction et même sens, à un facteur d'échelle strictement positif près :
+%             \begin{equation}
+%                 \exists \lambda > 0, \quad P_2'(b^+) = \lambda \, P_1'(b^-)
+%             \end{equation}
+%             \item $G^2$ : continuité des centres et rayons de courbure aux points de raccordement, garantissant une absence de rupture visuelle d'inflexion.
+%         \end{itemize}
+%     \end{itemize}
+% \end{definition}
+
+
+% ======================================================================
+% Section 2 : Représentations polynomiales et courbes de Bézier
+
+\section{Représentations polynomiales et courbes de Bézier}
+
+L'objectif est de modéliser des courbes ou des surfaces par des représentations paramétriques continues. Contrairement aux maillages discrets, cette approche dite de \emph{haut niveau} offre une empreinte mémoire réduite et garantit un tracé parfaitement lisse.
+
+Pour manipuler ces formes, on introduit une famille de \emph{points de contrôle} $(P_0, \dots, P_n)$. Ces points servent d'interface intuitive à l'utilisateur pour contraindre la géométrie globale. Idéalement, la courbe générée doit satisfaire trois propriétés géométriques fondamentales :
+\begin{enumerate}
+    \item \textbf{Diminution de la variation :} la courbe ne doit pas osciller davantage que son polygone de contrôle.
+    \item \textbf{Confinement convexe :} la courbe doit être entièrement contenue dans l'enveloppe convexe formée par ses points de contrôle.
+    \item \textbf{Invariance par symétrie :} le tracé ne doit pas dépendre du sens de parcours des indices des points.
+\end{enumerate}
+
+% ----------------------------------------------------------------------
+\subsection{Interpolation vs Approximation}
+
+La première approche, naturelle, consiste à chercher une courbe qui \emph{interpole} strictement tous les points de contrôle. Cependant, l'interpolation polynomiale globale (comme celle de Lagrange) devient rapidement instable à mesure que le nombre de points augmente. Comme l'illustre la Figure~\ref{fig:lagrange_runge} avec le phénomène de Runge, le polynôme produit de fortes oscillations parasites aux extrémités et s'échappe largement de l'enveloppe convexe des données.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=11cm,
+            height=6.5cm,
+            axis lines=middle,
+            xlabel={$u$},
+            ylabel={$P(u)$},
+            xmin=-1.15, xmax=1.15,
+            ymin=-0.6, ymax=1.5,
+            restrict y to domain*=-1:2,
+            xtick={-1, -0.67, -0.33, 0, 0.33, 0.67, 1},
+            xticklabels={$-1$, $-\frac{2}{3}$, $-\frac{1}{3}$, $0$, $\frac{1}{3}$, $\frac{2}{3}$, $1$},
+            ytick={-0.5, 0, 0.5, 1},
+            grid=both,
+            grid style={line width=.1pt, draw=gray!20},
+            major grid style={line width=.2pt, draw=gray!40},
+            domain=-1:1,
+            samples=200
+        ]
+            % Courbe cible (fonction de Runge, en tirets gris)
+            \addplot[
+                densely dashed,
+                draw=gray!70,
+                thick
+            ] { 1 / (1 + 25*x^2) };
+
+            % Vrai polynôme d'interpolation de Lagrange de degré 6 passant par les 7 points
+            \addplot[
+                thick,
+                red!85!black
+            ] { 1 - (1215/17)*x^2 + (19440/17)*x^4 - (11907/17)*x^6 };
+
+            % Points d'interpolation équidistants
+            \addplot[
+                only marks,
+                mark=*,
+                mark size=2.2pt,
+                fill=blue!75!black,
+                draw=black
+            ] coordinates {
+                (-1, 0.0385)
+                (-0.6667, 0.0826)
+                (-0.3333, 0.2647)
+                (0, 1.0)
+                (0.3333, 0.2647)
+                (0.6667, 0.0826)
+                (1, 0.0385)
+            };
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phénomène de Runge : divergence et fortes oscillations de l'interpolant de Lagrange aux extrémités de l'intervalle.}
+    \label{fig:lagrange_runge}
+\end{figure}
+
+Face à ces limites, on privilégie l'approche par \emph{approximation}. Plutôt que d'imposer le passage par chaque point intermédiaire, on utilise les points de contrôle comme des "attracteurs". On garantit ainsi le lissage, la stabilité numérique et le respect strict des contraintes géométriques énoncées ci-dessus.
+
+% ----------------------------------------------------------------------
+\subsection{Courbes de Bézier et Polynômes de Bernstein}
+
+Une première approche d'approximation incontournable est celle des courbes de Bézier. Celles-ci reposent sur une pondération barycentrique via les \emph{polynômes de Bernstein}.
+
+\begin{definition}[Polynômes de Bernstein]
+    Pour tout entier $n \ge 0$, on définit la famille des $n+1$ \emph{polynômes de Bernstein} de degré $n$ sur $[0, 1]$ par :
+    \begin{equation}
+        B_i^n(u) = \binom{n}{i} u^i (1 - u)^{n-i}, \quad \forall i \in \llbracket 0, n \rrbracket.
+    \end{equation}
+\end{definition}
+
+\begin{prop}[Propriétés des polynômes de Bernstein]
+    Pour tout $u \in [0, 1]$, la famille $\{B_i^n(u)\}_{i=0}^n$ satisfait les propriétés fondamentales suivantes :
+    \begin{enumerate}
+        \item \textbf{Partition de l'unité :}
+        \begin{equation}
+            \sum_{i=0}^n B_i^n(u) = 1
+        \end{equation}
+        \item \textbf{Positivité :}
+        \begin{equation}
+            \forall i \in \llbracket 0, n \rrbracket, \quad B_i^n(u) \ge 0
+        \end{equation}
+        \item \textbf{Symétrie :}
+        \begin{equation}
+            \forall i \in \llbracket 0, n \rrbracket, \quad B_i^n(u) = B_{n-i}^n(1 - u)
+        \end{equation}
+        \item \textbf{Valeurs aux bornes :}
+        \begin{equation}
+            B_i^n(0) = \delta_{i, 0} \quad \text{et} \quad B_i^n(1) = \delta_{i, n}
+        \end{equation}
+        où $\delta_{i, j}$ désigne le symbole de Kronecker.
+    \end{enumerate}
+\end{prop}
+
+\begin{remark}[Origine algébrique via la formule du binôme]
+    Ces polynômes s'obtiennent naturellement en développant l'identité scalaire $1^n = 1$ pour tout $u \in [0, 1]$ :
+    \begin{equation}
+        1 = \big(u + (1 - u)\big)^n = \sum_{i=0}^n \binom{n}{i} u^i (1 - u)^{n-i} = \sum_{i=0}^n B_i^n(u)
+    \end{equation}
+    Ce développement démontre immédiatement la partition de l'unité ainsi que la positivité sur $[0, 1]$ (car $u \ge 0$ et $1-u \ge 0$).
+\end{remark}
+
+\begin{definition}[Courbe de Bézier]
+    Soit $\mathcal{E}$ un espace affine de dimension 2 ou 3 et $(P_0, \dots, P_n) \in \mathcal{E}^{n+1}$ une famille ordonnée de $n+1$ \emph{points de contrôle}. La \emph{courbe de Bézier} associée est l'application paramétrique définie par :
+    \begin{equation}
+        p(u) = \sum_{i=0}^n B_i^n(u) P_i, \quad \forall u \in [0, 1].
+    \end{equation}
+    Puisque $\sum_{i=0}^n B_i^n(u) = 1$ et $B_i^n(u) \ge 0$, le point $p(u)$ est une combinaison convexe bien définie dans $\mathcal{E}$ pour tout $u \in [0, 1]$.
+\end{definition}
+
