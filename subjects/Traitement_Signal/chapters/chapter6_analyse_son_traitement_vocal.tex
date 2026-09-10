@@ -1,0 +1,184 @@
+\minitoc 
+
+% ========================================================================================================
+% Architecture des systèmes de RAP
+
+\section{Architecture des Systèmes de Reconnaissance Vocale (RAP)}
+
+\subsection{Sources de variabilité et chaîne de traitement}
+
+Un système de Reconnaissance Automatique de la Parole (RAP) extrait une séquence de mots à partir d'un signal acoustique de parole. La difficulté réside dans les variabilités acoustiques (bruit, coarticulation), prosodiques (durée, intonation), lexicales et syntaxiques.
+
+\begin{figure}[htbp]
+    \centering
+    \small
+    \textsf{Signal} $\longrightarrow$ \fbox{Prétraitement} $\xrightarrow{\text{Vecteurs } y_t}$ \fbox{Analyse acoustique} $\xrightarrow{\text{Phonèmes}}$ \fbox{Décodage lexical} $\xrightarrow{\text{Mots}}$ \fbox{Décodage syntaxique} $\longrightarrow$ \textsf{Texte}
+    \caption{Pipeline classique d'un système de reconnaissance de formes vocales.}
+\end{figure}
+
+% ========================================================================================================
+% Paramétrisation MFCC
+
+\section{Paramétrisation Acoustique : Coefficients MFCC}
+
+L'analyse de parole s'effectue sur des trames courtes et stationnaires de durée $\approx 20\text{ ms}$ avec un recouvrement de $50\%$.
+
+\begin{definition}[Algorithme d'extraction des MFCC]
+    L'obtention des coefficients \emph{Mel-Frequency Cepstral Coefficients} (MFCC) suit la cascade :
+    \begin{enumerate}
+        \item \textbf{Préaccentuation} : filtre passe-haut $y(n) = x(n) - \alpha x(n-1)$ (avec $\alpha \approx 0{,}97$) pour compenser la chute spectrale d'environ $-6\text{ dB/octave}$ due au rayonnement des lèvres.
+        \item \textbf{Fenêtrage de Hamming} : limitation temporelle réduisant la fuite spectrale.
+        \item \textbf{Spectre TFD (FFT)} : calcul de la transformée de Fourier rapide sur chaque trame.
+        \item \textbf{Banc de filtres de Mel} : banc de filtres triangulaires espacés linéairement sous $1000\text{ Hz}$ et logarithmiquement au-delà (échelle psychoacoustique de Mel) :
+            \begin{equation}
+                \text{Mel}(f) = 2595 \log_{10}\left(1 + \frac{f}{700}\right)
+            \end{equation}
+        \item \textbf{Compression logarithmique} : calcul du logarithme de l'énergie en sortie de chaque filtre.
+        \item \textbf{Transformée en Cosinus Discrète (DCT)} : décolrélation spectrale équivalente à une TFD inverse.
+    \end{enumerate}
+    On retient en pratique les $n_0 \leqslant 13$ à $30$ premiers coefficients cepstraux (le premier coefficient $c_0$, reflet de l'énergie globale, étant souvent traité séparément).
+\end{definition}
+
+% ========================================================================================================
+% Modélisation statistique et GMM
+
+\section{Modélisation Statistique et Modèles de Mélanges de Gaussiennes (GMM)}
+
+\subsection{Cadre Bayésien et Détection d'Activité Vocale (VAD)}
+
+Pour classer une observation $y \in \R^d$ parmi $K$ classes, la règle du Maximum a Posteriori (MAP) s'écrit :
+\begin{equation}
+    s^*(y) = \arg\max_{k} P(k|y) = \arg\max_{k} \frac{P(y|k) P(k)}{P(y)} = \arg\max_{k} P(y|k) P(k)
+\end{equation}
+Pour la Détection d'Activité Vocale (VAD), l'observation scalaire est l'énergie court-terme $y = \frac{1}{N} \sum s_n^2$. Le test binaire Parole / Non-Parole se réduit à une comparaison à un seuil optimal $y^*$ séparant les deux gaussiennes $\mathcal{N}(m_P, \sigma_P^2)$ et $\mathcal{N}(m_{NP}, \sigma_{NP}^2)$.
+
+\subsection{Mélange de Gaussiennes (GMM) et Algorithme EM}
+
+Pour modéliser la variabilité acoustique d'un son continu, la densité d'émission est décomposée en un mélange de $M$ composantes gaussiennes :
+\begin{equation}
+    P(y|k) = \sum_{i=1}^M \alpha_k^i \, \mathcal{N}\left(y; m_k^i, \Sigma_k^i\right) \quad \text{avec } \sum_{i=1}^M \alpha_k^i = 1
+\end{equation}
+
+\begin{theorem}[Algorithme Expectation-Maximization (EM)]
+    L'estimation des paramètres $\{\alpha_i, m_i, \Sigma_i\}$ s'effectue itérativement :
+    \begin{enumerate}
+        \item \textbf{Initialisation} : tirage initial des moyennes par partitionnement de Lloyd / $K$-means (Vector Quantization - VQ), $\Sigma_i = I$ et $\alpha_i = 1/M$.
+        \item \textbf{Étape E (Estimation)} : calcul des probabilités a posteriori d'appartenance de chaque observation $y_t$ à la gaussienne $i$ :
+            \begin{equation}
+                p_k^i(t) = \frac{\alpha_k^i \mathcal{N}\left(y_t; m_k^i, \Sigma_k^i\right)}{\displaystyle \sum_{j=1}^M \alpha_k^j \mathcal{N}\left(y_t; m_k^j, \Sigma_k^j\right)}
+            \end{equation}
+        \item \textbf{Étape M (Maximisation)} : mise à jour des paramètres du mélange :
+            \begin{equation}
+                \bar{\alpha}_k^i = \frac{1}{T} \sum_{t=1}^T p_k^i(t), \qquad \bar{m}_k^i = \frac{\displaystyle \sum_{t=1}^T p_k^i(t) y_t}{\displaystyle \sum_{t=1}^T p_k^i(t)}, \qquad \bar{\Sigma}_k^i = \frac{\displaystyle \sum_{t=1}^T p_k^i(t) (y_t - \bar{m}_k^i)(y_t - \bar{m}_k^i)^T}{\displaystyle \sum_{t=1}^T p_k^i(t)}
+            \end{equation}
+    \end{enumerate}
+\end{theorem}
+
+% ========================================================================================================
+% Alignement temporel dynamique (DTW)
+
+\section{Alignement Temporel Dynamique (DTW)}
+
+La méthode DTW (\emph{Dynamic Time Warping}) mesure la dissemblance entre une séquence d'observation $A = (a_1, \dots, a_N)$ et une référence $B = (b_1, \dots, b_M)$ en absorbant les variations non-linéaires de débit d'élocution.
+
+\begin{definition}[Chemin de déformation et contraintes]
+    Un chemin d'alignement est une suite $C = (c_1, \dots, c_K)$ de cases $c_k = (i_k, j_k) \in \llbracket 1, N \rrbracket \times \llbracket 1, M \rrbracket$ minimisant le coût cumulé :
+    \begin{equation}
+        D(A,B) = \min_C \frac{\sum_{k=1}^K w_k d(a_{i_k}, b_{j_k})}{\sum_{k=1}^K w_k}
+    \end{equation}
+    Le chemin est soumis à trois conditions rigoureuses :
+    \begin{itemize}
+        \item \textbf{Coïncidence des extrémités} : $c_1 = (1,1)$ et $c_K = (N,M)$.
+        \item \textbf{Monotonie temporelle} : $i_k \geqslant i_{k-1}$ et $j_k \geqslant j_{k-1}$.
+        \item \textbf{Continuité} : pas de saut temporel ($i_k - i_{k-1} \leqslant 1$ et $j_k - j_{k-1} \leqslant 1$).
+    \end{itemize}
+\end{definition}
+
+\begin{prop}[Équations de récurrence de Bellman]
+    Soit $g(i,j)$ le coût cumulé minimal pour atteindre la case $(i,j)$ :
+    \begin{itemize}
+        \item \textbf{Schéma symétrique usuel} ($w_{\text{diag}} = 2, w_{\text{lat}} = 1$) :
+            \begin{equation}
+                g(i,j) = \min \begin{cases} g(i-1, j) + d(i,j) \\ g(i-1, j-1) + 2 \, d(i,j) \\ g(i, j-1) + d(i,j) \end{cases}
+            \end{equation}
+            Le coût final $g(N,M)$ est normalisé par le facteur constant $N+M$.
+        \item \textbf{Schéma asymétrique} (alignement projeté sur l'axe $i$) :
+            \begin{equation}
+                g(i,j) = \min \begin{cases} g(i-1, j) + d(i,j) \\ g(i-1, j-1) + d(i,j) \\ g(i, j-1) \end{cases}
+            \end{equation}
+            Normalisé par la longueur temporelle de l'observation $N$.
+    \end{itemize}
+\end{prop}
+
+% ========================================================================================================
+% Modèles de Markov Cachés (HMM)
+
+\section{Modèles de Markov Cachés (HMM / MMC)}
+
+\subsection{Formalisme et Hypothèses}
+
+Un MMC du 1er ordre est défini par le triplet $\Lambda = (\Pi, A, B)$ :
+\begin{itemize}
+    \item L'ensemble fini d'états cachés $Q = \{q_1, \dots, q_N\}$.
+    \item Le vecteur des probabilités initiales $\Pi = (\pi_i)_{1 \leqslant i \leqslant N}$ avec $\pi_i = P(q_1 = i)$.
+    \item La matrice de transition $A = (a_{ij})_{1 \leqslant i,j \leqslant N}$ avec $a_{ij} = P(s_t = j \mid s_{t-1} = i)$ vérifiant $\sum_j a_{ij} = 1$.
+    \item Les densités de probabilité d'émission $B = \{b_j(o_t)\}$ où $b_j(o_t) = P(o_t \mid s_t = j)$, modélisées par des GMM.
+\end{itemize}
+
+\subsection{Algorithme de Viterbi}
+
+L'algorithme de Viterbi extrait la séquence d'états optimale $S^* = (s_1^*, \dots, s_T^*)$ ayant produit la suite d'observations $O = (o_1, \dots, o_T)$. Pour éviter les sous-dépassements de capacité (\emph{underflow}), on travaille en log-probabilités.
+
+\begin{theorem}[Récursion de Viterbi]
+    Soit $\delta_t(j) = \max_{s_1, \dots, s_{t-1}} \ln P(s_1, \dots, s_t = j, o_1, \dots, o_t \mid \Lambda)$ :
+    \begin{enumerate}
+        \item \textbf{Initialisation} ($t=1$) :
+            \begin{equation}
+                \delta_1(i) = \ln \pi_i + \ln b_i(o_1), \qquad \psi_1(i) = 0
+            \end{equation}
+        \item \textbf{Récursion temporelle} ($2 \leqslant t \leqslant T$) :
+            \begin{align}
+                \delta_t(j) &= \max_{1 \leqslant i \leqslant N} \left[ \delta_{t-1}(i) + \ln a_{ij} \right] + \ln b_j(o_t) \\
+                \psi_t(j) &= \arg\max_{1 \leqslant i \leqslant N} \left[ \delta_{t-1}(i) + \ln a_{ij} \right]
+            \end{align}
+        \item \textbf{Terminaison et Rétro-traçage (\emph{Backtracking})} :
+            \begin{equation}
+                s_T^* = \arg\max_{1 \leqslant i \leqslant N} \delta_T(i), \qquad s_t^* = \psi_{t+1}(s_{t+1}^*) \quad \text{pour } t = T-1, \dots, 1
+            \end{equation}
+    \end{enumerate}
+\end{theorem}
+
+% ========================================================================================================
+% Réseaux de neurones pour la parole
+
+\section{Modèles Connexionnistes (Réseaux de Neurones Récurrents)}
+
+\subsection{Perceptron et Réseau Récurrent Simple (RNN)}
+
+Dans un RNN, la sortie d'un état caché à l'instant $t-1$ est réinjectée en entrée à l'instant $t$ :
+\begin{equation}
+    h_t = \tanh\left( W_{xh} x_t + W_{hh} h_{t-1} + b_h \right)
+\end{equation}
+Bien qu'adapté aux séquences, le RNN simple souffre de disparition ou explosion du gradient (\emph{vanishing/exploding gradient}) sur les longues dépendances temporelles.
+
+\subsection{Cellule LSTM (Long Short-Term Memory)}
+
+La cellule LSTM compense la perte de gradient grâce à une mémoire interne linéaire $C_t$ (état de cellule) régulée par trois portes sigmoidales :
+\begin{align}
+    \text{Porte d'oubli : } & F_t = \sigma\left( W_f [h_{t-1}, x_t] + b_f \right) \\
+    \text{Porte d'entrée : } & I_t = \sigma\left( W_i [h_{t-1}, x_t] + b_i \right) \\
+    \text{Candidat cellule : } & \tilde{C}_t = \tanh\left( W_c [h_{t-1}, x_t] + b_c \right) \\
+    \text{Mise à jour mémoire : } & \boxed{C_t = F_t * C_{t-1} + I_t * \tilde{C}_t} \\
+    \text{Porte de sortie : } & O_t = \sigma\left( W_o [h_{t-1}, x_t] + b_o \right) \\
+    \text{État caché délivré : } & \boxed{h_t = O_t * \tanh(C_t)}
+\end{align}
+
+\subsection{Cellule GRU (Gated Recurrent Unit)}
+
+La cellule GRU simplifie le LSTM en fusionnant l'état de cellule et l'état caché, réduisant le nombre de paramètres à deux portes :
+\begin{align}
+    \text{Porte de mise à jour (\emph{update}) : } & Z_t = \sigma\left( W_z [h_{t-1}, x_t] + b_z \right) \\
+    \text{Porte de réinitialisation (\emph{reset}) : } & R_t = \sigma\left( W_r [h_{t-1}, x_t] + b_r \right) \\
+    \text{État candidat : } & \tilde{h}_t = \tanh\left( W [R_t * h_{t-1}, x_t] + b \right) \\
+    \text{État final : } & \boxed{h_t = (1 - Z_t) * h_{t-1} + Z_t * \tilde{h}_t}
+\end{align}
