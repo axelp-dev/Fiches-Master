@@ -1,0 +1,129 @@
+\minitoc 
+
+% ========================================================================================================
+% Transformée en Z
+
+\section{Transformée en $Z$}
+
+\subsection{Définition et Domaine de Convergence (DC)}
+
+\begin{definition}[Transformée en $Z$]
+    La transformée en $Z$ d'un signal discret $(x_n)_{n \in \Z}$ est la fonction de la variable complexe $z \in \C$ définie par :
+        \begin{equation}
+            \boxed{X(z) = \sum_{n=-\infty}^{+\infty} x(n) z^{-n}}
+        \end{equation}
+    $X(z)$ n'est définie que sur son \textbf{Domaine de Convergence (DC)} (ou \emph{Region of Convergence, ROC}), l'ensemble des points $z \in \C$ pour lesquels la série converge absolument.
+\end{definition}
+
+\begin{prop}[Topologie du Domaine de Convergence]
+    La forme du DC dépend de la nature temporelle du signal :
+    \begin{itemize}
+        \item \textbf{Signal causal} ($x(n) = 0, \forall n < 0$) : Le DC est l'extérieur d'un disque, $|z| > R_{\max}$.
+        \item \textbf{Signal anti-causal} ($x(n) = 0, \forall n > 0$) : Le DC est l'intérieur d'un disque, $|z| < R_{\min}$.
+        \item \textbf{Signal bilatère} (support infini des deux côtés) : Le DC est une couronne circulaire fermée $R_{\min} < |z| < R_{\max}$.
+    \end{itemize}
+\end{prop}
+
+\begin{example}
+    Pour le signal $x(n) = a^n u(n)$ avec $a \in \C$ :
+    $$ X(z) = \sum_{n=0}^{+\infty} a^n z^{-n} = \sum_{n=0}^{+\infty} (a z^{-1})^n = \frac{1}{1 - a z^{-1}} = \frac{z}{z - a}, \quad \text{pour } |a z^{-1}| < 1 \iff |z| > |a| $$
+\end{example}
+
+\subsection{Propriétés de la Transformée en $Z$}
+
+\begin{prop}[Propriétés fondamentales]
+    Soient $x(n) \overset{\mathcal{Z}}{\longleftrightarrow} X(z)$ et $y(n) \overset{\mathcal{Z}}{\longleftrightarrow} Y(z)$ :
+    \begin{itemize}
+        \item \textbf{Linéarité} : $\alpha x(n) + \beta y(n) \overset{\mathcal{Z}}{\longleftrightarrow} \alpha X(z) + \beta Y(z)$.
+        \item \textbf{Théorème du retard} : 
+            \begin{equation}
+                \boxed{x(n - k) \overset{\mathcal{Z}}{\longleftrightarrow} z^{-k} X(z)}
+            \end{equation}
+            L'opérateur $z^{-1}$ modélise l'élément unitaire de retard mémoire.
+        \item \textbf{Convolution} : $(x * y)(n) \overset{\mathcal{Z}}{\longleftrightarrow} X(z) \cdot Y(z)$.
+    \end{itemize}
+\end{prop}
+
+% ========================================================================================================
+% Équations aux différences et SLIT
+
+\section{Description des SLIT et Fonctions de Transfert}
+
+\subsection{Équation aux différences linéaires à coefficients constants}
+
+Tout système linéaire invariant par décalage discret est régi par une équation aux différences reliant l'entrée $x(n)$ et la sortie $y(n)$ :
+\begin{equation}
+    y(n) = \sum_{i=0}^N a_i x(n - i) - \sum_{j=1}^M b_j y(n - j)
+\end{equation}
+
+\subsection{Fonction de transfert en $Z$ et Réponse fréquentielle}
+
+En appliquant la transformée en $Z$ aux deux membres de l'équation :
+$$ Y(z) = \sum_{i=0}^N a_i z^{-i} X(z) - \sum_{j=1}^M b_j z^{-j} Y(z) \iff Y(z) \left[ 1 + \sum_{j=1}^M b_j z^{-j} \right] = X(z) \sum_{i=0}^N a_i z^{-i} $$
+
+\begin{definition}[Fonction de transfert]
+    La fonction de transfert $H(z)$ du système s'écrit sous forme rationnelle :
+        \begin{equation}
+            \boxed{H(z) = \frac{Y(z)}{X(z)} = \frac{\sum_{i=0}^N a_i z^{-i}}{1 + \sum_{j=1}^M b_j z^{-j}}}
+        \end{equation}
+\end{definition}
+
+\begin{remark}[Lien avec la réponse fréquentielle]
+    Si le cercle unité $|z| = 1$ est inclus dans le domaine de convergence du système, la réponse fréquentielle harmonique s'obtient par l'évaluation en $z = e^{j 2 \pi f T_e}$ (avec $T_e = 1/F_e$) :
+    \begin{equation}
+        H(f) = H(z)\Big|_{z = e^{j 2\pi f T_e}} = \frac{\sum_{i=0}^N a_i e^{-j 2\pi f i T_e}}{1 + \sum_{j=1}^M b_j e^{-j 2\pi f j T_e}}
+    \end{equation}
+\end{remark}
+
+\subsection{Classification : Filtres RIF vs Filtres RII}
+
+\begin{proposition}[Comparaison structurelle]
+    \begin{itemize}
+        \item \textbf{Filtres RIF (Réponse Impulsionnelle Finie / Non-récursifs)} :
+            \begin{itemize}
+                \item Tous les coefficients récursifs sont nuls : $\forall j \geqslant 1, b_j = 0$.
+                \item Équation temporelle : $y(n) = \sum_{i=0}^N a_i x(n-i)$.
+                \item Réponse impulsionnelle finie : $h(n) = a_n$ pour $0 \leqslant n \leqslant N$, et $h(n) = 0$ ailleurs.
+                \item Fonction de transfert : $H(z) = \sum_{i=0}^N a_i z^{-i}$ (polynôme en $z^{-1}$, aucun pôle non nul).
+                \item \textbf{Propriétés} : Stabilité inconditionnelle, possibilité de concevoir des filtres à phase rigoureusement linéaire.
+            \end{itemize}
+        \item \textbf{Filtres RII (Réponse Impulsionnelle Infinie / Récursifs)} :
+            \begin{itemize}
+                \item Au moins un coefficient $b_j \neq 0$.
+                \item La sortie dépend des valeurs de sortie passées (rétroaction).
+                \item $H(z)$ admet des pôles non nuls.
+                \item \textbf{Condition de stabilité} : Tous les pôles de $H(z)$ doivent être strictement situés à l'intérieur du cercle unité ($|p_k| < 1$).
+            \end{itemize}
+    \end{itemize}
+\end{proposition}
+
+% ========================================================================================================
+% Filtrage sélectif et synthèse
+
+\section{Filtres sélectifs et Synthèse de filtres RIF}
+
+\subsection{Filtres sélectifs idéaux}
+
+Un filtre sélectif sélectionne des composantes spectrales. Les 4 gabarits idéaux symétriques sur $[-1/2, 1/2]$ sont :
+\begin{itemize}
+    \item \textbf{Passe-Bas (PB)} de fréquence de coupure $f_c$ : $|H(f)| = 1$ si $|f| \leqslant f_c$, $0$ sinon.
+    \item \textbf{Passe-Haut (PH)} : $|H_{\text{PH}}(f)| = 1 - |H_{\text{PB}}(f)|$.
+    \item \textbf{Passe-Bande} entre $f_{c1}$ et $f_{c2}$ : $|H(f)| = 1$ si $f \in [-f_{c2}, -f_{c1}] \cup [f_{c1}, f_{c2}]$, $0$ sinon.
+    \item \textbf{Coupe-Bande (CB)} : $|H_{\text{CB}}(f)| = 1 - |H_{\text{PBande}}(f)|$.
+\end{itemize}
+
+\subsection{Synthèse des filtres RIF par la méthode des fenêtres}
+
+Les filtres idéaux ci-dessus possèdent une réponse impulsionnelle infinie et non causale de type sinus cardinal (ex. pour le passe-bas : $h_{\text{id}}(n) = 2 f_c \operatorname{sinc}(2\pi f_c n)$). Ils sont donc physiquement irréalisables.
+
+\begin{definition}[Méthode des fenêtres]
+    Pour synthétiser un filtre RIF causal d'ordre $N$ :
+    \begin{enumerate}
+        \item Calcul analytique de la réponse idéale infinie par TF inverse : $h_{\text{id}}(n) = \int_{-1/2}^{1/2} H_{\text{id}}(f) e^{j 2\pi f n} \, df$.
+        \item Troncature et apodisation par une fenêtre finie $w(n)$ d'ordre $N$ :
+            \begin{equation}
+                h(n) = h_{\text{id}}(n - N/2) \cdot w(n), \quad n \in \llbracket 0, N-1 \rrbracket
+            \end{equation}
+            Le décalage de $N/2$ assure la causalité du filtre synthétisé.
+    \end{enumerate}
+\end{definition}
