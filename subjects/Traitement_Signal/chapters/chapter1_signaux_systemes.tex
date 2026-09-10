@@ -1,0 +1,325 @@
+\minitoc 
+
+% ========================================================================================================
+% Systèmes et signaux à temps discret 
+
+\section{Systèmes et signaux à temps discret}
+
+\subsection{Généralités}
+
+\begin{definition}[Signal]
+    On définit un signal numérique comme une suite $(x_n)_{n \in \Z} $ 
+    à valeurs dans $ \C$. 
+    En pratique, elle sera finie et sera stockée sous forme de vecteur :
+    $$ x = [\dots, x(-1), x(0), x(1), x(2), \dots]^T $$
+\end{definition}
+
+\begin{example}
+    Voyons quelques exemples de signaux caractéristiques : 
+    \begin{itemize}
+        \item \textbf{L'échantillon unitaire}, aussi appelé Dirac : 
+            \begin{equation}
+                x(n) = \delta(n) = 
+                    \begin{cases}
+                        1 \text{ si } n = 0 \\ 
+                        0 \text{ sinon } 
+                    \end{cases}
+            \end{equation}
+        \item \textbf{Fonction de Heaviside} : 
+            \begin{equation}
+                x(n) = u(n) = 
+                    \begin{cases}
+                        1 \text{ si } n \geqslant 0 \\
+                        0 \text{ sinon}  
+                    \end{cases}
+            \end{equation}
+        \item \textbf{Sinus/Cosinus réel} : 
+            \begin{equation}
+                x(n) = A \cos (2 \pi f_0 n) 
+            \end{equation}
+            Avec $A \in \R_+$ l'amplitude du signal. 
+        \item \textbf{Exponentiel réel} : 
+            \begin{equation}
+                x(n) = a^n, \quad a \in \R 
+            \end{equation}
+        \item \textbf{Exponentiel complexe} : 
+            \begin{equation}
+                x(n) = c^n, \quad c \in \C
+            \end{equation}
+            Si $c = e^{j \pi f_0}$ (i.e. $c$ appartient au cercle unité), alors : 
+                $$ x(n) = e^{j \pi n f_0} = \cos ( \pi n f_0) + j \sin ( \pi n f_0) $$ 
+        \item \textbf{Porte} : 
+            \begin{equation}
+                x(n) = 
+                \begin{cases}
+                    1 \text{ si } N \leqslant n \leqslant M \\ 
+                    0 \text{ sinon }  
+                \end{cases}
+                \quad N, M \in \Z 
+            \end{equation}
+    \end{itemize}
+\end{example}
+
+\begin{remark}
+    On peut remarquer que l'échantillon unitaire peut s'écrire en fonction de la fonction 
+    de Heaviside sous la forme : 
+        $$ \forall n \in \Z, \quad \delta(n) = u(n) - u(n-1) $$ 
+    De même, on a : 
+        $$ u(n) = \sum_{k = - \infty}^{n} \delta(k) $$ 
+    Et pour le signal porte entre $N$ et $M$ :
+        $$ x(n) = u(n - N) - u(n - M - 1) $$
+\end{remark}
+
+\begin{definition}[Signal fini/périodique]
+    Un signal $(x_n)_{n \in \Z}$ est dit \emph{de longueur finie} s'il 
+    existe $ N_1, N_2 \in \Z$ tels que : 
+        \begin{equation}
+            \forall n \not \in \llbracket N_1, N_2 \rrbracket, \quad x(n) = 0 
+        \end{equation}
+    On dira alors que le signal a une longueur de $N_2 - N_1 + 1$. 
+    On dira aussi qu'il est périodique s'il existe $ N \in \N^*$ tel que : 
+        \begin{equation}
+            \forall n \in \Z, \quad x(n + N) = x(n) 
+        \end{equation}
+\end{definition}
+
+\begin{definition}[Énergie et Puissance]
+    Pour tout signal discret $(x_n)_{n \in \Z}$, on définit :
+    \begin{itemize}
+        \item Son \textbf{énergie totale} :
+            \begin{equation}
+                E = \sum_{n=-\infty}^{+\infty} |x(n)|^2
+            \end{equation}
+            Si $E < \infty$, le signal est dit à énergie finie.
+        \item Sa \textbf{puissance moyenne} :
+            \begin{equation}
+                P_{\text{moy}} = \lim_{N \to \infty} \frac{1}{2N+1} \sum_{n=-N}^N |x(n)|^2
+            \end{equation}
+    \end{itemize}
+\end{definition}
+
+\begin{example}
+    Pour l'échelon unité $x(n) = u(n)$ :
+    $$ E = \sum_{n=0}^{+\infty} |1|^2 \longrightarrow +\infty \quad (\text{énergie infinie}) $$
+    $$ P_{\text{moy}} = \lim_{N \to \infty} \frac{1}{2N+1} \sum_{n=0}^N 1 = \lim_{N \to \infty} \frac{N+1}{2N+1} = \frac{1}{2} $$
+\end{example}
+
+\subsection{Opérations élémentaires}
+
+\begin{definition}[Opérations]
+    Soit $(x_n)_{n \in \Z}$ un signal à valeurs dans $\C$. On définit les opérations suivantes : 
+    \begin{itemize} 
+        \item \textbf{Décalage} : Pour $n_0 \in \Z$, on a : 
+            $$ \forall n \in \Z, \quad y(n) = x(n - n_0) $$ 
+        Si $n_0 > 0$ alors $y$ est retardé de $n_0$, sinon si $n_0 < 0$ il est avancé. 
+        \item \textbf{Retournement} : $ \forall n \in \Z, \quad y(n) = x(-n) $. 
+        \item \textbf{Sous-échantillonnage} : 
+            $$ y(n) = x(M n) $$
+        où $M > 0$ est appelé \emph{facteur de sous-échantillonnage}. 
+        \item \textbf{Sur-échantillonnage} :
+            $$ \forall n \in \Z, \quad 
+                y(n) = x \left(n / N\right) 
+                \quad \iff \quad 
+                y(n) = 
+                \begin{cases}
+                    x(n/N) \text{ si } n = 0, \pm N, \pm 2N, \dots \\ 
+                    0 \text{ sinon }  
+                \end{cases}
+            $$
+            où $N > 0$ est le facteur de sur-échantillonnage.
+    \end{itemize}
+\end{definition}
+
+\begin{theorem}[Décomposition]
+    Tout signal $(x_n)_{n \in \Z} \in \C^\Z$ peut être décomposé sous la forme : 
+        \begin{equation}
+            \boxed{\forall n \in \Z, \quad x(n) = \sum_{k \in \Z} x(k) \delta(n - k)}
+        \end{equation}
+\end{theorem}
+
+\subsection{Systèmes discrets}
+
+\begin{definition}[Système]
+    Un système $T$ est une transformation qui prend un signal $x(n)$ à son entrée et délivre un signal $y(n) = T[x(n)]$ à sa sortie. 
+
+    On dira que $T$ est \emph{linéaire} si pour tous $\alpha_1, \alpha_2 \in \C$ et tous signaux $x_1, x_2$, on a :
+        \begin{equation}
+            \forall n \in \Z, \quad T[ \alpha_1 x_1(n) + \alpha_2 x_2(n)] = \alpha_1 T[x_1(n)] + \alpha_2 T[x_2(n)] 
+        \end{equation}
+\end{definition}
+
+\begin{prop}[Propriétés des systèmes à temps discret]
+    Soient $x, y \in \C^\Z$ deux signaux et $T$ un système. On caractérise $T$ par les propriétés : 
+    \begin{itemize}
+        \item \textbf{Causalité} : Si pour tout $n_0 \in \Z$, la réponse $T[x(n_0)]$ 
+        ne dépend que des entrées et/ou sorties passées et présentes ($n \leqslant n_0$). 
+        \item \textbf{Invariance par décalage} : Si 
+            \begin{equation}
+                T[x(n)] = y(n) \Longrightarrow \forall n_0 \in \Z, \quad T[x(n - n_0)] = y(n - n_0) 
+            \end{equation}
+        Dans le cas contraire, le système est dit variant par décalage.
+        \item \textbf{Stabilité (BIBO)} : Si pour toute entrée bornée, la sortie est bornée : 
+            \begin{equation}
+                \exists A \in \R_+, \quad |x(n)| \leqslant A \Longrightarrow \exists B \in \R_+, \quad |y(n)| \leqslant B 
+            \end{equation}
+    \end{itemize}
+\end{prop}
+
+Un système linéaire et invariant par translation/décalage est désigné par l'acronyme \textbf{SLIT}.
+
+\begin{definition}[Système physiquement réalisable]
+    Un système $T$ est dit \emph{physiquement réalisable} s'il est à la fois \textbf{stable} et \textbf{causal}. 
+\end{definition}
+
+\begin{definition}[Réponse impulsionnelle]
+    On appelle \emph{réponse impulsionnelle} le signal $h(n)$ obtenu lorsque l'entrée est l'impulsion unitaire :
+        \begin{equation}
+            \forall n \in \Z, \quad h(n) = T[ \delta(n)]
+        \end{equation}
+\end{definition}
+
+\begin{proposition}[Critères fondamentaux sur un SLIT]
+    Soit un SLIT de réponse impulsionnelle $h(n)$ :
+    \begin{itemize}
+        \item Le système est \textbf{stable} si et seulement si :
+            \begin{equation}
+                \sum_{n=-\infty}^{+\infty} |h(n)| < \infty
+            \end{equation}
+        \item Le système est \textbf{causal} si et seulement si :
+            \begin{equation}
+                \forall n < 0, \quad h(n) = 0
+            \end{equation}
+    \end{itemize}
+\end{proposition}
+
+% ========================================================================================================
+% Convolution et corrélation
+
+\section{Convolution et corrélation}
+
+Pour un SLIT, la décomposition de l'entrée donne :
+$$ y(n) = T[x(n)] = T\left[ \sum_{k \in \Z} x(k) \delta(n - k) \right] = \sum_{k \in \Z} x(k) T[\delta(n - k)] $$
+Puisque le système est invariant par décalage, $T[\delta(n - k)] = h(n - k)$, d'où :
+$$ y(n) = \sum_{k \in \Z} x(k) h(n - k) = (x * h)(n) $$
+
+\subsection{Convolution linéaire}
+
+\begin{definition}[Convolution temporelle]
+    Soient $x, y \in \C^\Z$. On définit le produit de convolution entre $x$ et $y$ par : 
+        \begin{equation}
+            \boxed{\forall n \in \Z, \quad (x * y)(n) = \sum_{k=-\infty}^{+\infty} x(k) y(n - k)}
+        \end{equation}
+\end{definition}
+
+\begin{prop}[Propriétés algébriques]
+    Pour tous signaux $x, y, z$ : 
+    \begin{enumerate}[label=\roman*)]
+        \item \emph{Commutativité} : $ x * y = y * x $. 
+        \item \emph{Associativité} : $ (x * y) * z = x * (y * z) $. 
+        \item \emph{Distributivité} : $ x * (y + z) = x * y + x * z $. 
+    \end{enumerate}
+\end{prop}
+
+\begin{prop}[Propriétés avec l'impulsion de Dirac]
+    \begin{enumerate}[label=\roman*)]
+        \item Élément neutre : $(x * \delta)(n) = x(n)$. 
+        \item Décalage : $x(n) * \delta(n - n_0) = x(n - n_0)$. 
+        \item Composition d'impulsions : $\delta(n - n_0) * \delta(n - n_1) = \delta(n - n_0 - n_1)$.
+    \end{enumerate}
+\end{prop}
+
+\begin{proposition}[Signaux de longueur finie]
+    Si $x$ est de longueur $N_x$ et $y$ de longueur $N_y$, alors le signal convolué $z = x * y$ est de longueur finie au maximum égale à :
+    \begin{equation}
+        N_z = N_x + N_y - 1
+    \end{equation}
+\end{proposition}
+
+\subsection{Convolution circulaire et Zero-Padding}
+
+\begin{definition}[Extension périodique]
+    Soit $x(n)$ un signal de longueur finie $N$. On définit son extension périodique $x_N(n)$ de période $N$ par : 
+        \begin{equation} 
+            \forall n \in \Z, \quad x_N(n) = x(n \bmod N) = \sum_{p=-\infty}^{+\infty} x(n + pN)
+        \end{equation}
+\end{definition}
+
+\begin{definition}[Convolution circulaire]
+    Soient $x$ et $y$ deux signaux de même longueur finie $N$. La convolution circulaire est définie par : 
+        \begin{equation}
+            \boxed{\forall n \in \llbracket 0, N-1 \rrbracket, \quad (x \circ y)(n) = \sum_{k=0}^{N-1} y(k) x_N(n - k)}
+        \end{equation}
+\end{definition}
+
+\begin{proposition}[Formulation matricielle]
+    En posant $x = [x(0), \dots, x(N-1)]^T$ et $y = [y(0), \dots, y(N-1)]^T$, la convolution circulaire $z = x \circ y$ s'écrit sous forme d'un produit matrice-vecteur :
+    \begin{equation}
+        z = C \cdot x
+    \end{equation}
+    où $C$ est une matrice circulante construite à partir de $y$. Pour $N = 3$ :
+    $$
+    \begin{bmatrix} z(0) \\ z(1) \\ z(2) \end{bmatrix} = 
+    \begin{bmatrix} 
+        y(0) & y(2) & y(1) \\ 
+        y(1) & y(0) & y(2) \\ 
+        y(2) & y(1) & y(0) 
+    \end{bmatrix}
+    \begin{bmatrix} x(0) \\ x(1) \\ x(2) \end{bmatrix}
+    $$
+\end{proposition}
+
+\begin{theorem}[Équivalence linéaire/circulaire par Zero-Padding]
+    Soient $x$ et $y$ de longueurs $N_x$ et $N_y$. Pour obtenir la convolution linéaire exacte via une convolution circulaire :
+    \begin{enumerate}
+        \item On fixe la taille commune à $N = N_x + N_y - 1$.
+        \item On forme $x_z$ en complétant $x$ par $N_y - 1$ zéros, et $y_z$ en complétant $y$ par $N_x - 1$ zéros.
+        \item On a alors rigoureusement :
+            \begin{equation}
+                \boxed{\forall n \in \llbracket 0, N-1 \rrbracket, \quad (x_z \circ y_z)(n) = (x * y)(n)}
+            \end{equation}
+    \end{enumerate}
+\end{theorem}
+
+\subsection{Corrélation à temps discret}
+
+\begin{definition}[Intercorrélation et Autocorrélation]
+    Soient $x, y \in \C^\Z$. La \emph{fonction d'intercorrélation} est définie par : 
+        \begin{equation}
+            \forall n \in \Z, \quad C_{xy}(n) = \sum_{k=-\infty}^{+\infty} x(k) y(k - n) 
+        \end{equation}
+    Si $x = y$, on parle de fonction d'\emph{autocorrélation} $C_{xx}(n)$.
+\end{definition}
+
+\begin{prop}[Propriétés de la corrélation]
+    \begin{enumerate}[label=\roman*)]
+        \item Lien avec la convolution : $C_{xy}(n) = x(n) * y(-n)$. 
+        \item Symétrie : $C_{xy}(n) = C_{yx}(-n)$, et pour l'autocorrélation : $C_{xx}(n) = C_{xx}(-n)$.
+        \item Maximum d'autocorrélation : $C_{xx}(0)$ est maximal et représente l'énergie du signal : $C_{xx}(0) = \sum |x(k)|^2 = E_x$.
+    \end{enumerate}
+\end{prop}
+
+\begin{definition}[Estimateurs pour signaux de longueur finie $N$]
+    Pour des signaux d'horizon $N$, on utilise :
+    \begin{itemize}
+        \item \textbf{La forme biaisée} : 
+            \begin{equation}
+                C_{xy}(n) = \frac{1}{N} \sum_{k=0}^{N - n - 1} x(k) y(k - n)
+            \end{equation}
+        \item \textbf{La forme non biaisée} : 
+            \begin{equation}
+                C_{xy}(n) = \frac{1}{N - |n|} \sum_{k=0}^{N - n - 1} x(k) y(k - n)
+            \end{equation}
+    \end{itemize}
+\end{definition}
+
+\subsection{Formulaire de sommes classiques utiles}
+
+\begin{proposition}[Sommes finies et séries géométriques]
+    \begin{itemize}
+        \item $\displaystyle \sum_{n=0}^{N-1} a^n = \frac{1 - a^N}{1 - a} \quad (a \neq 1)$
+        \item $\displaystyle \sum_{n=0}^{+\infty} a^n = \frac{1}{1 - a} \quad (|a| < 1)$
+        \item $\displaystyle \sum_{n=0}^{N-1} n a^n = \frac{(N-1)a^{N+1} - N a^N + a}{(1 - a)^2}$
+        \item $\displaystyle \sum_{n=0}^{+\infty} n a^n = \frac{a}{(1 - a)^2} \quad (|a| < 1)$
+        \item $\displaystyle \sum_{n=0}^{N-1} n = \frac{N(N-1)}{2}, \qquad \sum_{n=0}^{N-1} n^2 = \frac{N(N-1)(2N-1)}{6}$
+    \end{itemize}
+\end{proposition}

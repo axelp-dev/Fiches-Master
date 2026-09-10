@@ -1,0 +1,168 @@
+\minitoc 
+
+% ========================================================================================================
+% Analyse de Fourier des signaux à temps discret
+
+\section{Transformée de Fourier des signaux à temps discret (TFTD)}
+
+\subsection{Définitions et conventions}
+
+\begin{definition}[TFTD en convention fréquence]
+    Pour un signal $x(n)$ à temps discret, sa Transformée de Fourier à Temps Discret est la fonction continue $X(f)$ définie par : 
+        \begin{equation}
+            \boxed{X(f) = \sum_{n=-\infty}^{+\infty} x(n) e^{-2j \pi n f}}
+        \end{equation}
+    \textbf{Remarques clés :}
+    \begin{itemize}
+        \item Bien que $x(n)$ soit discret, $X(f)$ est une fonction continue de la fréquence $f$.
+        \item $X(f) \in \C$, avec $X(f) = |X(f)| e^{j \text{Arg}(X(f))}$.
+        \item $X(f)$ est périodique de période $1$ : $X(f + 1) = X(f)$.
+    \end{itemize}
+\end{definition}
+
+\begin{definition}[TFTD inverse]
+    La reconstruction du signal temporel s'effectue sur une période fréquentielle unitaire :
+        \begin{equation}
+            x(n) = \int_{-1/2}^{+1/2} X(f) e^{2j \pi n f} \, df
+        \end{equation}
+    On note symboliquement cette correspondance : $x(n) \overset{\mathcal{F}}{\longleftrightarrow} X(f)$.
+\end{definition}
+
+\begin{remark}[Convention en pulsation $\omega$]
+    En posant la pulsation normalisée $\omega = 2\pi f$ ($\omega \in [-\pi, \pi]$) :
+    \begin{equation}
+        X(\omega) = \sum_{n=-\infty}^{+\infty} x(n) e^{-j n \omega}, \qquad x(n) = \frac{1}{2\pi} \int_{-\pi}^{+\pi} X(\omega) e^{j n \omega} \, d\omega
+    \end{equation}
+    $X(\omega)$ est alors périodique de période $2\pi$. Le passage s'opère directement par $X(f) = X(\omega)|_{\omega = 2\pi f}$.
+\end{remark}
+
+\subsection{Propriétés de la TFTD}
+
+\begin{prop}[Propriétés fondamentales]
+    Soient $x(n) \overset{\mathcal{F}}{\longleftrightarrow} X(f)$ et $y(n) \overset{\mathcal{F}}{\longleftrightarrow} Y(f)$ :
+    \begin{itemize}
+        \item \textbf{Linéarité} : $a x(n) + b y(n) \overset{\mathcal{F}}{\longleftrightarrow} a X(f) + b Y(f)$.
+        \item \textbf{Retournement temporel} : $x(-n) \overset{\mathcal{F}}{\longleftrightarrow} X(-f)$.
+        \item \textbf{Décalage temporel} : $x(n - n_0) \overset{\mathcal{F}}{\longleftrightarrow} X(f) e^{-2j \pi n_0 f}$.
+        \item \textbf{Modulation fréquentielle} : $x(n) e^{2j \pi n f_0} \overset{\mathcal{F}}{\longleftrightarrow} X(f - f_0)$.
+        \item \textbf{Convolution temporelle} : $(x * y)(n) \overset{\mathcal{F}}{\longleftrightarrow} X(f) \cdot Y(f)$.
+        \item \textbf{Multiplication temporelle} : $x(n) \cdot y(n) \overset{\mathcal{F}}{\longleftrightarrow} (X * Y)(f) = \int_{-1/2}^{1/2} X(u) Y(f - u) \, du$.
+        \item \textbf{Théorème de Parseval} : $\sum_{n=-\infty}^{+\infty} |x(n)|^2 = \int_{-1/2}^{1/2} |X(f)|^2 \, df$.
+    \end{itemize}
+\end{prop}
+
+\begin{proposition}[Symétries de la TFTD]
+    \begin{center}
+        \renewcommand{\arraystretch}{1.3}
+        \begin{tabular}{ll}
+            \toprule
+            \textbf{Signal temporel} $x(n)$ & \textbf{Spectre} $X(f)$ \\
+            \midrule
+            Réel & Hermitien : $X(-f) = X^*(f)$ ($|X(f)|$ pair, phase impaire) \\
+            Réel et pair & Réel et pair \\
+            Réel et impair & Imaginaire pur et impair \\
+            Imaginaire pur & Anti-hermitien \\
+            Imaginaire et pair & Imaginaire pur et pair \\
+            Imaginaire et impair & Réel et impair \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{proposition}
+
+\begin{proposition}[Paires usuelles de transformées]
+    \begin{center}
+        \renewcommand{\arraystretch}{1.6}
+        \begin{tabular}{cc}
+            \toprule
+            $x(n)$ & $X(f)$ \\
+            \midrule
+            $\delta(n)$ & $1$ \\
+            $\delta(n - n_0)$ & $e^{-2j\pi n_0 f}$ \\
+            $1$ & $\delta(f)$ sur $[-1/2, 1/2]$ \\
+            $e^{2j \pi f_0 n}$ & $\delta(f - f_0)$ \\
+            $\cos(2\pi f_0 n)$ & $\frac{1}{2} [\delta(f - f_0) + \delta(f + f_0)]$ \\
+            $\sin(2\pi f_0 n)$ & $\frac{1}{2j} [\delta(f - f_0) - \delta(f + f_0)]$ \\
+            $a^n u(n) \quad (|a| < 1)$ & $\displaystyle \frac{1}{1 - a e^{-2j \pi f}}$ \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{proposition}
+
+% ========================================================================================================
+% Transformée de Fourier Discrète (TFD)
+
+\section{Transformée de Fourier Discrète (TFD) et Algorithme FFT}
+
+\subsection{Définition de la TFD}
+
+On traite désormais des signaux réels ou complexes de durée finie $N$ indexés sur $\llbracket 0, N-1 \rrbracket$.
+
+\begin{definition}[TFD et TFD inverse]
+    La Transformée de Fourier Discrète (TFD) sur $N$ points est donnée par :
+        \begin{equation}
+            \boxed{X(m) = \sum_{n=0}^{N-1} x(n) e^{-2j \pi \frac{n m}{N}}, \quad m \in \llbracket 0, N-1 \rrbracket}
+        \end{equation}
+    Sa transformée inverse (ITFD) est définie par :
+        \begin{equation}
+            \boxed{x(n) = \frac{1}{N} \sum_{m=0}^{N-1} X(m) e^{2j \pi \frac{n m}{N}}, \quad n \in \llbracket 0, N-1 \rrbracket}
+        \end{equation}
+    On note : $x(n) \overset{\text{TFD}}{\longleftrightarrow} X(m)$.
+\end{definition}
+
+\begin{remark}[Échantillonnage et Résolution]
+    La TFD correspond à l'échantillonnage de la TFTD continue $X(f)$ aux fréquences discrètes normalisées :
+    $$ f_m = \frac{m}{N}, \quad m \in \llbracket 0, N-1 \rrbracket $$
+    La \textbf{résolution fréquentielle} d'une TFD à $N$ points est donc :
+    \begin{equation}
+        \Delta f = \frac{1}{N} \quad (\text{ou } \Delta F = \frac{F_e}{N} \text{ en Hertz})
+    \end{equation}
+\end{remark}
+
+\begin{prop}[Propriétés spécifiques de la TFD]
+    Pour des séquences de longueur $N$ :
+    \begin{itemize}
+        \item \textbf{Décalage circulaire temporel} : $x((n - n_0) \bmod N) \overset{\text{TFD}}{\longleftrightarrow} X(m) e^{-2j \pi \frac{n_0 m}{N}}$.
+        \item \textbf{Modulation} : $x(n) e^{2j \pi \frac{m_0 n}{N}} \overset{\text{TFD}}{\longleftrightarrow} X((m - m_0) \bmod N)$.
+        \item \textbf{Convolution circulaire} : $(x \circ y)(n) \overset{\text{TFD}}{\longleftrightarrow} X(m) \cdot Y(m)$.
+        \item \textbf{Produit temporel} : $x(n) \cdot y(n) \overset{\text{TFD}}{\longleftrightarrow} \frac{1}{N} (X \circ Y)(m)$.
+    \end{itemize}
+\end{prop}
+
+\subsection{Algorithme de Fourier Rapide (FFT)}
+
+\begin{proposition}[Gain de complexité]
+    Le calcul direct d'une TFD requiert $N^2$ multiplications et additions complexes. 
+    L'algorithme de la \textbf{FFT} (Fast Fourier Transform, e.g. Cooley-Tukey) exploite la décomposition par division de l'horizon pour $N = 2^p$ ($p \in \N$) et abaisse le coût algorithmique à :
+    \begin{equation}
+        \mathcal{O}(N \log_2 N) \quad \text{opérations complexes}
+    \end{equation}
+\end{proposition}
+
+% ========================================================================================================
+% Fenêtrage et apodisation
+
+\section{Troncature spectrale et Fenêtres d'apodisation}
+
+Traiter un signal numérique sur un horizon fini $N$ revient à multiplier le signal théorique infini par une fenêtre temporelle de pondération $w(n)$ :
+$$ x_{\text{tronqué}}(n) = x(n) \cdot w(n) \overset{\mathcal{F}}{\longleftrightarrow} X(f) * W(f) $$
+Ce produit de convolution par la réponse fréquentielle de la fenêtre $W(f)$ provoque un étalement de l'énergie :
+\begin{itemize}
+    \item \textbf{Largeur du lobe principal} : régit la résolution fréquentielle (capacité à séparer deux raies proches).
+    \item \textbf{Niveau des lobes secondaires} : régit la fuite spectrale (\emph{spectral leakage}) vers les fréquences voisines.
+\end{itemize}
+
+\begin{proposition}[Comparatif des fenêtres usuelles d'apodisation sur $N$ points]
+    \begin{center}
+        \renewcommand{\arraystretch}{1.5}
+        \begin{tabular}{llcc}
+            \toprule
+            \textbf{Fenêtre} & \textbf{Définition temporelle} $w(n), n \in \llbracket 0, N-1 \rrbracket$ & \textbf{Lobe principal} & \textbf{Atténuation} \\
+            \midrule
+            Rectangulaire & $w(n) = 1$ & $\frac{2}{N}$ & $-13\text{ dB}$ \\
+            Triangulaire & $w(n) = 1 - \frac{|n - (N-1)/2|}{(N-1)/2}$ & $\frac{4}{N}$ & $-25\text{ dB}$ \\
+            Hamming & $w(n) = 0.54 - 0.46 \cos\left(\frac{2\pi n}{N-1}\right)$ & $\frac{4}{N}$ & $-41\text{ dB}$ \\
+            Blackman & $w(n) = 0.42 - 0.5 \cos\left(\frac{2\pi n}{N-1}\right) + 0.08 \cos\left(\frac{4\pi n}{N-1}\right)$ & $\frac{6}{N}$ & $-57\text{ dB}$ \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{proposition}
