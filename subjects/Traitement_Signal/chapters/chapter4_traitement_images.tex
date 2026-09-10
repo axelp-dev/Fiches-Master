@@ -1,0 +1,543 @@
+% =================================================================
+% Traitement d’image 2d
+% =================================================================
+
+\minitoc 
+
+Ce chapitre introduit la plupart des concepts du traitement d'images. Après avoir décrit les principales étapes de numérisation d'une image ainsi que les métriques usuelles de ses objets, nous introduisons des filtres plus évolués à l'aide de la convolution. 
+La seconde partie de ce chapitre détaille les opérations de filtrage et de réhaussement possible grâce au domaine fréquentiel d'une image, caractérisé par son spectre. Nous concluons par une brève présentation des bruits périodiques et des problèmes inverses. 
+
+% =================================================================
+% Numérisation et Représentation de l'Image 2D
+
+\section{Numérisation, Représentation de l'Image 2D et Traitements Points-à-Points}
+
+Cette première section pose les généralités du traitement d'images numériques. Nous commençons par définir ce qu'est une image numérique ainsi que le processus d'échantillonnage. Après avoir abordé quelques opérations ponctuelles, nous introduisons la convolution ainsi que ses propriétés. 
+
+% ----------------------------------------
+\subsection{Échantillonnage, Quantification et Modèle matriciel}
+
+Nous présentons ici la méthode de représentation d'une image en deux dimensions. À l'origine, une image peut se représenter comme une application continue $i : (x,y) \longrightarrow \R$. Pour stocker notre image, nous pouvons directement stocker la fonction $i$. Or il n'est pas possible de définir mathématiquement une fonction pour chaque image possible, on utilise donc le principe \emph{d'échantillonnage spatial} : on discrétise l'image en \emph{pixels} que l'on pourra stocker dans un emplacement mémoire fini. 
+
+\begin{definition}[Échantillonnage Spatial]
+    Soit $i : (x,y) \longrightarrow \R$ une image continue. On appelle \emph{processus d'échantillonnage} l'opération qui consiste à discrétiser celle-ci en une matrice $I$ de taille $ M \times N$, à l'aide de deux pas réguliers $d_x, d_y$ tout en respectant la condition de Shannon : 
+    \begin{equation}
+        i(m,n) = i(m d_x, n d_y). 
+    \end{equation}
+\end{definition}
+
+Le second processus consiste à projeter les valeurs continues de cette image discrétisée sur un ensemble discret de $L$ niveaux de gris. Généralement on prends $L = 2^k$ niveaux de gris si l'on dispose de $k$ bits pour coder chaque pixel. On appelera la résultante une \emph{image numérique}. 
+
+\begin{definition}[Image matricielle et Pixel]
+    Une image numérique monochrome \emph{codée} sur $k$ bits est une matrice $I$ de $M$ lignes et $N$ colonnes telle que pour tout $ (x,y) \in  \llbracket 0, M-1 \rrbracket \times \llbracket 0, N-1 \rrbracket$, $I(x,y) \in \llbracket 0, 2^k -1 \rrbracket$ représente un \emph{pixel}. 
+\end{definition}
+
+En fonction des caractéristiques souhaitées de notre image, on peut coder la valeur de chaque pixel différements. Il existe donc différents types d'images : 
+\begin{itemize}
+    \item Les \emph{images binaires} : chaque pixel peut contenir que deux valeurs possibles : $I(x,y) \in \{0, 1\}$ ($1$ bit par pixel).
+    \item Les \emph{images à niveaux de gris} : $I(x,y) \in \llbracket 0, 255 \rrbracket$. Pour 256 valeurs différentes, il est nécessaire d'allouer 8 bits à chaque pixel en mémoire. 
+    \item Les \emph{images en couleur (RGB)} : Chaque pixel est codé sous trois valeurs différentes correspondant à la quantité de couleur rouge, verte et bleue composant celui-ci :
+    $$ I(x,y) = \begin{pmatrix} R(x,y) \\ G(x,y) \\ B(x,y) \end{pmatrix} \in \llbracket 0, 255 \rrbracket^3 $$
+    Une telle image sera composée de 3 \emph{canaux} (un pour chaque couleur) et sera stockée sous forme de \emph{tenseur} de dimension $ 3 \times M \times N$. 
+\end{itemize}
+
+% ----------------------------------------
+\subsection{Traitements Ponctuels}
+
+Chaque image étant stockée sous la forme d'une matrice, on peut dès à présent introduire quelques opérations possibles sur nos images. On parle d'opération point-à-point lorsque l'on effectue la même opération du chaque point de l'image de manière indépendante. 
+
+\begin{proposition}[Transformations ponctuelles usuelles]
+    Une transformation ponctuelle applique une fonction de transfert $s = T(r)$ à chaque niveau de gris d'entrée $r \in \llbracket 0, L-1 \rrbracket$ (avec $L = 256$ pour une image 8 bits) :
+    \begin{center}
+        \renewcommand{\arraystretch}{1.8}
+        \begin{tabularx}{\linewidth}{l c X}
+            \toprule
+            \textbf{Transformation} & \textbf{Formule } $s = T(r)$ & \textbf{Effet / Paramètres} \\
+            \midrule
+            \textbf{Luminosité} & $s = \operatorname{tronc}(r + g)$ & $g \in \Z$ ($g > 0$ éclaircit, $g < 0$ assombrit) \\
+            \textbf{Contraste linéaire} & $s = \operatorname{tronc}(a [r - 127] + 127)$ & $a > 1$ amplifie, $0 \leqslant a < 1$ réduit \\
+            \textbf{Négatif} & $s = (L - 1) - r = 255 - r$ & Inverse la dynamique des intensités \\
+            \textbf{Seuillage binaire} & $s = \begin{cases} 1 & \text{si } r \geqslant \text{seuil} \\ 0 & \text{si } r < \text{seuil} \end{cases}$ & Binarisation et segmentation du fond \\
+            \textbf{Logarithmique} & $s = c \log(1 + r)$ & Étend les tons sombres, compresse les clairs \\
+            \textbf{Loi de puissance (Gamma)} & $s = c \, r^\gamma$ & $\gamma < 1$ éclaircit, $\gamma > 1$ assombrit \\
+            \bottomrule
+        \end{tabularx}
+    \end{center}
+\end{proposition}
+
+
+% ----------------------------------------
+\subsection{Histogramme}
+
+Comme en statistiques, l'histogramme d'une image permet de représenter la quantité de chaque valeur possible des pixels sur un axe. 
+
+\begin{definition}[Histogramme, ddp et Fonction de répartition]
+    Pour une image $I$ de taille $M \times N$ comportant $L = 256$ niveaux de gris, on défini son \emph{histogramme} par l'application $h$ telle que : 
+    \begin{equation}
+        \forall g \in \llbracket 0, L-1 \rrbracket, \quad h(g) = \left| \left\{ r \in I \mid r = g\right\}\right|. 
+    \end{equation} 
+    On définit sa \emph{densité de probabilité} $p$ par son histogramme normalisé par le nombre de pixels qu'elle contient : 
+    \begin{equation}
+        p(g) = \frac{h(g)}{M \times N}, \quad \text{avec } \sum_{g=0}^{L-1} p(g) = 1. 
+    \end{equation}
+    Enfin, sa \emph{fonction de répartition} $ \myP$ en $g$ est définie par la somme cumulée de la valeur de sa densité sur ses $g$ premiers termes : 
+    \begin{equation}
+        P(g) = \sum_{k=0}^g p(k) = \frac{1}{M \times N} \sum_{k=0}^g h(k). 
+    \end{equation}
+\end{definition}
+
+Ces données permettent d'avoir un apperçu de la répartition des couleurs (ou niveaux de gris) sur une image. Son histogramme permet notamment de savoir si une image est plutôt sombre ou plutôt claire. 
+
+% ----------------------------------------
+\subsection{Convolution 2D}
+
+\begin{definition}[Convolution bidimensionnelle]
+    Soient deux signaux bidimensionnels $A$ et $B$ (représentant par exemple une image et un filtre). On définit le \emph{produit de convolution 2D discret} entre $A$ et $B$ par : 
+    \begin{equation}
+        (A * B)(k,l) = \sum_{x=-\infty}^{+\infty} \sum_{y=-\infty}^{+\infty} A(x,y) \, B(k - x, l - y). 
+    \end{equation}
+\end{definition}
+
+\begin{prop}[Propriétés de la convolution 2D]
+    La convolution possède plusieurs propriétés importantes à connaître car très utiles. Pour toutes images $A,B,C$ on a :
+    \begin{itemize}
+        \item \emph{Commutativité} : $A * B = B * A$.
+        \item \emph{Associativité} : $A * (B * C) = (A * B) * C$.
+        \item \emph{Distributivité} : $A * (B + C) = (A * B) + (A * C)$.
+    \end{itemize}
+\end{prop}
+
+Lors du passage du masque sur les bords de l'image, les valeurs extérieures sont interpolées selon trois stratégies :
+\begin{itemize}
+    \item \textbf{Zero-padding} : assignation de zéros en dehors de l'image (simple mais crée un artéfact de bordure sombre).
+    \item \textbf{Extension périodique} : réplication de l'image par pavage toroïdal (en accord avec la TFD 2D).
+    \item \textbf{Extension miroir (symétrie)} : réplication par réflexion par rapport au bord (atténue fortement les discontinuités de bordure).
+\end{itemize}
+
+\begin{definition}[Filtrage spatial par masque]
+    En pratique, on filtre une image d'entrée $f$ à l'aide d'un \emph{masque} (ou \emph{noyau}) fini $w$ de dimensions impaires $(2a+1) \times (2b+1)$ centré en $(0,0)$. L'image filtrée $g$ s'écrit alors :
+    \begin{equation}
+        \boxed{g(x,y) = (f * w)(x,y) = \sum_{s=-a}^{a} \sum_{t=-b}^{b} w(s,t) \, f(x - s, y - t)}
+    \end{equation}
+    De façon générale, si le masque n'est pas déjà normalisé, on divise par la somme de ses coefficients afin de conserver l'énergie moyenne de l'image :
+    \begin{equation}
+        g(x,y) = \frac{\displaystyle \sum_{s=-a}^{a} \sum_{t=-b}^{b} w(s,t) \, f(x + s, y + t)}{\displaystyle \sum_{s=-a}^{a} \sum_{t=-b}^{b} w(s,t)}
+    \end{equation}
+\end{definition}
+
+\begin{remark}
+    L'opération spatiale directe avec $f(x+s, y+t)$ est formellement une \emph{corrélation spatiale}. Pour correspondre exactement au produit de convolution théorique $f * w$, le masque $w$ doit être retourné horizontalement et verticalement (rotation de $180^\circ$) avant l'application. Pour la majorité des masques de filtrage usuels (moyenneur, Laplacien, Gaussien), le noyau est symétrique par rapport à son centre, rendant convolution et corrélation strictement équivalentes.
+\end{remark}
+
+
+% =================================================================
+% Premiers filtres spatiaux
+
+\section{Premiers filtres spatiaux}
+
+À partir de l'opération de convolution par masque discret, on peut concevoir une grande variété de filtres spatiaux pour modifier localement les propriétés de l'image.
+
+% ----------------------------------------
+\subsection{Filtres de lissage}
+
+Les filtres de lissage atténuent les variations rapides d'intensité afin de réduire le bruit, au détriment de la netteté des contours :
+\begin{itemize}
+    \item \textbf{Filtre moyenneur (linéaire)} : applique un masque uniforme normalisé de coefficients $w(s,t) = \frac{1}{(2a+1)(2b+1)}$. Pour une fenêtre standard $3 \times 3$ :
+        \begin{equation}
+            w = \frac{1}{9} \begin{bmatrix} 1 & 1 & 1 \\ 1 & 1 & 1 \\ 1 & 1 & 1 \end{bmatrix}
+        \end{equation}
+        Ce filtre réduit efficacement le bruit blanc gaussien mais floute les contours de l'image.
+    \item \textbf{Filtre médian (non-linéaire)} : remplace la valeur du pixel central par la valeur médiane de l'ensemble des pixels ordonnés de son voisinage $\mathcal{V}$ :
+        \begin{equation}
+            J(x,y) = \operatorname{médiane}\{ I(x+s, y+t) \mid (s,t) \in \mathcal{V} \}
+        \end{equation}
+        Ce traitement est optimal pour éliminer le bruit impulsionnel (« poivre et sel ») sans étaler les arêtes nettes.
+\end{itemize}
+
+% ----------------------------------------
+\subsection{Filtres de réhaussement de contours (Dérivée seconde)}
+
+L'opération de réhaussement est principalement utilisée pour augmenter le contraste et la netteté d'une image, notamment pour corriger un flou spatial. Les contours correspondent à de fortes variations locales d'intensité, mises en valeur mathématiquement par des opérateurs différentiels.
+
+Le \emph{Laplacien} est historiquement utilisé pour les processus de réhaussement.
+
+\begin{definition}[Laplacien continu]
+    Soit $f : \R^2 \longrightarrow \R$ une fonction différentiable. On définit son \emph{Laplacien} $\nabla^2 f$ comme la somme de ses dérivées partielles secondes :
+    \begin{equation}
+        \nabla^2 f(x,y) = \frac{\partial^2 f(x,y)}{\partial x^2} + \frac{\partial^2 f(x,y)}{\partial y^2}
+    \end{equation}
+\end{definition}
+
+Cette application donne une mesure quantitative de la courbure locale de $f$ autour du point $(x,y)$. Tandis que le gradient donne l'orientation et la pente de ses variations, le Laplacien indique à quel point la valeur de la fonction en un point s'écarte de la moyenne de son voisinage. Une valeur positive signifie que le point est en dessous de cette moyenne locale, une valeur négative qu'il est au-dessus, et une valeur nulle indique une zone localement plane.
+
+Sur une image numérique échantillonnée, on discrétise les dérivées secondes par des différences finies centrées :
+\begin{align}
+    \frac{\partial^2 f}{\partial x^2} &\approx f(x+1, y) + f(x-1, y) - 2f(x,y) \\
+    \frac{\partial^2 f}{\partial y^2} &\approx f(x, y+1) + f(x, y-1) - 2f(x,y)
+\end{align}
+En sommant ces deux composantes, on obtient l'expression discrète du Laplacien :
+\begin{equation}
+    \nabla^2 f(x,y) = f(x+1, y) + f(x-1, y) + f(x, y+1) + f(x, y-1) - 4 f(x,y)
+\end{equation}
+
+\begin{proposition}[Masques du Laplacien et Réhaussement spatial]
+    Ici sont proposées différentes implémentations des masques du Laplacien : 
+    \begin{itemize}
+        \item \textbf{Masques de convolution} : le Laplacien s'implémente directement par un noyau de convolution spatial à 4 voisins, ou à 8 voisins en intégrant les dérivées secondes diagonales :
+            \begin{equation}
+                \nabla^2_{4} = \begin{bmatrix} 0 & 1 & 0 \\ 1 & -4 & 1 \\ 0 & 1 & 0 \end{bmatrix}, \qquad 
+                \nabla^2_{8} = \begin{bmatrix} 1 & 1 & 1 \\ 1 & -8 & 1 \\ 1 & 1 & 1 \end{bmatrix}
+            \end{equation}
+            Le coefficient central négatif compare l'intensité du pixel courant à la somme de ses voisins.
+        \item \textbf{Image réhaussée} : le Laplacien isole les contours mais élimine les composantes lentes (le fond continu de l'image). Pour restaurer la dynamique globale tout en accentuant les discontinuités, on soustrait le Laplacien à l'image originale :
+            \begin{equation}
+                g(x,y) = f(x,y) - \nabla^2 f(x,y)
+            \end{equation}
+            Cette soustraction se condense en un masque spatial unique à coefficient central renforcé :
+            \begin{equation}
+                w_{\text{réhauss}} = \begin{bmatrix} 0 & -1 & 0 \\ -1 & 5 & -1 \\ 0 & -1 & 0 \end{bmatrix}
+            \end{equation}
+        \item \textbf{Masquage flou (\emph{Unsharp Masking})} : généralisation introduisant un coefficient $A \geqslant 1$ pour moduler le contraste du fond par rapport aux contours :
+            \begin{equation}
+                g(x,y) = A f(x,y) - \nabla^2 f(x,y)
+            \end{equation}
+    \end{itemize}
+\end{proposition}
+
+% ----------------------------------------
+\subsection{Opérateur Gradient et Filtres de Sobel (Dérivée première)}
+
+Le gradient d'une fonction 2D est le vecteur pointant vers la plus forte variation locale :
+\begin{equation}
+    \nabla f = \begin{bmatrix} \frac{\partial f}{\partial x} \\ \frac{\partial f}{\partial y} \end{bmatrix} = \begin{bmatrix} G_x \\ G_y \end{bmatrix}
+\end{equation}
+La norme de ce vecteur mesure l'intensité de la transition spatiale, approchée en calcul discret par $\|\nabla f\| \approx |G_x| + |G_y|$ pour limiter les calculs de racines carrées.
+
+\begin{definition}[Opérateur de Sobel]
+    Le filtre de Sobel estime ce gradient à l'aide de deux masques orthogonaux de taille $3 \times 3$ combinant dérivation discrète et lissage transverse pour limiter la sensibilité au bruit :
+    \begin{equation}
+        G_x = \begin{bmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{bmatrix}, \qquad
+        G_y = \begin{bmatrix} -1 & -2 & -1 \\ 0 & 0 & 0 \\ 1 & 2 & 1 \end{bmatrix}
+    \end{equation}
+    Le masque $G_x$ met en évidence les contours verticaux, tandis que $G_y$ détecte les contours horizontaux.
+\end{definition}
+
+% =================================================================
+% Analyse fréquentielle bidimensionnelle (TFD 2D)
+
+\section{Analyse fréquentielle bidimensionnelle (TFD 2D)}
+
+Cette section introduit une opération fondamentale dans le domaine du traitement d'image qu'est la \emph{Tranformée de Fourier 2d}. Cette operation permet d'exprimer le contenu d'une image dans le \emph{domaine spectral} et donne une répartition en deux dimensions de l'intensité des fréquences qui composent une image. 
+
+% ----------------------------------------
+\subsection{Définition et conventions}
+
+\begin{definition}[TFD 2D et TFD 2D Inverse]
+    Soit $f(x,y)$ une image numérique de dimensions $M \times N$, où $x \in \llbracket 0, M-1 \rrbracket$ et $y \in \llbracket 0, N-1 \rrbracket$.
+    On définit la \emph{Transformée de Fourier Discrète 2D} de l'image $f(x,y)$, notée $F(u,v)$, par :
+        \begin{equation}
+            \boxed{F(u,v) = \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f(x,y) \cdot \exp  \left( -2j \pi \left( \frac{ux}{M} + \frac{vy}{N} \right)\right) } 
+        \end{equation}
+    pour tout $u \in \llbracket 0, M-1 \rrbracket$ et $v \in \llbracket 0, N-1 \rrbracket$. 
+    
+    La \emph{Transformée de Fourier Discrète 2D Inverse} (TFDI) permet la reconstruction exacte de l'image spatiale :
+        \begin{equation}
+            \boxed{f(x,y) = \frac{1}{MN} \sum_{u=0}^{M-1} \sum_{v=0}^{N-1} F(u,v) \cdot \exp \left( 2j \pi \left( \frac{ux}{M} + \frac{vy}{N} \right)\right) }
+        \end{equation}
+\end{definition}
+
+\begin{proposition}[Spectre d'amplitude, Densité spectrale et Phase]
+    La Tranformée de Fourier d'un signal (image ou son) vit dans le domaine \emph{spectral} (i.e complexe). Chacun de ses termes se décompose donc en deux sous-termes : 
+    $$ F(u,v) = 
+        \underset{\text{partie réelle}}{\operatorname{Re}(u,v)} + j 
+        \underset{\text{partie imaginaire}}{ \operatorname{Im}(u,v)}. 
+    $$
+    On peut alors définir différentes métriques pour ce spectre : 
+    \begin{itemize}
+        \item Le \textbf{spectre d'amplitude} (module) : $|F(u,v)| = \sqrt{R(u,v)^2 + I(u,v)^2}$.
+        \item Le \textbf{spectre de phase} : $\phi(u,v) = \operatorname{arctan}\left(\frac{I(u,v)}{R(u,v)}\right)$.
+        \item La \textbf{densité spectrale de puissance (DSP)} : $P(u,v) = |F(u,v)|^2 = R(u,v)^2 + I(u,v)^2$.
+    \end{itemize}
+\end{proposition}
+
+La phase $\phi(u,v)$ transporte l'essentiel de l'information structurelle et géométrique de l'image (contours, bords des objets). La reconstruction d'une image à partir de sa phase seule ($f' = \operatorname{Re}[\mathcal{F}^{-1}\{e^{j \phi}\}]$) préserve les formes perceptibles, alors que la reconstruction à partir du module seul ($f' = \mathcal{F}^{-1}\{|F|\}$) détruit l'intelligibilité spatiale.
+
+% -------------------------------------------------------
+\subsection{Centrage du spectre et propriétés spatiales}
+
+\begin{proposition}[Centrage du spectre -- \texttt{fftshift}]
+    Par défaut, l'origine fréquentielle continue $F(0,0)$ est positionnée dans le coin supérieur gauche ($u=0, v=0$).
+    Pour décaler la fréquence nulle au centre du spectre ($u = M/2, v = N/2$), on multiplie l'image spatiale par $(-1)^{x+y}$ avant transformation :
+    \begin{equation}
+        \mathcal{F}\left[ f(x,y) \cdot (-1)^{x+y} \right] = F\left(u - \frac{M}{2}, v - \frac{N}{2}\right)
+    \end{equation}
+\end{proposition}
+
+\begin{proposition}[Relation d'incertitude et orientation]
+    La transformée de Fourier induit des comportements caractéristiques sur la forme des object et leur positions : 
+    \begin{itemize}
+        \item \textbf{Principe d'incertitude} : si $\Delta x \Delta y$ est l'extension spatiale d'un motif et $\Delta u \Delta v$ son étalement fréquentiel, alors :
+            \begin{equation}
+                \Delta x \Delta y \cdot \Delta u \Delta v \geqslant \frac{1}{16\pi^2}
+            \end{equation}
+            Un motif spatial très étroit possède un large spectre fréquentiel, et réciproquement.
+        \item \textbf{Orientation} : une famille de lignes ou un contour incliné selon un angle $\theta$ dans l'espace engendre des composantes fréquentielles dirigées orthogonalement ($\theta + \pi/2$) dans le plan de Fourier.
+    \end{itemize}
+\end{proposition}
+
+% ====================================================================
+% Filtrage sélectif et Réhaussement
+
+\section{Filtrage Sélectif et Réhaussement fréquentiel 2D}
+
+Lorsque l'on utilise le \emph{spectre} d'une image, on parle souvent sur \emph{spectre d'amplitude}. Ce dernier représente les basses fréquences au centre du spectre ($(M/2, N/2)$) et les hautes fréquences sur les contours de celui-ci. On peut alors effectuer des opérations simples sur les pixels en considérant leur distance au centre du spectre $D(u,v)$ : la distance euclidienne d'une fréquence $(u,v)$ au centre du spectre :
+\begin{equation}
+    D(u,v) = \sqrt{\left(u - \frac{M}{2}\right)^2 + \left(v - \frac{N}{2}\right)^2}
+\end{equation}
+
+On définit l'opération de filtrage de la même façon que pour les signaux 2D : 
+\begin{definition}[Filtrage]
+    Soit $H \in \mathcal{M}_{M \times N}(\R)$ une matrice de même dimension que l'image $I$ à filtrer et $J$ sa transformée de fourier. L'image filtrée $I_f$ par $H$ est définie par : 
+    \begin{equation}
+        \forall (x,y) \in \llbracket 0, M-1 \rrbracket \times \llbracket 0, N-1 \rrbracket, \quad I_f(x,y) = \operatorname{Re}\left[\operatorname{TF}^{-1}(H \cdot J)\right](x,y). 
+    \end{equation}
+\end{definition}
+
+% -------------------------------------------------------
+\subsection{Filtres Passe-Bas 2D (Lissage fréquentiel)}
+
+Un filtre passe-bas atténue les hautes fréquences (bruit, contours) au profit des variations lentes. Il permet d'atténuer les contours d'une image en supprimant les bords de son spectre. Soit $D_0$ la fréquence de coupure :
+\begin{itemize}
+    \item \textbf{Passe-bas idéal} :
+        \begin{equation}
+            H(u,v) = \begin{cases} 1 & \text{si } D(u,v) \leqslant D_0 \\ 0 & \text{si } D(u,v) > D_0 \end{cases}
+        \end{equation}
+        Provoque de sévères oscillations spatiales (phénomène de Gibbs / effet de cerclage) en raison de la discontinuité abrupte.
+    \item \textbf{Passe-bas de Butterworth d'ordre $n$} :
+        \begin{equation}
+            H(u,v) = \frac{1}{1 + \left[ \frac{D(u,v)}{D_0} \right]^{2n}}
+        \end{equation}
+        Transition progressive qui élimine le phénomène de cerclage pour les ordres faibles ($n \leqslant 2$).
+    \item \textbf{Passe-bas Gaussien} :
+        \begin{equation}
+            H(u,v) = e^{-\frac{D^2(u,v)}{2D_0^2}}
+        \end{equation}
+        Transition parfaitement lisse sans aucune oscillation spatiale.
+\end{itemize}
+
+% -------------------------------------------------------
+\subsection{Filtres Passe-Haut 2D et Réhaussement}
+
+Les filtres passe-haut préservent les contours et éliminent la composante continue. Ils sont définis comme les oppposés des filtres passe-bas. Ainsi, à chaque filtre passe-bas, lui correspond sont filtre passe-haut :
+\begin{equation}
+    H_{\text{PH}}(u,v) = 1 - H_{\text{PB}}(u,v)
+\end{equation}
+On en déduit les formes idéales, de Butterworth et Gaussienne.
+
+\begin{remark}
+    Les filtres passe-haut sont généralement utilisés dans le \emph{réhaussement} d'images.
+\end{remark}
+
+\begin{proposition}[Réhaussement Fréquentiel]
+    Dans le domaine fréquentiel, on peut alors appliquer n'importe quel filtre passe-haut pour accentuer les contours d'une image. Pour cela, on peut affiner les effets du filtre à l'aide de paramètres $a \geqslant 0$ et $ b > a$ tels que : 
+    \begin{equation}
+        \boxed{H_{\text{réhauss}}(u,v) = a + b \, H_{\text{PH}}(u,v).}
+    \end{equation}
+    Typiquement $0{,}25 \leqslant a \leqslant 0{,}5$ et $1{,}5 \leqslant b \leqslant 2$. Le paramètre $a$ conserve le fond de l'image (basses fréquences), tandis que $b$ amplifie les contours.
+\end{proposition}
+
+
+% ===================================================================
+% Dégradation et Modèles de bruit
+
+\section{Modélisation des Dégradations et Filtres de Débruitage}
+
+Dans cette section, on s'intéresse à des images bruitées : on parle de \emph{dégradation}. Après avoir définit la notion de \emph{bruit} sur une image et comment les simuler, nous verrons différents procédés pour les altérer/supprimer par un processus de \emph{débruitage}. 
+
+% -------------------------------------------------------
+\subsection{Modèles de dégradation}
+
+\begin{definition}[Phénomène de bruitage]
+    Soit $f$ un signal (image ou son), $h$ une \emph{fonction de dégradation} et $n$ un \emph{terme de bruit}. La dégradation $g$ de $f$ par un \emph{système linéaire invariant avec bruit additif} est défini comme le signal : 
+    \begin{equation}
+        \underbrace{g = h * f + n}_{\text{Domaine Spatial}} \iff \underbrace{G = H F + N}_{\text{Domaine Fréquentiel}}
+    \end{equation}
+    où $G, H$ et $F$ sont leurs transformées de Fourier respectives. On dira que $h$ est la \emph{fonction de dégradation} et $n$ le \emph{terme de bruit}. 
+\end{definition}
+
+On identifiera souvent le bruit à un processus aléatoire que l'on peut caractériser par une densité de probabilité. Une métrique intéressante pour quantifier l'influence du bruit sur un signal est d'utiliser le rapport de leur puissances. 
+
+\begin{definition}[RSB -- \emph{Signal-to-Noise-Ratio}]
+    Soit $f$ un signal (non bruité) et $n$ un bruit. On définit le \emph{ratio signal/bruit} par le rapport de leur deux puissances : 
+    \begin{equation}
+        RSB = \frac{P_s}{P_b} = \frac{ \sum_x |f(x)|^2}{ \sum_{x} |n(x)|^2}. 
+    \end{equation}
+\end{definition}
+
+\begin{remark}
+    Dans le cas d'un bruit centré $ \mathbb{E}(n) = 0$ de variance $ \sigma^2_n$, sa puissance coïncide exactement avec sa variance : $ P_b = \mathbb{E}(n^2) = \sigma^2_n$. 
+\end{remark}
+
+\begin{proposition}[Densités de probabilité usuelles des bruits]
+    Soit $z$ la variable aléatoire représentant l'intensité bruitée du pixel. Les modèles statistiques standards sont résumés ci-dessous :
+    \begin{center}
+        \renewcommand{\arraystretch}{2.0}
+        \begin{tabular}{lccc}
+            \toprule
+            \textbf{Type de bruit} & \textbf{Densité de probabilité} $p(z)$ & \textbf{Moyenne} $\bar{z}$ & \textbf{Variance} $\sigma^2$ \\
+            \midrule
+            \textbf{Gaussien} & $\displaystyle \frac{1}{\sqrt{2\pi}\sigma} \exp \left(-\frac{(z - \bar{z})^2}{2\sigma^2}\right)$ & $\bar{z}$ & $\sigma^2$ \\
+            \textbf{Uniforme} ($a \leqslant z \leqslant b$) & $\displaystyle \frac{1}{b - a}$ & $\displaystyle \frac{a + b}{2}$ & $\displaystyle \frac{(b - a)^2}{12}$ \\
+            \textbf{Rayleigh} ($z \geqslant a$) & $\displaystyle \frac{2}{b}(z - a) \exp \left( -\frac{(z - a)^2}{b} \right)$ & $\displaystyle a + \sqrt{\frac{\pi b}{4}}$ & $\displaystyle \frac{b(4 - \pi)}{4}$ \\
+            \textbf{Gamma / Erlang} ($z \geqslant 0$) & $\displaystyle \frac{a^b z^{b-1}}{(b - 1)!} e^{-az}$ & $\displaystyle \frac{b}{a}$ & $\displaystyle \frac{b}{a^2}$ \\
+            \textbf{Exponentiel} ($z \geqslant 0$) & $\displaystyle a e^{-az}$ & $\displaystyle \frac{1}{a}$ & $\displaystyle \frac{1}{a^2}$ \\
+            \textbf{Poivre et Sel} & $\begin{cases} P_p & \text{si } z = p \text{ (noir)} \\ P_s & \text{si } z = s \text{ (blanc)} \\ 0 & \text{sinon} \end{cases}$ & --- & --- \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+\end{proposition}
+
+% -------------------------------------------------------
+\subsection{Filtres moyenneurs non linéaires (Restauration spatiale)}
+
+Dans cette sous-section, on considère uniquement des dégration à base de bruit soit de la forme : 
+\begin{equation}
+    g = f + n \quad \iff \quad G = F + N. 
+\end{equation}
+Grâce à ces modèles plus simples, il suffirait de soustraire le bruit pour retrouver l'image de départ mais sans la connaissance de ce dernier, on doit se contenter d'opérations plus simples. 
+
+L'opération la plus simple serait de remplacer chaque pixel par une moyenne de ses pixels voisins. Cette méthode permet de rétablir l'image de départ pour la plupart des modèles de bruits classiques mais a tendance à flouter l'image. 
+
+\begin{proposition}[Filtres Moyenneurs]
+    Soit $S_{xy}$ une fenêtre d'analyse de taille $ m \times n$ définie pour tout $(x,y)$. Différents filtres moyenneurs existent : 
+    \begin{itemize}
+        \item \textbf{Moyenneur géométrique} :
+            \begin{equation}
+                \hat{f}(x,y) = \left[ \prod_{(s,t) \in S_{xy}} g(s,t) \right]^{\frac{1}{mn}}
+            \end{equation}
+            Ce filtre lisse l'image mais préserve mieux les détails qu'une moyenne arithmétique naïve. 
+        \item \textbf{Moyenneur harmonique} :
+            \begin{equation}
+                \hat{f}(x,y) = \frac{mn}{\displaystyle \sum_{(s,t) \in S_{xy}} \frac{1}{g(s,t)}}
+            \end{equation}
+            filtre efficace sur du bruit sel ou gaussien mais inefficace sur un bruit de type poivre (pixels noirs). 
+        \item \textbf{Moyenneur contra-harmonique d'ordre $R$} :
+            \begin{equation}
+                {\hat{f}(x,y) = \frac{\displaystyle \sum_{(s,t) \in S_{xy}} g(s,t)^{R+1}}{\displaystyle \sum_{(s,t) \in S_{xy}} g(s,t)^R}}
+            \end{equation}
+            Si $R > 0$, élimine le bruit poivre ; si $R < 0$, élimine le bruit sel (ne traite pas les deux simultanément). Pour $R = 0$, on retrouve le filtre arithmétique ; pour $R = -1$, le filtre harmonique.
+    \end{itemize}
+\end{proposition}
+
+Pour aller plus loin, on peut essayer de définir un filtre qui s'adapte localement au bruit appliqué. On considère toujours un signal bruité de la forme $ g(x,y) = f(x,y) + n(x,y)$ tel que le bruit $n$ possède une espérance nulle et une variance connue $ \sigma^2_n$. 
+
+\begin{definition}[Filtre adaptatif local]
+    Soit $g$ un signal construit à partir d'un signal $f$ bruité à partir d'un filtre $n$ centré de variance $ \sigma^2_n$. On définit le \emph{filtre adaptatif local} par : 
+    \begin{equation}
+        \hat{f}(x,y) = g(x,y) - \frac{\sigma_n^2}{\sigma_L^2} \left[ g(x,y) - m_L \right]. 
+    \end{equation}
+    Avec $m_L$, la \emph{moyenne locale} sur un voisinnage $S_{xy}$ de $(x,y)$ et $ \sigma_L^2$ la variance locale : 
+    \begin{equation}
+        m_L = \frac{1}{mn} \sum_{(s,t) \in S_{xy}} g(s,t), 
+        \quad \sigma_L^2 = \frac{1}{mn} \sum_{(s,t) \in S_{xy}} (g(s,t) - m_L)^2. 
+    \end{equation}
+\end{definition}
+
+\begin{remark}
+    La plupart de ces filtres produisent un aspect flou sur l'image du fait de la moyennisation des pixels. Pour y remédier, on peut utiliser un principe de réhaussement de l'image (voir précédement). 
+\end{remark}
+
+% =======================================================================
+% Problèmes inverses et Défloutage
+
+\section{Bruit périodique, Problèmes Inverses et Défloutage}
+
+Dans cette dernière partie, on s'intéresse à des problèmes plus complexes tels que la suppression de bruits périodiques en reprérant des motifs dans le spectre d''une image. On s'intéresse aussi à la notion de \emph{problèmes inverses} et au défloutage. 
+
+% -------------------------------------------------------
+\subsection{Restauration fréquentielle pour bruit périodique}
+
+Dans certains processus de capture d'un signal, on peut s'exposer à l'émissison d'un bruit \emph{périodique} (signal électromagnétique, son, etc\dots). Ces interférences périodiques sont facilement reconnaissables dans le domaine spectral car elles se traduisent par des pics impulsionnels isolés et symétriques par rapport à l'origine du spectre. 
+
+Pour retirer ces interférences, on applique des filtres réjecteur de bande sur la distance $D_0$ de l'origine à partir de laquelle apparaît ces motifs dans le spectre. 
+
+\begin{proposition}
+    Le filtre \emph{réjecteur idéal} annule brutalement les fréquences d'un anneau d'épaisseur $W$ autour de $D_0$ : 
+    \begin{equation}
+        H(u,v) = 
+        \begin{cases}
+            0 & \text{ si } D_0 - \frac{W}{2} \leqslant D(u,v) \leqslant D_0 + \frac{W}{2} \\ 
+            1 & \text{ sinon}. 
+        \end{cases}
+    \end{equation}
+    Tandis que le filtre \emph{réjecteur gaussien} applique une transition douce sans créer d'effets de cerclage : 
+    \begin{equation}
+        H(u,v) = 1 - \exp \left( - \frac{1}{2} \left[ \frac{D^2(u,v) - D_0^2}{D(u,v) \cdot W} \right]^2 \right). 
+    \end{equation}
+\end{proposition}
+
+\begin{remark}
+    On peut aussi récupérer les fréquences responsables du bruit pour l'analyser en utilisant un \emph{filtre passe-bande complémentaire} simplement obtenu par soustraction : 
+    \begin{equation}
+        H_{\text{PB}} = 1 - H_{\text{Réjecteur}}.
+    \end{equation}
+\end{remark}
+
+% -------------------------------------------------------
+\subsection{Restauration d'une image floutée (Problèmes inverses)}
+
+Une image dégradée par un flou linéaire (défocalisation, bougé de capteur) et parasitée par un bruit additif s'écrit dans le domaine spatial et fréquentiel sous la forme :
+\begin{equation}
+    g(x,y) = h(x,y) * f(x,y) + n(x,y) \iff G(u,v) = H(u,v) F(u,v) + N(u,v).
+\end{equation}
+où $h(x,y)$ représente la réponse impulsionnelle du système de flou (\emph{Point Spread Function} ou PSF) et $n(x,y)$ le terme de bruit. 
+
+Si l'on tente d'inverser directement le système à l'aide de l'opérateur $1 / H(u,v)$, l'estimation fréquentielle devient :
+\begin{equation}
+    \hat{F}(u,v) = \frac{G(u,v)}{H(u,v)} = F(u,v) + \frac{N(u,v)}{H(u,v)}.
+\end{equation}
+Cette inversion naïve pose un problème dit \emph{mal posé} : la fonction de transfert de flou $H(u,v)$ s'atténue et tend vers zéro aux moyennes et hautes fréquences. La division par des valeurs proches de zéro amplifie alors démesurément le terme de bruit $N(u,v) / H(u,v)$, dégradant totalement l'image restaurée au lieu de la rendre nette. 
+
+Pour stabiliser l'inversion, plusieurs méthodes de régularisation sont envisageables.
+
+\begin{proposition}[Filtres inverses régularisés]
+    Pour éviter la divergence du terme de bruit, on peut borner l'inversion de deux manières :
+    \begin{itemize}
+        \item Le \emph{filtre pseudo-inverse tronqué}, qui applique un seuil minimal $T > 0$ sur l'amplitude de $H(u,v)$ :
+            \begin{equation}
+                \hat{F}(u,v) = 
+                \begin{cases}
+                    \displaystyle \frac{G(u,v)}{H(u,v)} & \text{ si } |H(u,v)| \geqslant T \\
+                    G(u,v) & \text{ sinon}.
+                \end{cases}
+            \end{equation}
+        \item Le \emph{filtre inverse limité aux basses fréquences}, qui tire profit du fait que la composante continue $H(0,0)$ est importante (moyenne spatiale positive de la PSF). L'inversion est alors strictement restreinte à un disque de rayon $D_0$ centré sur l'origine fréquentielle :
+            \begin{equation}
+                \hat{F}(u,v) = 
+                \begin{cases}
+                    \displaystyle \frac{G(u,v)}{H(u,v)} & \text{ si } D(u,v) \leqslant D_0 \\
+                    G(u,v) & \text{ sinon}.
+                \end{cases}
+            \end{equation}
+    \end{itemize}
+\end{proposition}
+
+\begin{theorem}[Filtre de Wiener]
+    Le \emph{filtre de Wiener} propose une solution optimale au sens des moindres carrés en minimisant l'erreur quadratique moyenne globale $\mathbb{E}[|f(x,y) - \hat{f}(x,y)|^2]$. Son expression fréquentielle est donnée par :
+    \begin{equation}
+        \boxed{\hat{F}(u,v) = \left[ \frac{1}{H(u,v)} \frac{|H(u,v)|^2}{|H(u,v)|^2 + K} \right] G(u,v)}
+    \end{equation}
+    où la constante $K$ modélise le rapport des densités spectrales de puissance du bruit et du signal :
+    \begin{equation}
+        K \approx \frac{P_n(u,v)}{P_f(u,v)} = \frac{1}{\text{RSB}(u,v)}.
+    \end{equation}
+\end{theorem}
+
+\begin{remark}
+    Le facteur d'atténuation $\frac{|H(u,v)|^2}{|H(u,v)|^2 + K}$ effectue un arbitrage continu entre déconvolution et filtrage du bruit :
+    \begin{itemize}
+        \item En basses fréquences ($|H(u,v)|^2 \gg K$), le signal utile domine le bruit : le terme correcteur tend vers $1$ et le filtre se comporte comme l'inverse direct $1/H(u,v)$ pour déflouter l'image.
+        \item En hautes fréquences ($|H(u,v)|^2 \ll K$), le bruit domine le signal : le terme correcteur tend vers $0$, ce qui coupe le filtre et empêche l'explosion du bruit.
+        \item Dans le cas idéal sans bruit ($K = 0$), on retrouve exactement le filtre inverse classique.
+    \end{itemize}
+\end{remark}
