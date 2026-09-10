@@ -1,0 +1,211 @@
+\minitoc 
+
+% ========================================================================================================
+% Analyse fréquentielle 2D
+
+\section{Analyse fréquentielle bidimensionnelle (TFD 2D)}
+
+\subsection{Définition et conventions}
+
+Soit $f(x,y)$ une image numérique de dimensions $M \times N$, où $x \in \llbracket 0, M-1 \rrbracket$ et $y \in \llbracket 0, N-1 \rrbracket$.
+
+\begin{definition}[TFD 2D et TFD 2D Inverse]
+    On définit la \textbf{Transformée de Fourier Discrète 2D} de l'image $f(x,y)$, notée $F(u,v)$, par :
+        \begin{equation}
+            \boxed{F(u,v) = \sum_{x=0}^{M-1} \sum_{y=0}^{N-1} f(x,y) e^{-2j \pi \left( \frac{ux}{M} + \frac{vy}{N} \right)}}
+        \end{equation}
+    pour tout $u \in \llbracket 0, M-1 \rrbracket$ et $v \in \llbracket 0, N-1 \rrbracket$. 
+    La \textbf{Transformée de Fourier Discrète 2D Inverse} (TFDI) permet la reconstruction exacte de l'image spatiale :
+        \begin{equation}
+            \boxed{f(x,y) = \frac{1}{MN} \sum_{u=0}^{M-1} \sum_{v=0}^{N-1} F(u,v) e^{2j \pi \left( \frac{ux}{M} + \frac{vy}{N} \right)}}
+        \end{equation}
+\end{definition}
+
+\begin{proposition}[Spectre d'amplitude, Densité spectrale et Phase]
+    $F(u,v) = R(u,v) + j I(u,v)$ est un nombre complexe. On définit :
+    \begin{itemize}
+        \item Le \textbf{spectre d'amplitude} (module) : $|F(u,v)| = \sqrt{R(u,v)^2 + I(u,v)^2}$.
+        \item Le \textbf{spectre de phase} : $\phi(u,v) = \operatorname{arctan}\left(\frac{I(u,v)}{R(u,v)}\right)$.
+        \item La \textbf{densité spectrale de puissance (DSP)} : $P(u,v) = |F(u,v)|^2 = R(u,v)^2 + I(u,v)^2$.
+    \end{itemize}
+\end{proposition}
+
+\begin{remark}[Rôle perceptif du module et de la phase]
+    La phase $\phi(u,v)$ transporte l'essentiel de l'information structurelle et géométrique de l'image (contours, bords des objets). La reconstruction d'une image à partir de sa phase seule ($f' = \operatorname{Re}[\mathcal{F}^{-1}\{e^{j \phi}\}]$) préserve les formes perceptibles, alors que la reconstruction à partir du module seul ($f' = \mathcal{F}^{-1}\{|F|\}$) détruit l'intelligibilité spatiale.
+\end{remark}
+
+\subsection{Centrage du spectre et propriétés spatiales}
+
+\begin{proposition}[Centrage du spectre (\texttt{fftshift})]
+    Par défaut, l'origine fréquentielle continue $F(0,0)$ est positionnée dans le coin supérieur gauche ($u=0, v=0$).
+    Pour décaler la fréquence nulle au centre du spectre ($u = M/2, v = N/2$), on multiplie l'image spatiale par $(-1)^{x+y}$ avant transformation :
+    \begin{equation}
+        \mathcal{F}\left[ f(x,y) \cdot (-1)^{x+y} \right] = F\left(u - \frac{M}{2}, v - \frac{N}{2}\right)
+    \end{equation}
+    Sous \textsc{Matlab}, ce réarrangement des quatre quadrants s'effectue via la commande \texttt{fftshift} (et son inverse \texttt{ifftshift}).
+\end{proposition}
+
+\begin{proposition}[Relation d'incertitude et orientation]
+    \begin{itemize}
+        \item \textbf{Principe d'incertitude} : si $\Delta x \Delta y$ est l'extension spatiale d'un motif et $\Delta u \Delta v$ son étalement fréquentiel, alors :
+            \begin{equation}
+                \Delta x \Delta y \cdot \Delta u \Delta v \geqslant \frac{1}{16\pi^2}
+            \end{equation}
+            Un motif spatial très étroit possède un large spectre fréquentiel, et réciproquement.
+        \item \textbf{Orientation} : une famille de lignes ou un contour incliné selon un angle $\theta$ dans l'espace engendre des composantes fréquentielles dirigées orthogonalement ($\theta + \pi/2$) dans le plan de Fourier.
+    \end{itemize}
+\end{proposition}
+
+% ========================================================================================================
+% Filtrage sélectif et Réhaussement
+
+\section{Filtrage Sélectif et Réhaussement fréquentiel 2D}
+
+Soit $D(u,v)$ la distance euclidienne d'une fréquence $(u,v)$ au centre du spectre $(M/2, N/2)$ :
+\begin{equation}
+    D(u,v) = \sqrt{\left(u - \frac{M}{2}\right)^2 + \left(v - \frac{N}{2}\right)^2}
+\end{equation}
+
+\subsection{Filtres Passe-Bas 2D (Lissage fréquentiel)}
+
+Un filtre passe-bas atténue les hautes fréquences (bruit, contours) au profit des variations lentes. Soit $D_0$ la fréquence de coupure :
+\begin{itemize}
+    \item \textbf{Passe-bas idéal} :
+        \begin{equation}
+            H(u,v) = \begin{cases} 1 & \text{si } D(u,v) \leqslant D_0 \\ 0 & \text{si } D(u,v) > D_0 \end{cases}
+        \end{equation}
+        Provoque de sévères oscillations spatiales (phénomène de Gibbs / effet de cerclage) en raison de la discontinuité abrupte.
+    \item \textbf{Passe-bas de Butterworth d'ordre $n$} :
+        \begin{equation}
+            H(u,v) = \frac{1}{1 + \left[ \frac{D(u,v)}{D_0} \right]^{2n}}
+        \end{equation}
+        Transition progressive qui élimine le phénomène de cerclage pour les ordres faibles ($n \leqslant 2$).
+    \item \textbf{Passe-bas Gaussien} :
+        \begin{equation}
+            H(u,v) = e^{-\frac{D^2(u,v)}{2D_0^2}}
+        \end{equation}
+        Transition parfaitement lisse sans aucune oscillation spatiale.
+\end{itemize}
+
+\subsection{Filtres Passe-Haut 2D et Réhaussement}
+
+Les filtres passe-haut préservent les contours et éliminent la composante continue :
+\begin{equation}
+    H_{\text{PH}}(u,v) = 1 - H_{\text{PB}}(u,v)
+\end{equation}
+On en déduit les formes idéales, de Butterworth et Gaussienne.
+
+\begin{proposition}[Laplacien fréquentiel et High-Frequency Emphasis]
+    \begin{itemize}
+        \item \textbf{Filtre Laplacien en Fourier} : puisque $\mathcal{F}[\partial^2 f / \partial x^2] = (ju)^2 F(u,v) = -u^2 F(u,v)$, le filtre Laplacien centré est :
+            \begin{equation}
+                H_{\text{Lap}}(u,v) = -\left[ \left(u - \frac{M}{2}\right)^2 + \left(v - \frac{N}{2}\right)^2 \right] = -D^2(u,v)
+            \end{equation}
+        \item \textbf{Réhaussement fréquentiel (\emph{Unsharp Masking} généralisé)} :
+            \begin{equation}
+                \boxed{H_{\text{réhauss}}(u,v) = a + b \, H_{\text{PH}}(u,v)}
+            \end{equation}
+            avec $a \geqslant 0$ et $b > a$ (typiquement $0{,}25 \leqslant a \leqslant 0{,}5$ et $1{,}5 \leqslant b \leqslant 2$). Le paramètre $a$ conserve le fond de l'image (basses fréquences), tandis que $b$ amplifie les contours.
+    \end{itemize}
+\end{proposition}
+
+% ========================================================================================================
+% Dégradation et Modèles de bruit
+
+\section{Modélisation des Dégradations et Filtres de Débruitage}
+
+\subsection{Modèle de dégradation}
+
+Dans le domaine spatial et dans le domaine fréquentiel, la dégradation par un système linéaire invariant avec bruit additif s'écrit :
+\begin{equation}
+    g(x,y) = h(x,y) * f(x,y) + n(x,y) \iff G(u,v) = H(u,v) F(u,v) + N(u,v)
+\end{equation}
+où $h(x,y)$ est la fonction de dégradation (flou / PSF) et $n(x,y)$ le terme de bruit. Le niveau de perturbation est mesuré par le Rapport Signal sur Bruit : $\text{RSB} = P_{\text{signal}} / P_{\text{bruit}}$.
+
+\subsection{Lois statistiques des bruits d'imagerie}
+
+\begin{proposition}[Densités de probabilité usuelles]
+    Soit $z$ l'intensité bruitée :
+    \begin{itemize}
+        \item \textbf{Gaussien} : $p(z) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{(z - \bar{z})^2}{2\sigma^2}}$.
+        \item \textbf{Uniforme} sur $[a, b]$ : $p(z) = \frac{1}{b-a}$ avec $\bar{z} = \frac{a+b}{2}$ et $\sigma^2 = \frac{(b-a)^2}{12}$.
+        \item \textbf{Rayleigh} ($z \geqslant a$) : $p(z) = \frac{2}{b}(z-a) e^{-\frac{(z-a)^2}{b}}$, typique du \emph{speckle} échographique.
+        \item \textbf{Gamma (Erlang)} ($z \geqslant 0$) : $p(z) = \frac{a^b z^{b-1}}{(b-1)!} e^{-az}$ avec $\bar{z} = \frac{b}{a}$ et $\sigma^2 = \frac{b}{a^2}$.
+        \item \textbf{Exponentiel} ($z \geqslant 0$) : $p(z) = a e^{-az}$ avec $\bar{z} = \frac{1}{a}$ et $\sigma^2 = \frac{1}{a^2}$.
+        \item \textbf{Impulsionnel (Poivre et Sel)} : $p(z) = P_p$ si $z=0$ (poivre), $p(z) = P_s$ si $z=255$ (sel), et $0$ sinon.
+    \end{itemize}
+\end{proposition}
+
+\subsection{Filtres moyenneurs non linéaires (Restauration spatiale)}
+
+Pour une fenêtre d'analyse $S_{xy}$ de taille $m \times n$ centrée en $(x,y)$ :
+\begin{itemize}
+    \item \textbf{Moyenneur géométrique} :
+        \begin{equation}
+            \hat{f}(x,y) = \left[ \prod_{(s,t) \in S_{xy}} g(s,t) \right]^{\frac{1}{mn}} \quad (\text{lisse tout en préservant mieux les détails que la moyenne arithmétique})
+        \end{equation}
+    \item \textbf{Moyenneur harmonique} :
+        \begin{equation}
+            \hat{f}(x,y) = \frac{mn}{\displaystyle \sum_{(s,t) \in S_{xy}} \frac{1}{g(s,t)}} \quad (\text{efficace sur bruit sel et gaussien, échoue sur le bruit poivre})
+        \end{equation}
+    \item \textbf{Moyenneur contra-harmonique d'ordre $R$} :
+        \begin{equation}
+            \boxed{\hat{f}(x,y) = \frac{\displaystyle \sum_{(s,t) \in S_{xy}} g(s,t)^{R+1}}{\displaystyle \sum_{(s,t) \in S_{xy}} g(s,t)^R}}
+        \end{equation}
+        Si $R > 0$, élimine le bruit poivre ; si $R < 0$, élimine le bruit sel (ne traite pas les deux simultanément). Pour $R = 0$, on retrouve le filtre arithmétique ; pour $R = -1$, le filtre harmonique.
+    \item \textbf{Filtre adaptatif local} :
+        \begin{equation}
+            \hat{f}(x,y) = g(x,y) - \frac{\sigma_n^2}{\sigma_L^2} \left[ g(x,y) - m_L \right]
+        \end{equation}
+        où $\sigma_n^2$ est la variance globale du bruit, et $m_L, \sigma_L^2$ sont la moyenne et la variance calculées sur le voisinage local $S_{xy}$.
+\end{itemize}
+
+% ========================================================================================================
+% Problèmes inverses et Défloutage
+
+\section{Problèmes Inverses, Défloutage et Ondelettes 2D}
+
+\subsection{Restauration en présence de flou (Déconvolution)}
+
+Si le modèle s'écrit $G(u,v) = H(u,v) F(u,v) + N(u,v)$, l'inversion directe donne :
+$$ \hat{F}(u,v) = \frac{G(u,v)}{H(u,v)} = F(u,v) + \frac{N(u,v)}{H(u,v)} $$
+Lorsque $H(u,v) \to 0$ (notamment aux hautes fréquences), le terme de bruit $\frac{N(u,v)}{H(u,v)}$ diverge : c'est un \textbf{problème inverse mal posé}.
+
+\begin{proposition}[Méthodes de régularisation]
+    \begin{itemize}
+        \item \textbf{Filtre pseudo-inverse tronqué} :
+            \begin{equation}
+                \hat{F}(u,v) = \begin{cases} \displaystyle \frac{G(u,v)}{H(u,v)} & \text{si } |H(u,v)| \geqslant T \\ G(u,v) & \text{sinon} \end{cases}
+            \end{equation}
+        \item \textbf{Filtre inverse borné en bande} : limitation de l'inversion à un rayon $D(u,v) \leqslant D_0$ où $|H(u,v)|$ reste significatif.
+        \item \textbf{Filtre de Wiener (Moindres carrés optimaux)} :
+            \begin{equation}
+                \boxed{\hat{F}(u,v) = \left[ \frac{1}{H(u,v)} \frac{|H(u,v)|^2}{|H(u,v)|^2 + K} \right] G(u,v)}
+            \end{equation}
+            où la constante $K \approx \frac{P_n}{P_f}$ régularise les divisions par zéro. Si $K = 0$, on retombe sur le filtre inverse direct.
+    \end{itemize}
+\end{proposition}
+
+\subsection{Décomposition multi-résolution par Ondelettes 2D}
+
+La décomposition dyadique en ondelettes sépare l'image en 4 sous-bandes par passage à travers des filtres passe-bas ($L$) et passe-haut ($H$) suivis d'un sous-échantillonnage :
+\begin{itemize}
+    \item $LL$ : approximation basse fréquence (image réduite).
+    \item $LH$ : détails verticaux (passe-bas horizontal, passe-haut vertical).
+    \item $HL$ : détails horizontaux (passe-haut horizontal, passe-bas vertical).
+    \item $HH$ : détails diagonaux (passe-haut dans les deux directions).
+\end{itemize}
+
+\begin{definition}[Seuillage de coefficients d'ondelettes]
+    Pour débruiter une image par seuillage de ses coefficients d'ondelettes $s$ avec un seuil $t$ :
+    \begin{itemize}
+        \item \textbf{Seuillage dur (\emph{Hard thresholding})} :
+            \begin{equation}
+                T_{\text{hard}}(s) = \begin{cases} s & \text{si } |s| > t \\ 0 & \text{si } |s| \leqslant t \end{cases}
+            \end{equation}
+        \item \textbf{Seuillage doux (\emph{Soft thresholding})} :
+            \begin{equation}
+                T_{\text{soft}}(s) = \begin{cases} \operatorname{sgn}(s)(|s| - t) & \text{si } |s| > t \\ 0 & \text{si } |s| \leqslant t \end{cases}
+            \end{equation}
+    \end{itemize}
+\end{definition}
