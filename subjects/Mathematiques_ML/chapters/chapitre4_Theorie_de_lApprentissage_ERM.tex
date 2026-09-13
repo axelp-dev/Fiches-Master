@@ -1,0 +1,413 @@
+% ======================================================================
+% Chapitre : Théorie de l'Apprentissage et Minimisation du Risque Empirique
+% ======================================================================
+
+
+% ======================================================================
+% Convexification du risque et substituts convexes
+
+\section{Convexification du risque et substituts convexes}
+
+% -------------------------------------------------
+\subsection{Reparamétrisation et identité de marge}
+
+En classification binaire, on cherche à prédire une étiquette parmi deux classes $\mathcal{Y} = \{-1, 1\}$ via une fonction $f : \mathcal{X} \to \mathcal{Y}$. La mesure naturelle d'erreur est la perte 0-1 (\emph{0-1 loss}) définie par : 
+\begin{equation}
+    l(y, \hat{y}) = \mathbbm{1}_{y \neq \hat{y}}.
+\end{equation}
+La minimisation exacte du risque empirique sous la perte 0-1 sur une classe d'hypothèses générale est un problème combinatoire NP-difficile. De plus, le risque empirique associé est une fonction constante par morceaux de ses paramètres : son gradient est nul presque partout, ce qui rend inapplicables les méthodes d'optimisation par descente de gradient.
+
+Pour lever ce verrou, on reparamétrise le classifieur discret à l'aide d'une fonction à valeurs réelles.
+
+\begin{definition}[Prédicteur par fonction signe randomisée]
+    Soit $g : \mathcal{X} \to \R$ une fonction réelle mesurable. On définit le classifieur binaire $f : \mathcal{X} \to \{-1, 1\}$ par $f(x) = \operatorname{sgn}(g(x))$ avec la convention :
+    \begin{equation}
+        \operatorname{sgn}(u) = 
+        \begin{cases}
+            1 & \text{si } u > 0, \\
+            -1 & \text{si } u < 0, \\
+            U \sim \operatorname{Unif}(\{-1, 1\}) & \text{si } u = 0,
+        \end{cases}
+    \end{equation}
+    où $U$ est une variable aléatoire auxiliaire indépendante du couple d'observations $(X, Y) \sim \mathbb{P}$.
+\end{definition}
+
+Cette reparamétrisation permet de découpler la \emph{décision brute} (donnée par $\operatorname{sgn}(g(x))$) de la \emph{confiance / distance à la frontière} (quantifiée par l'amplitude $|g(x)|$). On introduit alors la \emph{marge fonctionnelle} $u = Y g(X)$ :
+\begin{itemize}
+    \item $u > 0$ : la prédiction est correcte ($\operatorname{sgn}(g(X)) = Y$).
+    \item $u < 0$ : la prédiction est erronée ($\operatorname{sgn}(g(X)) \neq Y$).
+    \item $u = 0$ : le point se situe exactement sur la frontière de décision.
+\end{itemize}
+
+\begin{proposition}[Identité de marge pour la perte 0-1]
+    Le risque théorique de classification binaire associé à $f = \operatorname{sgn} \circ \, g$ s'exprime comme l'espérance d'une fonction scalaire de la marge fonctionnelle $Y g(X)$ :
+    \begin{equation}
+        R(f) = \mathbb{E}_{(X,Y) \sim \mathbb{P}} \left[ \Phi_{0-1}(Y g(X)) \right],
+    \end{equation}
+    avec la fonction de saut :
+    \begin{equation}
+        \Phi_{0-1}(u) = \mathbbm{1}_{u < 0} + \frac{1}{2} \mathbbm{1}_{u = 0}.
+    \end{equation}
+\end{proposition}
+
+\begin{proof}
+    En explicitant l'espérance conjointe sur $(X,Y)$ et sur la variable de randomisation $U$ :
+    \begin{align*}
+        R(f) &= \mathbb{E}_{(X,Y), U}\left[ \mathbbm{1}_{f(X) \neq Y} \right] \\
+        &= \mathbb{E}\left[ \mathbbm{1}_{g(X) \neq 0} \, \mathbbm{1}_{f(X) \neq Y} \right] + \mathbb{E}\left[ \mathbbm{1}_{g(X) = 0} \, \mathbbm{1}_{f(X) \neq Y} \right] \\
+        &= \mathbb{P}(Y g(X) < 0) + \mathbb{E}\left[ \mathbbm{1}_{g(X) = 0} \, \mathbbm{1}_{U \neq Y} \right].
+    \end{align*}
+    Comme $U$ est indépendante de $(X, Y)$ et uniformément distribuée sur $\{-1, 1\}$, $\mathbb{P}(U \neq Y \mid g(X) = 0) = \frac{1}{2}$. D'où :
+    \begin{equation*}
+        R(f) = \mathbb{P}(Y g(X) < 0) + \frac{1}{2} \mathbb{P}(g(X) = 0) = \mathbb{E}_{(X,Y) \sim \mathbb{P}} \left[ \Phi_{0-1}(Y g(X)) \right].
+    \end{equation*}
+\end{proof}
+
+% -------------------------------------------------
+\subsection{Risque de substitution et théorème de calibration}
+
+Dans le cas général, lorsque l'on fait face à une fonction de coût $l$ non continue ou non convexe, on définit une fonction convexe $ \Phi$ et une fonction $g$ pour définir un risque de substitution ou \emph{surrogate risk} $R_\Phi(g)$. 
+
+\begin{definition}[Risque de substitution -- Surrogate Risk]
+    Soit $\Phi : \R \to [0, \infty[$ une fonction convexe. Le risque de substitution associé à $\Phi$ pour une fonction $g : \mathcal{X} \to \R$ est défini par :
+    \begin{equation}
+        R_\Phi(g) := \mathbb{E}_{(X,Y) \sim \mathbb{P}} \left[ \Phi(Y g(X)) \right].
+    \end{equation}
+    Exemples classiques :
+    \begin{itemize}
+        \item Perte charnière (Hinge) : $\Phi(u) = (1 - u)_+$,
+        \item Perte quadratique : $\Phi(u) = (1 - u)^2$,
+        \item Perte logistique : $\Phi(u) = \ln(1 + e^{-u})$.
+    \end{itemize}
+\end{definition}
+
+Or, nous ne sommes pas assurés qu'optimiser sur $R_\Phi(g)$ nous donne une solution optimale $ \hat{f}$ pour notre risque initial $ R(f)$. Le théorème de calibration ci-dessous nous donne une estimation de l'erreur commise. 
+
+\begin{theorem}[Calibration -- Zhang, Bartlett-Jordan-McAuliffe]
+    Soit $\Phi : \R \to [0, \infty[$ une fonction convexe, dérivable en 0 avec $\Phi'(0) < 0$. Il existe une fonction convexe, non décroissante et continue $\psi : [0, 1] \to [0, \infty[$ vérifiant $\psi(0) = 0$ telle que pour toute fonction mesurable $g : \mathcal{X} \to \R$ :
+    \begin{equation}
+        \psi\left( R(\operatorname{sgn} \circ \, g) - R^* \right) \leqslant R_\Phi(g) - \inf_{g'} R_\Phi(g').
+    \end{equation}
+    En particulier :
+    \begin{itemize}
+        \item Pour la perte charnière : $\psi(t) = t$,
+        \item Pour la perte quadratique : $\psi(t) = t^2$,
+        \item Pour la perte logistique : $\psi(t) \geqslant \frac{t^2}{2}$.
+    \end{itemize}
+\end{theorem}
+
+% ======================================================================
+% Décomposition du Risque et Classes Finies
+
+\section{Décomposition du Risque et Classes Finies}
+
+% -------------------------------------------------
+\subsection{Décomposition canonique de l'excès de risque}
+
+Dans les chapitres précédents, nous avons décomposé le risque empirique en une erreur \emph{d'approximation} (liée au choix de l'espace de fonction à optimiser $ \mathcal{F}$) et une erreur \emph{d'estimation} (liée à l'échantillon restreint $S$ de taille $n$ que l'on considère, purement statistique) : 
+\begin{equation}
+    R( \hat{f}_S) - R^* = \underbrace{\left(  R( \hat{f}_S) - \underset{f \in \mathcal{F}}{\inf } R(f) \right)}_{\text{estimation}} + \underbrace{\left( \underset{f \in \mathcal{F}}{\inf} R(f) + R^* \right)}_{\text{approximation}}, 
+\end{equation}
+avec $ \hat{f}_S$ le minimiseur du risque empirique sur $ \mathcal{F}$. Soit $f^\dagger \in \mathcal{F}$ le meilleur prédicteur théorique possible dans $ \mathcal{F}$. On a donc : 
+\begin{equation}
+    R( \hat{f}_S) - R^* = R( \hat{f}_S) - R(f^\dagger) + R(f^\dagger) - R^*. 
+\end{equation}
+Or ici, $ \hat{f}_S$ est calculé sur un échantillon fixé $S$, on ne peut donc pas appliquer la LGN sur la taille de l'échantillon pour obtenir une convergence p.s vers $f^\dagger$. Pour séparer ce qui dépend des données et ce qui dépend de l'estimation dans ce risque, on introduit les risques empiriques $ \hat{R}_S( \hat{f}_S)$ et $ \hat{R}_S(f^\dagger)$ : 
+\begin{equation}
+    R( \hat{f}_S) - R(f^\dagger) = \left[R( \hat{f}_S) - \hat{R}_S( \hat{f}_S)\right] + \left[ \hat{R}_S( \hat{f}_S) - \hat{R}_S(f^\dagger)\right] + \left[ \hat{R}_S(f^\dagger) - R(f^\dagger)\right]. 
+\end{equation}
+En regardant chaque élément : 
+\begin{itemize}
+    \item $ R( \hat{f}_S) - \hat{R}_S( \hat{f}_S)$ correspond à l'erreur commise sur le calcul du risque de l'estimateur restreint à l'échantillon $S$. Comme $ \hat{f}_S \in \mathcal{F}$, on peut le majorer brutalement par le pire estimateur de la classe $ \mathcal{F}$ : 
+    \begin{equation}
+        R( \hat{f}_S) - \hat{R}_S( \hat{f}_S) \leqslant \underset{f \in \mathcal{F}}{\sup} \left| R(f) - \hat{R}_S(f) \right|.
+    \end{equation}
+    \item $ \hat{R}_S( \hat{f}_S) - \hat{R}_S(f^\dagger)$ correspond à l'erreur empirique du risque entre l'optimum calculé et le meilleur théorique,
+    \item $\hat{R}_S(f^\dagger) - R(f^\dagger)$ correspond à l'erreur commise sur le calcul du risque sur l'échantillon $S$ du meilleur estimateur théorique $f^\dagger$. De la même façon que pour le premier, on peut le majorer par le pire estimateur de $ \mathcal{F}$ : 
+    \begin{equation}
+        \hat{R}_S( \hat{f}_S) - R(f^\dagger) \leqslant \underset{f \in \mathcal{F}}{\sup} \left| \hat{R}_S(f) - R(f) \right|. 
+    \end{equation}
+\end{itemize}
+
+Le terme du milieu $ \hat{R}_S( \hat{f}_S) - \hat{R}_S(f^\dagger)$ correspond à l'erreur d'optimisation. Cette erreur est simplement due à la performance de notre algorithme ou à la puissance de notre unité de calcul. On peut donc la majorer arbitrairement par une constante $ \varepsilon_{opt}$ (qui dépend par exemple de la puissance de notre GPU, du temps de calcul, etc\dots). 
+
+\begin{proposition}[Décomposition canonique de l'excès de risque]
+    Soit $\mathcal{F}$ une classe d'hypothèses, $\hat{f}_S \in \arg\min_{f \in \mathcal{F}} \hat{R}_S(f)$ le minimiseur empirique et $f^\dagger \in \arg\min_{f \in \mathcal{F}} R(f)$ le meilleur estimateur possible dans $ \mathcal{F}$. L'erreur d'estimation se majore par :
+    \begin{equation}
+        \boxed{R(\hat{f}_S) - R(f^\dagger) \leqslant 2 \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| + \varepsilon_{\mathrm{opt}}}
+    \end{equation}
+    où $\varepsilon_{\mathrm{opt}} = \hat{R}_S(\hat{f}_S) - \inf_{f \in \mathcal{F}} \hat{R}_S(f)$ représente l'erreur d'optimisation numérique (nulle si la minimisation est exacte).
+\end{proposition}
+
+On souhaite maintenant estimer (ou borner) l'erreur maximale que l'on peut faire dans $ \mathcal{F}$ en estimant le risque $ \hat{R}_S$ sur l'échantillon $S$ : $ \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)|$. On va pour cela distinguer deux cas : si $ \mathcal{F}$ est une classe finie ou non. 
+
+% -------------------------------------------------
+\subsection{Majoration de l'erreur du risque -- cas fini}
+
+On suppose ici que $\mathcal{F}$ dispose d'un nombre fini d'éléments $|\mathcal{F}| = M < \infty$ et que les pertes sont bornées par $l_\infty$. Pour majorer cette quantité, on utilise l'inégalité de Hoeffing. 
+
+\begin{theorem}[Inégalité de Hoeffding]
+    Soit $(X_k)_{1 \leqslant k \leqslant n}$ une suite de variables aléatoires réelles \emph{indépendantes} telles que pour deux suites $(a_k)_{1 \leqslant k \leqslant n}$ et $ (b_k)_{1 \leqslant k \leqslant n}$, on ait : 
+    \begin{equation}
+        \forall k \in \llbracket 1, n \rrbracket, \quad \myP(a_k \leqslant X_k \leqslant b_k) = 1. 
+    \end{equation}
+    Alors, pour tout $ t \geqslant 0$, on peut minorer la concentration de $S_n = X_1 + \dots + X_n$ autour de sa moyenne en probabilité : 
+    \begin{equation}
+        \myP(|S_n - \mathbb{E}(S_n)| \geqslant t) \leqslant 2 \exp \left( - \frac{2 t^2}{ \sum_{i=1}^{n} (b_i - a_i)^2}\right). 
+    \end{equation}
+\end{theorem}
+
+\begin{proposition}
+    Or ici, pour toute fonction $f \in \mathcal{F}$ fixée indépendante de l'échantillon $S$, la perte sur chaque observation $ Z_i = l(y_i, f(x_i))$ est une variable aléatoire réelle telle que : 
+    \begin{enumerate}
+        \item Les $(Z_i)_{1 \leqslant i \leqslant n}$ sont i.i.d. 
+        \item Pour tout $ i \in \llbracket 1,n \rrbracket$, on a $ Z_i \in [0, l_\infty / n]$. 
+        \item La moyenne empirique est : $ \hat{R}_S(f) = \frac{1}{n} \sum_{i=1}^{n} Z_i$. 
+        \item L'espérance est : $ \mathbb{E}[Z_i] = R(f)$. 
+    \end{enumerate}
+    On peut donc appliquer l'inégalité de Hoeffding sur la moyenne empirique $ \hat{R}_S(f)$ avec $ a_k = 0$ et $ b_k = l_\infty / n$ pour tout $ k \in \llbracket 1, n \rrbracket$. D'où : 
+    \begin{equation}
+        \forall t \geqslant 0, \quad \myP( |R(f) - \hat{R}_S(f) | \geqslant t) \leqslant 2 \exp \left(- \frac{2 n t^2}{l_\infty ^2}\right). 
+    \end{equation}
+\end{proposition}
+
+Sachant contrôler chaque estimateur de la classe $ \mathcal{F}$ indépendament, on souhaitement maintenant les contrôler tous\footnote{"Un anneau unique pour les contrôler tous".}.
+Pour contrôler simultanément tous les estimateurs de la classe, on applique l'inégalité de Boole (\emph{Union Bound})\footnote{Cette inégalité découle des propriétés des mesures. Elle affirme que pour une famille au plus dénombrable de partie mesurables $A_1, A_2, A_3, \dots$, pour toute mesure $ \mu$, on a : $ \mu \left( \bigcup_n A_n\right) \leqslant \sum_{n} \mu (A_n)$.} sur les $M = |\mathcal{F}|$ éléments :
+\begin{align*}
+    \myP\left( \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \geqslant t \right) 
+    &\leqslant \sum_{f \in \mathcal{F}} \myP\left( |\hat{R}_S(f) - R(f)| \geqslant t \right) \\
+    &\leqslant 2 |\mathcal{F}| \exp\left( -\frac{2nt^2}{l_\infty^2} \right).
+\end{align*}
+
+En posant cette probabilité d'erreur égale à $\delta \in ]0, 1[$, on obtient le seuil d'écart $t = l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}}$.
+
+\begin{theorem}[Borne uniforme pour les classes finies]
+    Sous les hypothèses $l(y, f(x)) \in [0, l_\infty]$ et $|\mathcal{F}| < \infty$, pour tout $\delta \in ]0, 1[$, avec probabilité au moins $1 - \delta$ sur le tirage de $S \sim \myP^{\otimes n}$ :
+    \begin{equation}
+        \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \leqslant l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}}.
+    \end{equation}
+    Par conséquent, pour le minimiseur empirique exact $\hat{f}_S$, on a avec probabilité au moins $1 - \delta$ :
+    \begin{equation}
+        R(\hat{f}_S) \leqslant \inf_{f \in \mathcal{F}} R(f) + 2 l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}} + \varepsilon_{\mathrm{opt}}.
+    \end{equation}
+\end{theorem}
+
+\begin{remark}
+    Le résultat est immédiat ici. Si les hypothèses sont vérifiées, nous sommes capables de borner le risque. En revanche, si $| \mathcal{F}| = \infty$, les bornes de celui-ci explosent. Nous devons donc décrire une nouvelle théorie pour traiter ce cas. 
+\end{remark}
+
+% -------------------------------------------------
+\subsection{Majoration de l'erreur du risque -- cas infini}
+
+Analysons le résultat précédent : on calcule la probabilité que $ \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \geqslant t $ par une somme finie d'unions d'événnements sur $ \mathcal{F}$. C'est donc de là que la borne explose si $ \mathcal{F}$ est infini. 
+
+La solution est donc de traiter la classe entière de fonctions $ \mathcal{F}$ en considérant une application $g$ définie sur l'échantillon $S$ qui lui associe l'erreur la plus importante possible sur la classe de fonctions $ \mathcal{F}$ : 
+
+\begin{equation}
+    g(S) := \underset{f \in \mathcal{F}}{\sup} \left( \hat{R}_S(f) - R(f)\right). 
+\end{equation}
+
+C'est donc maintenant l'échantillon qui définit la variation d'erreur. On souhaite toujours la borner : on introduit donc la \emph{méthode des différences bornées}. 
+
+\begin{definition}[Différences Bornées]
+    Soit $ f : Z = Z_1 \times Z_n \longrightarrow \R$ une application. On dit que $f$ vérifie la \emph{condition des différences bornées} pour les constantes $(c_1, \dots, c_n) \in \R^n$ si pour tout $ i \in \llbracket 1, n \rrbracket$ on a : 
+    \begin{equation}
+        \underset{z_1, \dots, z_i, \dots, z_n, z_i'}{\sup} \left| f(z_1, \dots, z_i, \dots, z_n) - f(z_1, \dots, z_i', \dots, z_n)\right| \leqslant c_i. 
+    \end{equation}
+    Autrement dit, si l'on change la ième entrée $z_i$ de $f$ en $z_i'$, sa sortie ne bouge pas plus de $c_i$, et cela pour tout $i$. 
+\end{definition}
+
+\begin{proposition}[Différences bornées sur $g$]
+    Appliquons les différences bornées sur l'application $g$. Puisque pour tout $f \in \mathcal{F}$, le risque $R(f)$ ne dépend pas des données $S$, on a : 
+    \begin{equation}
+        \hat{R}_S(f) - \hat{R}_{S'}(f) = \frac{1}{n} \left( l(z_i, f) - l(z_i', f)\right). 
+    \end{equation}
+    Or, par hypothèse, la perte directe est contenue dans $[0, l_\infty]$. Nous devons passer au $\sup$ pour conclure sur $g$. 
+\end{proposition}
+
+\begin{lemma}[Passage au $\sup$]
+    Soient $u, v : \mathcal{F} \longrightarrow \R$ deux appliations. Pour tout $f \in \mathcal{F}$, on a l'implication suivante : 
+    \begin{equation}
+        \left| u(f) - v(f)\right| \leqslant c \longrightarrow \left| \underset{f \in \mathcal{F}}{\sup} \; u(f) - \underset{f \in \mathcal{F}}{\sup} \; v(f)\right| \leqslant c. 
+    \end{equation}
+\end{lemma}
+
+En utilisant ce simple lemme sur la fonction $g$, on obtient la majoration suivante : 
+\begin{equation}
+    \forall n, \quad g(S) = \underset{f \in \mathcal{F}}{\sup} \left( \hat{R}_S(f) - R(f)\right) \leqslant c_i = \frac{l_\infty}{n}. 
+\end{equation}
+
+\begin{theorem}[Inégalité de McDiarmid]
+    Soient $Z_1, \dots, Z_n$ des variables aléatoires indépendantes à valeurs dans un espace mesurable $\mathcal{Z}$. Soit $\phi : \mathcal{Z}^n \to \R$ une fonction vérifiant l'hypothèse des différences bornées pour des constantes $(c_1, \dots, c_n) \in \R_+^n$. Alors, pour tout $t \geqslant 0$ :
+    \begin{align}
+        \myP\left( \phi(S) - \mathbb{E}_S[\phi(S)] \geqslant t \right) &\leqslant \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right), \\
+        \myP\left( \mathbb{E}_S[\phi(S)] - \phi(S) \geqslant t \right) &\leqslant \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right), \\
+        \myP\left( |\phi(S) - \mathbb{E}_S[\phi(S)]| \geqslant t \right) &\leqslant 2 \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right).
+    \end{align}
+\end{theorem}
+
+On décompose la déviation uniforme bilatérale en deux déviations unilatérales :
+\begin{equation}
+    \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \leqslant \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) + \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)).
+\end{equation}
+Puisque chacune de ces deux applications admet les constantes de variations coordonnées $c_i = \frac{l_\infty}{n}$, la somme des carrés s'évalue explicitement par :
+\begin{equation}
+    \sum_{i=1}^n c_i^2 = \sum_{i=1}^n \left(\frac{l_\infty}{n}\right)^2 = \frac{l_\infty^2}{n}.
+\end{equation}
+L'application de la forme unilatérale de McDiarmid fournit alors le contrôle de concentration suivant :
+
+\begin{proposition}[Concentration de la déviation uniforme unilatérale]
+    Sous l'hypothèse d'une perte bornée $l(y, f(x)) \in [0, l_\infty]$, pour tout $\delta \in ]0, 1[$, chacune des inégalités suivantes est vérifiée avec probabilité au moins $1 - \delta$ sur le tirage de $S \sim \myP^{\otimes n}$ :
+    \begin{align}
+        \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}, \\
+        \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}.
+    \end{align}
+\end{proposition}
+
+\begin{remark}
+    Ce résultat marque une avancée théorique majeure : la déviation uniforme se concentre à une vitesse en $\mathcal{O}(1/\sqrt{n})$ autour de son espérance, \emph{sans aucune hypothèse de finitude ou de structure} sur la classe $\mathcal{F}$.
+    
+    Toutefois, le problème n'est pas encore résolu : la déviation se concentre autour d'une espérance théorique inconnue $\mathbb{E}_S\left[ \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) \right]$. Si la classe $\mathcal{F}$ est arbitrairement riche (par exemple l'ensemble de toutes les fonctions mesurables), cette espérance vaut identiquement $1$ pour tout $n$. L'objectif de la section suivante consiste donc à borner cette espérance résiduelle à l'aide de la \emph{symétrisation} et de la \emph{complexité de Rademacher}.
+\end{remark}
+
+
+% \begin{theorem}[Inégalité des différences bornées (McDiarmid)]
+%     Soient $X_1, \dots, X_n$ des variables aléatoires indépendantes à valeurs dans $\mathcal{Z}$. Soit $f : \mathcal{Z}^n \to \R$ vérifiant la propriété des différences bornées avec constantes $c_1, \dots, c_n$ :
+%     \begin{equation}
+%         \sup_{z_1, \dots, z_n, z_i'} |f(z_1, \dots, z_i, \dots, z_n) - f(z_1, \dots, z_i', \dots, z_n)| \leqslant c_i.
+%     \end{equation}
+%     Alors, pour tout $t > 0$ :
+%     \begin{equation}
+%         \mathbb{P}\left( f(S) - \mathbb{E}[f(S)] \geqslant t \right) \leqslant \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right),
+%     \end{equation}
+%     \begin{equation}
+%         \mathbb{P}\left( |f(S) - \mathbb{E}[f(S)]| \geqslant t \right) \leqslant 2 \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right).
+%     \end{equation}
+% \end{theorem}
+
+% \begin{theorem}[Borne uniforme pour les classes finies]
+%     On suppose que $l(y, f(x)) \in [0, l_\infty]$ pour tout $f \in \mathcal{F}$ et tout $(x, y)$. Si $|\mathcal{F}| < +\infty$, alors pour tout $\delta \in (0, 1)$, avec probabilité au moins $1 - \delta$ sur le tirage de $S \sim \mathbb{P}^{\otimes n}$ :
+%     \begin{equation}
+%         \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \leqslant l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}},
+%     \end{equation}
+%     ce qui donne pour l'estimateur ERM exact :
+%     \begin{equation}
+%         R(\hat{f}_S) \leqslant \inf_{f \in \mathcal{F}} R(f) + 2 l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}}.
+%     \end{equation}
+% \end{theorem}
+
+% \begin{proposition}[Concentration de la déviation uniforme unilatérale]
+%     Sous l'hypothèse $l(y, f(x)) \in [0, l_\infty]$, pour tout $\delta \in (0, 1)$, chacune des inégalités suivantes est vérifiée avec probabilité au moins $1 - \delta$ :
+%     \begin{align}
+%         \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}, \\
+%         \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}.
+%     \end{align}
+% \end{proposition}
+
+% % ======================================================================
+% % PARTIE III : Symétrisation et Complexité de Rademacher
+% % ======================================================================
+
+% \section{Symétrisation et complexité de Rademacher}
+
+% \begin{definition}[Complexité de Rademacher]
+%     Soit $\mathcal{H}$ une classe de fonctions réelles définies sur $\mathcal{Z}$, et $S = (z_1, \dots, z_n) \in \mathcal{Z}^n$.
+%     \begin{itemize}
+%         \item La \emph{complexité de Rademacher empirique} de $\mathcal{H}$ conditionnellement à $S$ est :
+%         \begin{equation}
+%             \mathfrak{R}_S(\mathcal{H}) := \mathbb{E}_{\varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i h(z_i) \right],
+%         \end{equation}
+%         où $\varepsilon_1, \dots, \varepsilon_n$ sont des variables de Rademacher i.i.d. indépendantes de $S$ telles que $\mathbb{P}(\varepsilon_i = 1) = \mathbb{P}(\varepsilon_i = -1) = \frac{1}{2}$.
+%         \item La \emph{complexité de Rademacher} de $\mathcal{H}$ est :
+%         \begin{equation}
+%             \mathfrak{R}_n(\mathcal{H}) := \mathbb{E}_{S \sim \mathbb{P}^{\otimes n}} \left[ \mathfrak{R}_S(\mathcal{H}) \right].
+%         \end{equation}
+%     \end{itemize}
+% \end{definition}
+
+% \begin{theorem}[Théorème de symétrisation]
+%     Soit $\mathcal{H}$ une classe de fonctions et $z_1, \dots, z_n$ des variables i.i.d. Alors :
+%     \begin{equation}
+%         \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \frac{1}{n} \sum_{i=1}^n h(z_i) - \mathbb{E}_z[h(z)] \right) \right] \leqslant 2 \mathfrak{R}_n(\mathcal{H}),
+%     \end{equation}
+%     \begin{equation}
+%         \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right] \leqslant 2 \mathfrak{R}_n(\mathcal{H}).
+%     \end{equation}
+% \end{theorem}
+
+% \begin{proposition}[Propriétés de structure de la complexité de Rademacher]
+%     Pour tout échantillon $S$ :
+%     \begin{enumerate}
+%         \item \textbf{Homogénéité} : $\forall c \in \R, \quad \mathfrak{R}_S(c\mathcal{H}) = |c| \, \mathfrak{R}_S(\mathcal{H})$.
+%         \item \textbf{Invariance par translation} : pour toute fonction fixe $h_0$, $\mathfrak{R}_S(\mathcal{H} + h_0) = \mathfrak{R}_S(\mathcal{H})$.
+%         \item \textbf{Enveloppe convexe} : $\mathfrak{R}_S(\operatorname{conv}(\mathcal{H})) = \mathfrak{R}_S(\mathcal{H})$.
+%     \end{enumerate}
+% \end{proposition}
+
+% \begin{lemma}[Lemme de Massart]
+%     Soit $A \subset \R^n$ un ensemble fini non vide et $\rho = \max_{a \in A} \|a\|_2$. Alors :
+%     \begin{equation}
+%         \mathbb{E}_{\varepsilon} \left[ \max_{a \in A} \frac{1}{n} \sum_{i=1}^n \varepsilon_i a_i \right] \leqslant \frac{\rho \sqrt{2 \ln |A|}}{n}.
+%     \end{equation}
+% \end{lemma}
+
+% \begin{corollary}[Borne de Rademacher pour les classes finies]
+%     Si $|\mathcal{H}| < +\infty$ et $|h(z)| \leqslant l_\infty$ pour tout $h \in \mathcal{H}$ et $z \in \mathcal{Z}$, alors :
+%     \begin{equation}
+%         \mathfrak{R}_S(\mathcal{H}) \leqslant l_\infty \sqrt{\frac{2 \ln |\mathcal{H}|}{n}}.
+%     \end{equation}
+% \end{corollary}
+
+% \begin{proposition}[Principe de contraction de Ledoux-Talagrand]
+%     Soit $A \subset \R^n$ et soient $g_1, \dots, g_n : \R \to \R$ des fonctions $G$-lipschitziennes. Alors :
+%     \begin{equation}
+%         \mathbb{E}_{\varepsilon} \left[ \sup_{a \in A} \frac{1}{n} \sum_{i=1}^n \varepsilon_i g_i(a_i) \right] \leqslant G \, \mathbb{E}_{\varepsilon} \left[ \sup_{a \in A} \frac{1}{n} \sum_{i=1}^n \varepsilon_i a_i \right].
+%     \end{equation}
+%     Si la fonction de perte $u \mapsto l(y, u)$ est $G$-lipschitzienne pour tout $y$, en notant $l \circ \mathcal{F} = \{(x, y) \mapsto l(y, f(x)) \mid f \in \mathcal{F}\}$ :
+%     \begin{equation}
+%         \mathfrak{R}_S(l \circ \mathcal{F}) \leqslant G \, \mathfrak{R}_S(\mathcal{F}) \quad \text{et} \quad \mathfrak{R}_n(l \circ \mathcal{F}) \leqslant G \, \mathfrak{R}_n(\mathcal{F}).
+%     \end{equation}
+% \end{proposition}
+
+% % ======================================================================
+% % PARTIE IV : Modèles Linéaires Contraints et Bornes Finales
+% % ======================================================================
+
+% \section{Modèles linéaires contraints et bornes d'excès de risque}
+
+% \begin{definition}[Classe linéaire contrainte et dualité de normes]
+%     Soit une feature map $\varphi : \mathcal{X} \to \R^d$, une norme $\Omega$ sur $\R^d$ et un rayon $D > 0$. Pour la classe $\mathcal{F} = \{x \mapsto \theta^\top \varphi(x) \mid \Omega(\theta) \leqslant D\}$, la complexité de Rademacher vérifie :
+%     \begin{equation}
+%         \mathfrak{R}_n(\mathcal{F}) = \frac{D}{n} \mathbb{E}_{S, \varepsilon} \left[ \Omega^*(\Phi^\top \varepsilon) \right],
+%     \end{equation}
+%     où $\Omega^*$ est la norme duale de $\Omega$, $\Phi \in \R^{n \times d}$ est la matrice de lignes $\varphi(x_i)^\top$, et $\Phi^\top \varepsilon = \sum_{i=1}^n \varepsilon_i \varphi(x_i)$.
+% \end{definition}
+
+% \begin{proposition}[Cas euclidien ($\ell_2$)]
+%     Pour la contrainte $\Omega(\theta) = \|\theta\|_2 \leqslant D$ :
+%     \begin{equation}
+%         \mathfrak{R}_n(\mathcal{F}) \leqslant \frac{D}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]}.
+%     \end{equation}
+% \end{proposition}
+
+% \begin{proposition}[Cas parcimonieux ($\ell_1$)]
+%     Pour la contrainte $\Omega(\theta) = \|\theta\|_1 \leqslant D$, sous l'hypothèse de caractéristiques bornées $|\varphi_j(x)| \leqslant B_\infty$ pour tout $j \in \llbracket 1, d \rrbracket$ :
+%     \begin{equation}
+%         \mathfrak{R}_n(\mathcal{F}) \leqslant D B_\infty \sqrt{\frac{2 \ln(2d)}{n}}.
+%     \end{equation}
+% \end{proposition}
+
+% \begin{theorem}[Borne d'excès de risque en espérance]
+%     Soit $\mathcal{F} = \{f_\theta : \|\theta\|_2 \leqslant D\}$. Si la perte $u \mapsto l(y, u)$ est $G$-lipschitzienne pour tout $y$, tout estimateur ERM exact $\hat{f}_S$ vérifie :
+%     \begin{equation}
+%         \mathbb{E}_S \left[ R(\hat{f}_S) \right] \leqslant \inf_{\|\theta\|_2 \leqslant D} R(f_\theta) + \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]}.
+%     \end{equation}
+% \end{theorem}
+
+% \begin{theorem}[Borne d'excès de risque à grande probabilité]
+%     Sous les mêmes hypothèses, en supposant de plus que la perte est bornée ($l(y, f(x)) \in [0, l_\infty]$), pour tout $\delta \in (0, 1)$, avec probabilité au moins $1 - \delta$ sur le tirage de $S$ :
+%     \begin{equation}
+%         R(\hat{f}_S) \leqslant \inf_{\|\theta\|_2 \leqslant D} R(f_\theta) + \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]} + 2 l_\infty \sqrt{\frac{\ln(2/\delta)}{2n}}.
+%     \end{equation}
+% \end{theorem}
+% ```[cite: 8, 9]
