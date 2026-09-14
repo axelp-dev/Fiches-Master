@@ -2,6 +2,11 @@
 % Chapitre : Théorie de l'Apprentissage et Minimisation du Risque Empirique
 % ======================================================================
 
+Dans les chapitres précédents, nous avons présenté différentes méthodes d'apprentissage basées sur la minimisation du risque empirique (ERM, \emph{Empirical Risk Minimization}). Or la seule analyse de la convergence de ces méthodes que nous ayons faite est la décomposition biais-variance du risque ainsi que la décomposition de son erreur en deux : l'erreur \emph{d'approximation} et l'erreur \emph{d'estimation}. 
+
+Dans la seconde partie de ce chapitre, nous nous attardons justement sur l'erreur faite sur le risque lors de l'apprentissage. Pour cela, nous développons une nouvelle théorie basée sur la complexité de l'espace de recherche $ \mathcal{F}$. 
+
+Mais avant, nous développons le concept de \emph{convexification du risque} dans la première partie. En effet, pour certaines fonction de pertes (notamment la \emph{0-1 loss}) nous ne disposons pas de "bonnes" propriétés analytiques pour utiliser des algorithmes d'optimisation. Nous présentons ainsi une méthode permettant d'y remédier. 
 
 % ======================================================================
 % Convexification du risque et substituts convexes
@@ -144,7 +149,7 @@ On souhaite maintenant estimer (ou borner) l'erreur maximale que l'on peut faire
 % -------------------------------------------------
 \subsection{Majoration de l'erreur du risque -- cas fini}
 
-On suppose ici que $\mathcal{F}$ dispose d'un nombre fini d'éléments $|\mathcal{F}| = M < \infty$ et que les pertes sont bornées par $l_\infty$. Pour majorer cette quantité, on utilise l'inégalité de Hoeffing. 
+On suppose ici que $\mathcal{F}$ dispose d'un nombre fini d'éléments $|\mathcal{F}| = M < \infty$ et que les pertes sont bornées par $l_\infty$. Pour majorer cette quantité, on utilise l'inégalité de Hoeffding. 
 
 \begin{theorem}[Inégalité de Hoeffding]
     Soit $(X_k)_{1 \leqslant k \leqslant n}$ une suite de variables aléatoires réelles \emph{indépendantes} telles que pour deux suites $(a_k)_{1 \leqslant k \leqslant n}$ et $ (b_k)_{1 \leqslant k \leqslant n}$, on ait : 
@@ -161,7 +166,7 @@ On suppose ici que $\mathcal{F}$ dispose d'un nombre fini d'éléments $|\mathca
     Or ici, pour toute fonction $f \in \mathcal{F}$ fixée indépendante de l'échantillon $S$, la perte sur chaque observation $ Z_i = l(y_i, f(x_i))$ est une variable aléatoire réelle telle que : 
     \begin{enumerate}
         \item Les $(Z_i)_{1 \leqslant i \leqslant n}$ sont i.i.d. 
-        \item Pour tout $ i \in \llbracket 1,n \rrbracket$, on a $ Z_i \in [0, l_\infty / n]$. 
+        \item Pour tout $ i \in \llbracket 1,n \rrbracket$, on a $ Z_i \in [0, l_\infty]$. 
         \item La moyenne empirique est : $ \hat{R}_S(f) = \frac{1}{n} \sum_{i=1}^{n} Z_i$. 
         \item L'espérance est : $ \mathbb{E}[Z_i] = R(f)$. 
     \end{enumerate}
@@ -171,7 +176,7 @@ On suppose ici que $\mathcal{F}$ dispose d'un nombre fini d'éléments $|\mathca
     \end{equation}
 \end{proposition}
 
-Sachant contrôler chaque estimateur de la classe $ \mathcal{F}$ indépendament, on souhaitement maintenant les contrôler tous\footnote{"Un anneau unique pour les contrôler tous".}.
+Sachant contrôler chaque estimateur de la classe $ \mathcal{F}$ indépendamment, on souhaite maintenant les contrôler tous\footnote{"Un anneau unique pour les contrôler tous".}.
 Pour contrôler simultanément tous les estimateurs de la classe, on applique l'inégalité de Boole (\emph{Union Bound})\footnote{Cette inégalité découle des propriétés des mesures. Elle affirme que pour une famille au plus dénombrable de partie mesurables $A_1, A_2, A_3, \dots$, pour toute mesure $ \mu$, on a : $ \mu \left( \bigcup_n A_n\right) \leqslant \sum_{n} \mu (A_n)$.} sur les $M = |\mathcal{F}|$ éléments :
 \begin{align*}
     \myP\left( \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \geqslant t \right) 
@@ -199,7 +204,7 @@ En posant cette probabilité d'erreur égale à $\delta \in ]0, 1[$, on obtient 
 % -------------------------------------------------
 \subsection{Majoration de l'erreur du risque -- cas infini}
 
-Analysons le résultat précédent : on calcule la probabilité que $ \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \geqslant t $ par une somme finie d'unions d'événnements sur $ \mathcal{F}$. C'est donc de là que la borne explose si $ \mathcal{F}$ est infini. 
+Analysons le résultat précédent : on calcule la probabilité que $ \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \geqslant t $ par une somme finie d'unions d'événements sur $ \mathcal{F}$. C'est donc de là que la borne explose si $ \mathcal{F}$ est infini. 
 
 La solution est donc de traiter la classe entière de fonctions $ \mathcal{F}$ en considérant une application $g$ définie sur l'échantillon $S$ qui lui associe l'erreur la plus importante possible sur la classe de fonctions $ \mathcal{F}$ : 
 
@@ -210,7 +215,7 @@ La solution est donc de traiter la classe entière de fonctions $ \mathcal{F}$ e
 C'est donc maintenant l'échantillon qui définit la variation d'erreur. On souhaite toujours la borner : on introduit donc la \emph{méthode des différences bornées}. 
 
 \begin{definition}[Différences Bornées]
-    Soit $ f : Z = Z_1 \times Z_n \longrightarrow \R$ une application. On dit que $f$ vérifie la \emph{condition des différences bornées} pour les constantes $(c_1, \dots, c_n) \in \R^n$ si pour tout $ i \in \llbracket 1, n \rrbracket$ on a : 
+    Soit $ f : Z_1 \times \dots \times Z_n \longrightarrow \R$ une application. On dit que $f$ vérifie la \emph{condition des différences bornées} pour les constantes $(c_1, \dots, c_n) \in \R^n$ si pour tout $ i \in \llbracket 1, n \rrbracket$ on a : 
     \begin{equation}
         \underset{z_1, \dots, z_i, \dots, z_n, z_i'}{\sup} \left| f(z_1, \dots, z_i, \dots, z_n) - f(z_1, \dots, z_i', \dots, z_n)\right| \leqslant c_i. 
     \end{equation}
@@ -226,16 +231,20 @@ C'est donc maintenant l'échantillon qui définit la variation d'erreur. On souh
 \end{proposition}
 
 \begin{lemma}[Passage au $\sup$]
-    Soient $u, v : \mathcal{F} \longrightarrow \R$ deux appliations. Pour tout $f \in \mathcal{F}$, on a l'implication suivante : 
+    Soient $u, v : \mathcal{F} \longrightarrow \R$ deux applications. Pour tout $f \in \mathcal{F}$, on a l'implication suivante : 
     \begin{equation}
         \left| u(f) - v(f)\right| \leqslant c \longrightarrow \left| \underset{f \in \mathcal{F}}{\sup} \; u(f) - \underset{f \in \mathcal{F}}{\sup} \; v(f)\right| \leqslant c. 
     \end{equation}
 \end{lemma}
 
-En utilisant ce simple lemme sur la fonction $g$, on obtient la majoration suivante : 
+En appliquant le lemme précédent avec $c = \frac{l_\infty}{n}$, on en déduit que pour tout $i \in \llbracket 1, n \rrbracket$ : 
 \begin{equation}
-    \forall n, \quad g(S) = \underset{f \in \mathcal{F}}{\sup} \left( \hat{R}_S(f) - R(f)\right) \leqslant c_i = \frac{l_\infty}{n}. 
-\end{equation}
+        |g(S) - g(S')| = \left| \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) - \sup_{f \in \mathcal{F}} (\hat{R}_{S'}(f) - R(f)) \right| \leqslant \frac{l_\infty}{n}.
+    \end{equation}
+    La fonction $g$ vérifie donc la propriété des différences bornées avec les constantes coordonnées :
+    \begin{equation}
+        c_i = \frac{l_\infty}{n} \quad \text{pour tout } i \in \llbracket 1, n \rrbracket.
+    \end{equation}
 
 \begin{theorem}[Inégalité de McDiarmid]
     Soient $Z_1, \dots, Z_n$ des variables aléatoires indépendantes à valeurs dans un espace mesurable $\mathcal{Z}$. Soit $\phi : \mathcal{Z}^n \to \R$ une fonction vérifiant l'hypothèse des différences bornées pour des constantes $(c_1, \dots, c_n) \in \R_+^n$. Alors, pour tout $t \geqslant 0$ :
@@ -269,145 +278,3 @@ L'application de la forme unilatérale de McDiarmid fournit alors le contrôle d
     
     Toutefois, le problème n'est pas encore résolu : la déviation se concentre autour d'une espérance théorique inconnue $\mathbb{E}_S\left[ \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) \right]$. Si la classe $\mathcal{F}$ est arbitrairement riche (par exemple l'ensemble de toutes les fonctions mesurables), cette espérance vaut identiquement $1$ pour tout $n$. L'objectif de la section suivante consiste donc à borner cette espérance résiduelle à l'aide de la \emph{symétrisation} et de la \emph{complexité de Rademacher}.
 \end{remark}
-
-
-% \begin{theorem}[Inégalité des différences bornées (McDiarmid)]
-%     Soient $X_1, \dots, X_n$ des variables aléatoires indépendantes à valeurs dans $\mathcal{Z}$. Soit $f : \mathcal{Z}^n \to \R$ vérifiant la propriété des différences bornées avec constantes $c_1, \dots, c_n$ :
-%     \begin{equation}
-%         \sup_{z_1, \dots, z_n, z_i'} |f(z_1, \dots, z_i, \dots, z_n) - f(z_1, \dots, z_i', \dots, z_n)| \leqslant c_i.
-%     \end{equation}
-%     Alors, pour tout $t > 0$ :
-%     \begin{equation}
-%         \mathbb{P}\left( f(S) - \mathbb{E}[f(S)] \geqslant t \right) \leqslant \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right),
-%     \end{equation}
-%     \begin{equation}
-%         \mathbb{P}\left( |f(S) - \mathbb{E}[f(S)]| \geqslant t \right) \leqslant 2 \exp\left( -\frac{2t^2}{\sum_{i=1}^n c_i^2} \right).
-%     \end{equation}
-% \end{theorem}
-
-% \begin{theorem}[Borne uniforme pour les classes finies]
-%     On suppose que $l(y, f(x)) \in [0, l_\infty]$ pour tout $f \in \mathcal{F}$ et tout $(x, y)$. Si $|\mathcal{F}| < +\infty$, alors pour tout $\delta \in (0, 1)$, avec probabilité au moins $1 - \delta$ sur le tirage de $S \sim \mathbb{P}^{\otimes n}$ :
-%     \begin{equation}
-%         \sup_{f \in \mathcal{F}} |\hat{R}_S(f) - R(f)| \leqslant l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}},
-%     \end{equation}
-%     ce qui donne pour l'estimateur ERM exact :
-%     \begin{equation}
-%         R(\hat{f}_S) \leqslant \inf_{f \in \mathcal{F}} R(f) + 2 l_\infty \sqrt{\frac{\ln(2|\mathcal{F}|/\delta)}{2n}}.
-%     \end{equation}
-% \end{theorem}
-
-% \begin{proposition}[Concentration de la déviation uniforme unilatérale]
-%     Sous l'hypothèse $l(y, f(x)) \in [0, l_\infty]$, pour tout $\delta \in (0, 1)$, chacune des inégalités suivantes est vérifiée avec probabilité au moins $1 - \delta$ :
-%     \begin{align}
-%         \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}, \\
-%         \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}.
-%     \end{align}
-% \end{proposition}
-
-% % ======================================================================
-% % PARTIE III : Symétrisation et Complexité de Rademacher
-% % ======================================================================
-
-% \section{Symétrisation et complexité de Rademacher}
-
-% \begin{definition}[Complexité de Rademacher]
-%     Soit $\mathcal{H}$ une classe de fonctions réelles définies sur $\mathcal{Z}$, et $S = (z_1, \dots, z_n) \in \mathcal{Z}^n$.
-%     \begin{itemize}
-%         \item La \emph{complexité de Rademacher empirique} de $\mathcal{H}$ conditionnellement à $S$ est :
-%         \begin{equation}
-%             \mathfrak{R}_S(\mathcal{H}) := \mathbb{E}_{\varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i h(z_i) \right],
-%         \end{equation}
-%         où $\varepsilon_1, \dots, \varepsilon_n$ sont des variables de Rademacher i.i.d. indépendantes de $S$ telles que $\mathbb{P}(\varepsilon_i = 1) = \mathbb{P}(\varepsilon_i = -1) = \frac{1}{2}$.
-%         \item La \emph{complexité de Rademacher} de $\mathcal{H}$ est :
-%         \begin{equation}
-%             \mathfrak{R}_n(\mathcal{H}) := \mathbb{E}_{S \sim \mathbb{P}^{\otimes n}} \left[ \mathfrak{R}_S(\mathcal{H}) \right].
-%         \end{equation}
-%     \end{itemize}
-% \end{definition}
-
-% \begin{theorem}[Théorème de symétrisation]
-%     Soit $\mathcal{H}$ une classe de fonctions et $z_1, \dots, z_n$ des variables i.i.d. Alors :
-%     \begin{equation}
-%         \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \frac{1}{n} \sum_{i=1}^n h(z_i) - \mathbb{E}_z[h(z)] \right) \right] \leqslant 2 \mathfrak{R}_n(\mathcal{H}),
-%     \end{equation}
-%     \begin{equation}
-%         \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right] \leqslant 2 \mathfrak{R}_n(\mathcal{H}).
-%     \end{equation}
-% \end{theorem}
-
-% \begin{proposition}[Propriétés de structure de la complexité de Rademacher]
-%     Pour tout échantillon $S$ :
-%     \begin{enumerate}
-%         \item \textbf{Homogénéité} : $\forall c \in \R, \quad \mathfrak{R}_S(c\mathcal{H}) = |c| \, \mathfrak{R}_S(\mathcal{H})$.
-%         \item \textbf{Invariance par translation} : pour toute fonction fixe $h_0$, $\mathfrak{R}_S(\mathcal{H} + h_0) = \mathfrak{R}_S(\mathcal{H})$.
-%         \item \textbf{Enveloppe convexe} : $\mathfrak{R}_S(\operatorname{conv}(\mathcal{H})) = \mathfrak{R}_S(\mathcal{H})$.
-%     \end{enumerate}
-% \end{proposition}
-
-% \begin{lemma}[Lemme de Massart]
-%     Soit $A \subset \R^n$ un ensemble fini non vide et $\rho = \max_{a \in A} \|a\|_2$. Alors :
-%     \begin{equation}
-%         \mathbb{E}_{\varepsilon} \left[ \max_{a \in A} \frac{1}{n} \sum_{i=1}^n \varepsilon_i a_i \right] \leqslant \frac{\rho \sqrt{2 \ln |A|}}{n}.
-%     \end{equation}
-% \end{lemma}
-
-% \begin{corollary}[Borne de Rademacher pour les classes finies]
-%     Si $|\mathcal{H}| < +\infty$ et $|h(z)| \leqslant l_\infty$ pour tout $h \in \mathcal{H}$ et $z \in \mathcal{Z}$, alors :
-%     \begin{equation}
-%         \mathfrak{R}_S(\mathcal{H}) \leqslant l_\infty \sqrt{\frac{2 \ln |\mathcal{H}|}{n}}.
-%     \end{equation}
-% \end{corollary}
-
-% \begin{proposition}[Principe de contraction de Ledoux-Talagrand]
-%     Soit $A \subset \R^n$ et soient $g_1, \dots, g_n : \R \to \R$ des fonctions $G$-lipschitziennes. Alors :
-%     \begin{equation}
-%         \mathbb{E}_{\varepsilon} \left[ \sup_{a \in A} \frac{1}{n} \sum_{i=1}^n \varepsilon_i g_i(a_i) \right] \leqslant G \, \mathbb{E}_{\varepsilon} \left[ \sup_{a \in A} \frac{1}{n} \sum_{i=1}^n \varepsilon_i a_i \right].
-%     \end{equation}
-%     Si la fonction de perte $u \mapsto l(y, u)$ est $G$-lipschitzienne pour tout $y$, en notant $l \circ \mathcal{F} = \{(x, y) \mapsto l(y, f(x)) \mid f \in \mathcal{F}\}$ :
-%     \begin{equation}
-%         \mathfrak{R}_S(l \circ \mathcal{F}) \leqslant G \, \mathfrak{R}_S(\mathcal{F}) \quad \text{et} \quad \mathfrak{R}_n(l \circ \mathcal{F}) \leqslant G \, \mathfrak{R}_n(\mathcal{F}).
-%     \end{equation}
-% \end{proposition}
-
-% % ======================================================================
-% % PARTIE IV : Modèles Linéaires Contraints et Bornes Finales
-% % ======================================================================
-
-% \section{Modèles linéaires contraints et bornes d'excès de risque}
-
-% \begin{definition}[Classe linéaire contrainte et dualité de normes]
-%     Soit une feature map $\varphi : \mathcal{X} \to \R^d$, une norme $\Omega$ sur $\R^d$ et un rayon $D > 0$. Pour la classe $\mathcal{F} = \{x \mapsto \theta^\top \varphi(x) \mid \Omega(\theta) \leqslant D\}$, la complexité de Rademacher vérifie :
-%     \begin{equation}
-%         \mathfrak{R}_n(\mathcal{F}) = \frac{D}{n} \mathbb{E}_{S, \varepsilon} \left[ \Omega^*(\Phi^\top \varepsilon) \right],
-%     \end{equation}
-%     où $\Omega^*$ est la norme duale de $\Omega$, $\Phi \in \R^{n \times d}$ est la matrice de lignes $\varphi(x_i)^\top$, et $\Phi^\top \varepsilon = \sum_{i=1}^n \varepsilon_i \varphi(x_i)$.
-% \end{definition}
-
-% \begin{proposition}[Cas euclidien ($\ell_2$)]
-%     Pour la contrainte $\Omega(\theta) = \|\theta\|_2 \leqslant D$ :
-%     \begin{equation}
-%         \mathfrak{R}_n(\mathcal{F}) \leqslant \frac{D}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]}.
-%     \end{equation}
-% \end{proposition}
-
-% \begin{proposition}[Cas parcimonieux ($\ell_1$)]
-%     Pour la contrainte $\Omega(\theta) = \|\theta\|_1 \leqslant D$, sous l'hypothèse de caractéristiques bornées $|\varphi_j(x)| \leqslant B_\infty$ pour tout $j \in \llbracket 1, d \rrbracket$ :
-%     \begin{equation}
-%         \mathfrak{R}_n(\mathcal{F}) \leqslant D B_\infty \sqrt{\frac{2 \ln(2d)}{n}}.
-%     \end{equation}
-% \end{proposition}
-
-% \begin{theorem}[Borne d'excès de risque en espérance]
-%     Soit $\mathcal{F} = \{f_\theta : \|\theta\|_2 \leqslant D\}$. Si la perte $u \mapsto l(y, u)$ est $G$-lipschitzienne pour tout $y$, tout estimateur ERM exact $\hat{f}_S$ vérifie :
-%     \begin{equation}
-%         \mathbb{E}_S \left[ R(\hat{f}_S) \right] \leqslant \inf_{\|\theta\|_2 \leqslant D} R(f_\theta) + \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]}.
-%     \end{equation}
-% \end{theorem}
-
-% \begin{theorem}[Borne d'excès de risque à grande probabilité]
-%     Sous les mêmes hypothèses, en supposant de plus que la perte est bornée ($l(y, f(x)) \in [0, l_\infty]$), pour tout $\delta \in (0, 1)$, avec probabilité au moins $1 - \delta$ sur le tirage de $S$ :
-%     \begin{equation}
-%         R(\hat{f}_S) \leqslant \inf_{\|\theta\|_2 \leqslant D} R(f_\theta) + \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]} + 2 l_\infty \sqrt{\frac{\ln(2/\delta)}{2n}}.
-%     \end{equation}
-% \end{theorem}
-% ```[cite: 8, 9]
