@@ -10,6 +10,8 @@ Historiquement développés pour le traitement automatique de la parole (\emph{A
 % =============================================================================
 \section{Modèles de Langage et Hypothèses Markoviennes}
 
+Dans ce cours, on introduit les HMM en tant que modèles de langage. On comment ici par formaliser mathématiquement ces modèles en utilisant les chaînes de Markov. 
+
 \subsection{Modélisation séquentielle par règle de la chaîne}
 
 Soit $\mathcal{V}$ un vocabulaire fini de symboles (mots ou \emph{tokens}). On cherche à définir une loi de probabilité conjointe sur des séquences de longueur arbitraire bordées par deux balises déterministes $\operatorname{start}$ et $\operatorname{stop}$ :
@@ -48,7 +50,7 @@ Pour rendre l'estimation calculable, on réduit l'historique conditionnel via de
 Le compromis canonique consiste à borner la mémoire du processus aux $m$ derniers symboles émis.
 
 \begin{definition}[Chaîne de Markov d'ordre $m$ / $n$-grammes]
-    Un modèle de Markov stationnaire d'ordre $m \ge 1$ pose que la loi conditionnelle du token courant ne dépend que des $m$ tokens immédiatement antérieurs :
+    Un modèle de Markov stationnaire d'ordre $m \geqslant 1$ pose que la loi conditionnelle du token courant ne dépend que des $m$ tokens immédiatement antérieurs :
     \begin{equation}
         \myP(O_i \mid \operatorname{start}, O_1, \dots, O_{i-1}) = \myP(O_i \mid O_{i-m}, \dots, O_{i-1}).
     \end{equation}
@@ -62,9 +64,9 @@ Le compromis canonique consiste à borner la mémoire du processus aux $m$ derni
 \begin{remark}[Taxonomie et complexité des $n$-grammes]
     Dans la terminologie du traitement automatique du langage :
     \begin{itemize}
-        \item $m = 0$ correspond au modèle \textbf{unigramme} ($V-1$ paramètres) ;
-        \item $m = 1$ correspond au modèle \textbf{bigramme} ($V(V-1)$ paramètres de transition) ;
-        \item $m = 2$ correspond au modèle \textbf{trigramme} ($V^2(V-1)$ paramètres).
+        \item $m = 0$ correspond au modèle \emph{unigramme} ($V-1$ paramètres) ;
+        \item $m = 1$ correspond au modèle \emph{bigramme} ($V(V-1)$ paramètres de transition) ;
+        \item $m = 2$ correspond au modèle \emph{trigramme} ($V^2(V-1)$ paramètres).
     \end{itemize}
     Au-delà de $m = 3$ ou $4$, la matrice des comptes devient extrêmement creuse (\emph{sparsity}), rendant indispensables des techniques de lissage statistique (Good-Turing, Kneser-Ney).
 \end{remark}
@@ -83,7 +85,7 @@ Pour injecter de la régularité syntaxique sans subir l'explosion combinatoire 
 
 En notant $A \in \R^{C \times C}$ la matrice de transition inter-classes et $B \in \R^{C \times V}$ la matrice d'émission des mots sachant la classe, ce modèle ne requiert que $C^2 + C \times V$ paramètres. 
 
-Cependant, ce modèle suppose que la fonction de projection $\operatorname{cl}$ est déterministe et connue à l'avance. Or, dans la langue naturelle, un mot est fondamentalement polysémique : le mot « \emph{flies} » peut être un verbe ou un nom selon le contexte. L'état syntaxique sous-jacent est donc par essence \textbf{non observé} : c'est l'acte de naissance des \emph{Modèles de Markov Cachés}.
+Cependant, ce modèle suppose que la fonction de projection $\operatorname{cl}$ est déterministe et connue à l'avance. Or, dans la langue naturelle, un mot est fondamentalement polysémique : le mot « \emph{flies} » peut être un verbe ou un nom selon le contexte. L'état syntaxique sous-jacent est donc par essence \emph{non observé} : c'est l'acte de naissance des \emph{Modèles de Markov Cachés}.
 
 % =============================================================================
 \section{Formalisme des Modèles de Markov Cachés (HMM)}
@@ -116,23 +118,257 @@ Pour une séquence d'états $S = (S_1, \dots, S_T)$ et d'observations $O = (O_1,
 
 \subsection{Les trois problèmes fondamentaux de Rabiner (1989)}
 
-% L'exploitation opérationnelle des HMM s'articule autour de trois problèmes canoniques (Rabiner, 1989) résolus par programmation dynamique :
-% \begin{enumerate}
-%     \item \textbf{Évaluation (Vraisemblance)} : étant donnés le modèle $\lambda$ et une séquence observée $O$, calculer efficacement la vraisemblance marginale $\myP(O \mid \lambda) = \sum_S \myP(O, S \mid \lambda)$ $\implies$ \textbf{Algorithme Forward-Backward}.
-%     \item \textbf{Décodage (Inférence)} : étant donnés $\lambda$ et $O$, identifier la séquence d'états latents $S^*$ la plus probable $\implies$ \textbf{Algorithme de Viterbi}.
-%     \item \textbf{Apprentissage (Estimation des paramètres)} : étant donnée une collection d'observations $\{O^{(k)}\}$, estimer les paramètres optimaux $\hat{\lambda} = \arg\max_\lambda \myP(O \mid \lambda)$ $\implies$ \textbf{Algorithme de Baum-Welch (EM)}.
-% \end{enumerate}
+L'utilisation des modèles HMM induit trois problèmes fondamentaux appelés des \emph{problèmes de Rabiner}, en l'honneur de la personne qui les a formalisés la première fois en 1989. 
 
+\begin{proposition}[Problèmes de Rabiner - 1989]
+    Les 3 problèmes présentés par Rabiner sont : 
+    \begin{enumerate}
+        \item \textbf{L'Évaluation} : À partir d'une séquence d'observation donnée $O = (O_1, \dots, O_m)$ comment calculer la probabilité qu'elle soit générée par le modèle ? 
+        L'approche naïve serait de dénombrer toutes les séquences possibles de probabilité non nulle, mais c'est un problème de complexité exponentielle par rapport à la taille de la séquence. En pratique, on utilisera l'algorithme de programmation dynnamique \emph{Forward}. 
+        \item \textbf{Inférence/Décodage} : À partir d'une observation $O = (O_1, \dots, O_n)$ quelle est la séquence d'états cachés $S = (S_1, \dots, S_n)$ qui aurait généré ces observations la plus probable ? 
+        On pourrait aussi calculer des fréquences sur toutes les séquences d'états possibles pouvant générer cette observation mais c'est aussi de complexité exponentiell. On utilisera l'algorithme de \emph{Viterbi}. 
+        \item \textbf{L'Apprentissage} : À partir d'un jeu de données d'observations, comment estimer les matrices de transition $A$ et $B$ pour construire le modèle ? On distingue ici deux cas : 
+        \begin{itemize}
+            \item \textbf{Apprentissage Supervisé} : On dispose ici des séquences d'observations et les états cachés correspondant : il suffit alors de calculer des fréquences dessus pour estimer les deux matrices. 
+            \item \textbf{Apprentissage Non-Supervisé} : On ne dispose que des séquences d'observations. On utilisera pour cela l'algorithme \emph{Expectation-Maximization (EM)} développé par Dempster en 1977. 
+            Cet algorithme se base sur le calcul d'un maximum de vraissemblance sur les états possibles. 
 
+            On peut aussi citer des approches par clustering sur les observations pour définir des états cachés ou des $k$-means. 
+        \end{itemize}
+    \end{enumerate}
+\end{proposition}
 
+% =============================================================================
+% Résolution Algorithmique des Trois Problèmes de Rabiner
 
+\section{Résolution Algorithmique des Trois Problèmes de Rabiner}
 
+% -----------------------------------------------------------------------------
+\subsection{Problème 1 : Évaluation et Algorithme Forward-Backward}
 
+Soit un modèle HMM fixé $\lambda = (\pi, A, B)$ et une séquence d'observations $O = (O_1, O_2, \dots, O_T) \in \mathcal{V}^T$. Le problème d'évaluation consiste à déterminer la vraisemblance marginale $\myP(O \mid \lambda)$. Commençons par étudier la complexité de l'approche naïve pour se convaincre de l'utilisation d'algorithmes plus performants. 
 
+\begin{proposition}[Approche naïve]
+    Par la loi des probabilités totales, la vraisemblance marginale s'obtient en sommant la loi conjointe sur l'ensemble $\mathcal{S}^T$ des trajectoires d'états latents possibles :
+    \begin{equation}
+        \myP(O \mid \lambda) = \sum_{S \in \mathcal{S}^T} \myP(O, S \mid \lambda) = \sum_{s_{i_1}=1}^N \dots \sum_{s_{i_T}=1}^N \pi_{s_{i_1}} b_{s_{i_1}}(O_1) \prod_{t=2}^T a_{s_{i_{t-1}}, s_{i_t}} b_{s_{i_t}}(O_t).
+    \end{equation}
+    L'espace $\mathcal{S}^T$ possède un cardinal de $N^T$. Chaque terme nécessitant $2T-1$ multiplications, la complexité temporelle brute est en $\mathcal{O}(T \cdot N^T)$. Ce calcul devient physiquement irréalisable dès que $T$ dépasse quelques dizaines d'instants (pour $N=10$ et $T=50$, $N^T = 10^{50}$).    
+\end{proposition}
 
+On préférera donc l'algorithme Forward ou Backward définis ci-dessous. L'algorithme Forward résout ce problème par \emph{programmation dynamique} en factorisant les calculs sur un treillis d'états (\emph{trellis}).
 
+\begin{proposition}[Algorithme Forward]
+    On introduit la variable intermédiaire $\alpha_t(i)$, définie comme la probabilité conjointe du préfixe d'observations jusqu'à l'instant $t$ et de l'état latent au temps $t$ :
+    \begin{equation}
+        \alpha_t(i) = \myP(O_1, \dots, O_t, S_t = s_i \mid \lambda), \quad \forall i \in \llbracket 1, N \rrbracket, \, t \in \llbracket 1, T \rrbracket.
+    \end{equation}
 
+    \begin{algorithm}[H]
+    \caption{Algorithme Forward}
+    \begin{enumerate}
+        \item \textbf{Initialisation} ($t = 1$) :
+        \begin{equation}
+            \alpha_1(i) = \pi_i \, b_i(O_1), \quad \forall i \in \llbracket 1, N \rrbracket.
+        \end{equation}
+        \item \textbf{Induction / Récurrence} ($t = 1, \dots, T-1$) :
+        \begin{equation}
+            \alpha_{t+1}(j) = \left[ \sum_{i=1}^N \alpha_t(i) \, a_{ij} \right] b_j(O_{t+1}), \quad \forall j \in \llbracket 1, N \rrbracket.
+        \end{equation}
+        \item \textbf{Terminaison} :
+        \begin{equation}
+            \myP(O \mid \lambda) = \sum_{i=1}^N \alpha_T(i).
+        \end{equation}
+    \end{enumerate}
+    \end{algorithm}
+\end{proposition}
 
-% \subsection{Algorithme Forward}
+\begin{remark}[Complexité]
+    Le treillis compte $N \times T$ nœuds. À chaque transition temporelle $t \to t+1$, le calcul de $\alpha_{t+1}(j)$ agrège les contributions des $N$ états antérieurs via $N$ multiplications et additions. La complexité temporelle chute ainsi à $\mathcal{O}(N^2 T)$, avec une complexité spatiale en mémoire de $\mathcal{O}(N T)$ (ou $\mathcal{O}(N)$ si l'on ne conserve que le vecteur de l'instant précédent).
+\end{remark}
 
-%  TODO : Compléter cette partie avec les notes de TD
+\begin{proposition}[Algorithme Backward]
+    De manière duale, on définit la variable Backward $\beta_t(i)$ comme la probabilité conditionnelle du suffixe d'observations allant de $t+1$ à $T$, conditionnellement à l'état latent présent $S_t = s_i$ :
+    \begin{equation}
+        \beta_t(i) = \myP(O_{t+1}, \dots, O_T \mid S_t = s_i, \lambda), \quad \forall i \in \llbracket 1, N \rrbracket, \, t \in \llbracket 1, T \rrbracket.
+    \end{equation}
+
+        \begin{algorithm}[H]
+        \caption{Algorithme Backward}
+        \begin{enumerate}
+            \item \textbf{Initialisation} ($t = T$) :
+            \begin{equation}
+                \beta_T(i) = 1, \quad \forall i \in \llbracket 1, N \rrbracket.
+            \end{equation}
+            \item \textbf{Induction régressive} ($t = T-1, \dots, 1$) :
+            \begin{equation}
+                \beta_t(i) = \sum_{j=1}^N a_{ij} \, b_j(O_{t+1}) \, \beta_{t+1}(j), \quad \forall i \in \llbracket 1, N \rrbracket.
+            \end{equation}
+            \item \textbf{Terminaison} :
+            \begin{equation}
+                \myP(O \mid \lambda) = \sum_{i=1}^N \pi_i \, b_i(O_1) \, \beta_1(i).
+            \end{equation}
+        \end{enumerate}
+    \end{algorithm}
+\end{proposition}
+
+% -----------------------------------------------------------------------------
+\subsection{Problème 2 : Décodage et Inférence}
+
+Étant donnée une séquence observée $O$, le décodage consiste à inférer la séquence d'états latents sous-jacente. Selon l'objectif visé, deux formulations distinctes sont envisagées.
+Le critère le plus classique recherche la trajectoire complète $S^* = (S_1^*, \dots, S_T^*)$ qui maximise la loi conjointe (et donc la loi a posteriori globale $\myP(S \mid O, \lambda)$) :
+\begin{equation}
+    S^* = \arg\max_{S \in \mathcal{S}^T} \myP(S \mid O, \lambda) = \arg\max_{S \in \mathcal{S}^T} \myP(O, S \mid \lambda).
+\end{equation}
+On introduit la variable de Viterbi $\delta_t(i)$, représentant la probabilité maximale d'une séquence partielle d'états se terminant en $s_i$ au temps $t$, ainsi qu'une matrice de pointeurs $\psi_t(i)$ (\emph{backpointers}) stockant l'antécédent optimal :
+\begin{equation}
+    \delta_t(i) \triangleq \max_{S_1, \dots, S_{t-1}} \myP(O_1, \dots, O_t, S_1, \dots, S_{t-1}, S_t = s_i \mid \lambda).
+\end{equation}
+
+\begin{algorithm}[H]
+\caption{Algorithme de Viterbi}
+\begin{enumerate}
+    \item \textbf{Initialisation} ($t = 1$) :
+    \begin{align}
+        \delta_1(i) &= \pi_i \, b_i(O_1), \quad \forall i \in \llbracket 1, N \rrbracket, \quad 
+        \psi_1(i) &= 0.
+    \end{align}
+    \item \textbf{Récurrence} ($t = 2, \dots, T$) :
+    \begin{align}
+        \delta_t(j) &= \left[ \max_{1 \le i \le N} \big( \delta_{t-1}(i) \, a_{ij} \big) \right] b_j(O_t), \quad \forall j \in \llbracket 1, N \rrbracket, \\
+        \psi_t(j) &= \arg\max_{1 \le i \le N} \big( \delta_{t-1}(i) \, a_{ij} \big), \quad \forall j \in \llbracket 1, N \rrbracket.
+    \end{align}
+    \item \textbf{Terminaison} :
+    \begin{align}
+        P^* &= \max_{1 \le i \le N} \delta_T(i), \\
+        S_T^* &= \arg\max_{1 \le i \le N} \delta_T(i).
+    \end{align}
+    \item \textbf{Reconstruction du chemin (\emph{Backtracking})} ($t = T-1, \dots, 1$) :
+    \begin{equation}
+        S_t^* = \psi_{t+1}(S_{t+1}^*).
+    \end{equation}
+\end{enumerate}
+\end{algorithm}
+
+\begin{proposition}[\emph{Posterior Decoding}]
+    Une alternative consiste à déterminer, pour chaque pas de temps $t$ pris isolément, l'état qui maximise la probabilité a posteriori conditionnelle $\myP(S_t = s_i \mid O, \lambda)$ :
+    \begin{equation}
+        S_*^t = \arg\max_{1 \le i \le N} \myP(S_t = s_i \mid O, \lambda).
+    \end{equation}
+    Grâce aux indépendances conditionnelles du modèle, la probabilité conjointe de l'état $S_t = s_i$ et de l'ensemble de la séquence d'observations $O$ se factorise par le produit des variables Forward et Backward :
+    \begin{equation}
+        \myP(S_t = s_i, O \mid \lambda) = \alpha_t(i) \, \beta_t(i).
+    \end{equation}
+    Par la formule de Bayes :
+    \begin{equation}
+        \myP(S_t = s_i \mid O, \lambda) = \frac{\myP(S_t = s_i, O \mid \lambda)}{\myP(O \mid \lambda)} = \frac{\alpha_t(i) \, \beta_t(i)}{\sum_{j=1}^N \alpha_t(j) \, \beta_t(j)}.
+    \end{equation}
+    Le décodage a posteriori revient donc à évaluer :
+    \begin{equation}
+        S_*^t = \arg\max_{1 \le i \le N} \big( \alpha_t(i) \, \beta_t(i) \big).
+    \end{equation}
+\end{proposition}
+
+\begin{remark}[Comparaison Viterbi vs Décodage a posteriori]
+    \begin{itemize}
+        \item \textbf{Viterbi} garantit la validité structurelle globale du chemin prédit : aucune transition de probabilité nulle ($a_{ij} = 0$) ne peut être empruntée.
+        \item \textbf{Le décodage a posteriori} minimise le taux d'erreur moyen par position temporelle. Cependant, en maximisant chaque état indépendamment de ses voisins, il peut produire deux états consécutifs $S_*^t$ et $S_*^{t+1}$ pour lesquels la transition est impossible ($a_{S_*^t, S_*^{t+1}} = 0$). Dans ce cas, la probabilité globale de la séquence d'états résultante est strictement nulle.
+    \end{itemize}
+\end{remark}
+
+Les algorithmes Forward et Viterbi partagent la même topologie de programmation dynamique sur le treillis. Ils correspondent à une instanciation formelle du même algorithme abstrait sur deux \emph{semi-anneaux} distincts $(K, \oplus, \otimes, \bar{0}, \bar{1})$ :
+
+\begin{table}[H]
+    \centering
+    \begin{tabularx}{\textwidth}{l X X}
+    \hline
+    \textbf{Caractéristique} & \textbf{Semi-anneau des Réels (Forward)} & \textbf{Semi-anneau Tropical (Viterbi)} \\
+    \hline
+    Support $K$ & $\R_+$ & $\R_+$ \\
+    Élément nul $\bar{0}$ & $0$ & $0$ \\
+    Élément unité $\bar{1}$ & $1$ & $1$ \\
+    Addition $\oplus$ & $+$ (somme des alternatives) & $\max$ (sélection du meilleur chemin) \\
+    Multiplication $\otimes$ & $\times$ (accumulation causale) & $\times$ (accumulation causale) \\
+    \hline
+    \end{tabularx}
+    \caption{Correspondance algébrique entre Forward et Viterbi via les semi-anneaux.}
+\end{table}
+
+% -----------------------------------------------------------------------------
+\subsection{Stabilité Numérique et Domaine Logarithmique}
+
+Sur de longues séquences, la multiplication itérative de probabilités inférieures à $1$ entraîne rapidement un dépassement de capacité par le bas (\emph{arithmetic underflow}) sur les flottants standard.
+
+Pour éviter l'écrasement à zéro, on manipule les logarithmes des probabilités. Pour deux log-probabilités $u = \ln p$ et $v = \ln q$ :
+\begin{itemize}
+    \item La multiplication devient une addition : $\ln(p \times q) = u + v$.
+    \item Dans l'algorithme de Viterbi, la monotonie du logarithme commute avec le maximum :
+    \begin{equation}
+        \ln \delta_t(j) = \ln b_j(O_t) + \max_{1 \le i \le N} \big[ \ln \delta_{t-1}(i) + \ln a_{ij} \big].
+    \end{equation}
+\end{itemize}
+
+Pour l'algorithme Forward, l'addition de probabilités dans le domaine log nécessite le calcul de $\ln(p + q) = \ln(\mathrm{e}^u + \mathrm{e}^v)$. De manière générale, pour un vecteur $l = (l_1, \dots, l_n) \in \R^n$, on définit l'opérateur \emph{logsumexp} :
+\begin{equation}
+    \operatorname{LSE}(l) \triangleq \ln \left( \sum_{i=1}^n \mathrm{e}^{l_i} \right).
+\end{equation}
+Si certains composants de $l$ sont très grands ($l_i \gg 0$), le calcul brut de $\mathrm{e}^{l_i}$ provoque un dépassement par le haut (\emph{overflow}).
+
+\begin{proposition}[Factorisation stable de Log-Sum-Exp]
+    Pour tout scalaire $a \in \R$ :
+    \begin{equation}
+        \operatorname{LSE}(l) = a + \operatorname{LSE}(l - a) = a + \ln \left( \sum_{i=1}^n \mathrm{e}^{l_i - a} \right).
+    \end{equation}
+\end{proposition}
+
+\begin{proof}
+    En factorisant par $\mathrm{e}^a$ dans la somme :
+    \begin{align}
+        \operatorname{LSE}(l) &= \ln \left( \sum_{i=1}^n \mathrm{e}^{l_i} \right) = \ln \left( \sum_{i=1}^n \mathrm{e}^a \cdot \mathrm{e}^{l_i - a} \right) \nonumber \\
+        &= \ln \left( \mathrm{e}^a \sum_{i=1}^n \mathrm{e}^{l_i - a} \right) = \ln(\mathrm{e}^a) + \ln \left( \sum_{i=1}^n \mathrm{e}^{l_i - a} \right) \nonumber \\
+        &= a + \ln \left( \sum_{i=1}^n \mathrm{e}^{l_i - a} \right).
+    \end{align}
+\end{proof}
+
+En pratique, on pose $a = \max_{1 \le i \le n} l_i$. Ainsi, pour tout $i$, $l_i - a \le 0$, ce qui borne $\mathrm{e}^{l_i - a} \in ]0, 1]$ et neutralise tout risque d'overflow.
+
+% -----------------------------------------------------------------------------
+\subsection{Problème 3 : Apprentissage des Paramètres}
+
+L'objectif de l'apprentissage est d'estimer les paramètres du modèle $\lambda = (\pi, A, B)$ à partir d'un ensemble de séquences d'entraînement.
+
+\begin{proposition}[Cas Supervisé]
+    Lorsque les séquences d'observations et les séquences d'états associées sont intégralement observées (par exemple en étiquetage POS annoté manuellement), l'estimation des paramètres par \emph{Maximum de Vraisemblance} (MLE) se réduit à des ratios de fréquences empiriques :
+    \begin{align}
+        \hat{\pi}_i &= \frac{\operatorname{Count}(S_1 = s_i)}{\sum_{j=1}^N \operatorname{Count}(S_1 = s_j)}, \\
+        \hat{a}_{ij} &= \frac{\operatorname{Count}(S_{t-1} = s_i, S_t = s_j)}{\sum_{k=1}^N \operatorname{Count}(S_{t-1} = s_i, S_t = s_k)}, \\
+        \hat{b}_j(k) &= \frac{\operatorname{Count}(S_t = s_j, O_t = v_k)}{\sum_{m=1}^M \operatorname{Count}(S_t = s_j, O_t = v_m)}.
+    \end{align}
+\end{proposition}
+
+\begin{proposition}[Cas Non-Supervisé : Algorithme EM]
+    Lorsque les états latents ne sont pas observés, l'optimisation directe de la log-vraisemblance marginale $\ln \myP(O \mid \lambda) = \ln \sum_S \myP(O, S \mid \lambda)$ est non convexe. On applique l'algorithme d'\emph{Espérance-Maximisation} (EM), qui prend le nom d'algorithme de \emph{Baum-Welch} dans le cadre des HMM.
+
+    L'algorithme itère deux étapes jusqu'à convergence :
+    \begin{enumerate}
+        \item \textbf{Étape E (Espérance)} : À l'aide des paramètres courants $\lambda^{(k)}$ et via les algorithmes Forward et Backward, on calcule les distributions a posteriori sur les variables latentes :
+        \begin{itemize}
+            \item Probabilité d'être dans l'état $s_i$ au temps $t$ :
+            \begin{equation}
+                \gamma_t(i) = \myP(S_t = s_i \mid O, \lambda^{(k)}) = \frac{\alpha_t(i) \, \beta_t(i)}{\sum_{j=1}^N \alpha_t(j) \, \beta_t(j)}.
+            \end{equation}
+            \item Probabilité de transiter de $s_i$ à $s_j$ entre les instants $t$ et $t+1$ :
+            \begin{equation}
+                \xi_t(i, j) = \myP(S_t = s_i, S_{t+1} = s_j \mid O, \lambda^{(k)}) = \frac{\alpha_t(i) \, a_{ij} \, b_j(O_{t+1}) \, \beta_{t+1}(j)}{\myP(O \mid \lambda^{(k)})}.
+            \end{equation}
+        \end{itemize}
+
+        \item \textbf{Étape M (Maximisation)} : On met à jour les paramètres $\lambda^{(k+1)}$ en maximisant l'espérance de la log-vraisemblance des données complètes :
+        \begin{align}
+            \pi_i^{(k+1)} &= \gamma_1(i), \\
+            a_{ij}^{(k+1)} &= \frac{\sum_{t=1}^{T-1} \xi_t(i, j)}{\sum_{t=1}^{T-1} \gamma_t(i)}, \\
+            b_j(m)^{(k+1)} &= \frac{\sum_{t=1}^T \gamma_t(j) \cdot \mathbb{I}(O_t = v_m)}{\sum_{t=1}^T \gamma_t(j)}.
+        \end{align}
+    \end{enumerate}
+    L'algorithme garantit la croissance monotone de la vraisemblance marginale $\myP(O \mid \lambda)$ à chaque itération et converge vers un extremum local du paysage d'optimisation.
+\end{proposition}
