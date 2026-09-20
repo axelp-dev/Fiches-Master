@@ -1,0 +1,250 @@
+\minitoc 
+
+% ===========================================================
+% Introduction 
+
+% TODO : Ajouter intro à GRAPHLAN
+
+% ===========================================================
+% Définitions et fonctionnement
+
+\section{Définitions et fonctionnement}
+
+L'algorithme de planification GRAPHLAN sépare le processus de planification en deux étapes différentes.
+
+La première consiste en la construction d'un graphe de planification représentant les interdépendances entre les états au travers des actions possibles. Cette construction se fait avec une complexité polynômiale en temps et en espace par rapport à la taille du problème posé. 
+
+La seconde étape est la recherche d'un solution (s'il en existe) à partir d'un sous-graphe du précédent. Elle produit alors un plan-solution au problème initialement posé. 
+
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+        node distance=2.6cm,
+        block/.style={rectangle, draw=black!80, fill=orange!5, thick, minimum height=1cm, minimum width=2.6cm, align=center, rounded corners=2pt, font=\small},
+        target/.style={rectangle, draw=black!80, fill=purple!5, thick, minimum height=1cm, minimum width=2.6cm, align=center, rounded corners=2pt, font=\small},
+        arrow/.style={-{Stealth[scale=1.1]}, thick, draw=black!70}
+    ]
+        \node[block] (pb) {Problème de\\planification $\mathcal{P}$};
+        \node[target, right=of pb] (trans) {Graphe de\\Planification};
+        \node[block, right=of trans] (plan) {Plan-solution $P$};
+        
+        \draw[arrow] (pb) -- node[midway, above, font=\scriptsize] {Calcul du graphe} (trans);
+        \draw[arrow] (trans) -- node[midway, above, font=\scriptsize] {Recherche} (plan);
+    \end{tikzpicture}
+    \caption{Schéma représentant les étapes de l'algorithme GRAPHLAN pour la recherche d'un plan solution à partir d'un problème de planification énoncé dans le langage STRIPS.}
+    \label{fig:pipeline-GRAPHLAN}
+\end{figure}
+
+Nous allons ici commencer par poser un formalisme supplémentaire pour traduire les relations d'inter-dépendances dans un tel graphe d'état. 
+
+% -----------------------------------------------------------
+\subsection{Interactions entre actions et Indépendance}
+
+Pour de gros problèmes de planification, tels que des programmes de production industriels ou des projets collaboratifs, il est intéressant de pouvoir exécuter plusieurs actions simultanément dans le graphe de planification. On construit pour cela des ensemble \emph{d'actions indépendantes} $ Q$. 
+
+\begin{definition}[Interactions Positives/Négatives]
+    Soient deux actions closes $a_1$ et $a_2$, on définit deux types d'interactions entre ces deux actions. On dira qu'elles sont en \emph{coopération} ou qu'elles interagissent \emph{positivement} si elles produisent les mêmes effets utiles : 
+    \begin{equation}
+        \operatorname{Add}(a_1) \cap \operatorname{Add}(a_2) = \emptyset
+    \end{equation}
+    ou si l'une produit une condition requise par l'autre : 
+    \begin{equation}
+        \operatorname{Add}(a_1) \cap \operatorname{Prec}(a_2) = \emptyset. 
+    \end{equation}
+    En revanche, on dira qu'elles sont en \emph{conflit} si l'une supprime ce que l'autre ajoute (effet antagoniste) : 
+    \begin{equation}
+        \operatorname{Add}(a_1) \cap \operatorname{Del}(a_2) \not = \emptyset 
+        \quad \text{ou} \quad 
+        \operatorname{Add}(a_2) \cap \operatorname{Del}(a_1) \not = \emptyset 
+    \end{equation}
+    ou si l'une supprime une condition nécessaire au déclenchement de l'autre (effet croisé) :
+    \begin{equation}
+        \operatorname{Del}(a_1) \cap \operatorname{Prec}(a_2) \not = \emptyset 
+        \quad \text{ou} \quad 
+        \operatorname{Del}(a_2) \cap \operatorname{Prec}(a_1) \not = \emptyset. 
+    \end{equation}
+\end{definition}
+
+L'objectif sera de limiter au plus les effets conflits entre actions pour favoriser les interactions positives en vue de construire un plan. 
+
+\begin{definition}[Indépendance]
+    On dira que deux actions $a_1$ et $a_2$ sont \emph{indépendantes}, noté $a_1 \mathrel{\#} a_2$,  si elles n'ont pas d'interactions négatives (conflits) : 
+    \begin{equation}
+        \operatorname{Del}(a_1) \cap \left( \operatorname{Prec}(a_2) \cup \operatorname{Add}(a_2)\right) = \emptyset
+        \quad \text{et} \quad 
+        \operatorname{Del}(a_2) \cap \left( \operatorname{Prec}(a_1) \cup \operatorname{Add}(a_1)\right) = \emptyset. 
+    \end{equation}
+    On dira que $ Q$ est un ensemble d'actions indépendantes si toutes ses actions sont deux à deux indépendantes. 
+\end{definition}
+
+\begin{prop}[Indépendance]
+    Soient deux actions $a_1$ et $a_2$ applicables sur un état $E$. Si $a_1$ et $a_2$ sont indépendantes, alors leur ordre d'application sur $E$ n'a pas d'importance : 
+    \begin{equation}
+        (E \uparrow a_1) \uparrow a_2 = (E \uparrow a_2) \uparrow a_1 = E \uparrow \{a_1, a_2\}. 
+    \end{equation}
+\end{prop}
+
+\begin{proposition}
+    Soit $ Q$ un ensemble d'actions indépendantes et $E$ un état. Alors $Q$ est \emph{applicable} sur $E$ ssi : 
+    \begin{equation}
+        \bigcup_{a_i \in Q} \operatorname{Prec}(a_i) \subseteq E. 
+    \end{equation}
+    L'état résultant de l'application de tous les $a_i \in Q$ sur $E$ sera caractérisé par : 
+    \begin{equation}
+        E \uparrow Q = \left(E \setminus \bigcup_{a_i \in Q} \operatorname{Del}(a_i)\right) \cup \left( \bigcup_{a_i \in Q} \operatorname{Add}(a_i)\right). 
+    \end{equation}
+\end{proposition}
+
+On peut alors appliquer un ensemble d'actions indépendantes à un état donné en une fois. On définira alors des \emph{plans d'ensembles d'actions indépendantes} $ P = \langle Q_1, Q_2, \dots, Q_n \rangle$ où les $Q_i$ sont des actions indépendantes. Leur application se fera donc successivement sur un état itinial $E$ comme illustré en Figure~\ref{fig:graphplan-frise-niveaux}. 
+
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+        colbox/.style={
+            rectangle, 
+            draw=black!75, 
+            thick, 
+            rounded corners=2pt, 
+            minimum width=0.85cm, 
+            minimum height=3.2cm
+        },
+        statebox/.style={
+            colbox, 
+            fill=blue!12
+        },
+        actionbox/.style={
+            colbox, 
+            fill=orange!15, 
+            dashed
+        },
+        lbltop/.style={
+            font=\footnotesize\bfseries, 
+            align=center
+        },
+        subtop/.style={
+            font=\scriptsize\color{black!70}, 
+            align=center
+        },
+        arrtrans/.style={
+            -{Stealth[scale=1.0]}, 
+            thick, 
+            draw=black!70
+        }
+    ]
+
+        % =========================================================
+        % Colonnes (Niveau 0 à Niveau 3)
+        % =========================================================
+
+        % Niveau 0 : Fluents initiaux uniquement
+        \node[statebox] (s0) at (0, 0) {};
+        \node[above=0.15cm of s0, lbltop] (lbl_s0) {$E_0$};
+        \node[above=0.02cm of lbl_s0, subtop] {Fluents};
+
+        % Niveau 1 : Actions Q1 -> Fluents E1
+        \node[actionbox] (a1) at (1.8, 0) {};
+        \node[above=0.15cm of a1, lbltop] (lbl_a1) {$Q_1$};
+        \node[above=0.02cm of lbl_a1, subtop] {Actions};
+
+        \node[statebox] (s1) at (3.0, 0) {};
+        \node[above=0.15cm of s1, lbltop] (lbl_s1) {$E_1$};
+        \node[above=0.02cm of lbl_s1, subtop] {Fluents};
+
+        % Niveau 2 : Actions Q2 -> Fluents E2
+        \node[actionbox] (a2) at (4.8, 0) {};
+        \node[above=0.15cm of a2, lbltop] (lbl_a2) {$Q_2$};
+        \node[above=0.02cm of lbl_a2, subtop] {Actions};
+
+        \node[statebox] (s2) at (6.0, 0) {};
+        \node[above=0.15cm of s2, lbltop] (lbl_s2) {$E_2$};
+        \node[above=0.02cm of lbl_s2, subtop] {Fluents};
+
+        % Niveau 3 : Actions Q3 -> Fluents E3
+        \node[actionbox] (a3) at (7.8, 0) {};
+        \node[above=0.15cm of a3, lbltop] (lbl_a3) {$Q_3$};
+        \node[above=0.02cm of lbl_a3, subtop] {Actions};
+
+        \node[statebox] (s3) at (9.0, 0) {};
+        \node[above=0.15cm of s3, lbltop] (lbl_s3) {$E_3$};
+        \node[above=0.02cm of lbl_s3, subtop] {Fluents};
+
+        % Flèches de progression
+        \draw[arrtrans] (s0.east) -- (a1.west);
+        \draw[arrtrans] (a1.east) -- (s1.west);
+        \draw[arrtrans] (s1.east) -- (a2.west);
+        \draw[arrtrans] (a2.east) -- (s2.west);
+        \draw[arrtrans] (s2.east) -- (a3.west);
+        \draw[arrtrans] (a3.east) -- (s3.west);
+
+        % =========================================================
+        % Frise chronologique sous les blocs
+        % =========================================================
+        \def\yAxis{-2.1}
+        \def\yTicks{-2.25}
+        \def\yText{-2.55}
+
+        % Axe continu
+        \draw[thick, black!60, -{Stealth[scale=1.1]}] (-0.8, \yAxis) -- (9.8, \yAxis);
+
+        % Repères et labels de niveaux
+        % Niveau 0 (autour de s0)
+        \draw[thick, black!60] (-0.6, \yAxis) -- (-0.6, \yTicks);
+        \draw[thick, black!60] (0.6, \yAxis) -- (0.6, \yTicks);
+        \node[font=\footnotesize\bfseries] at (0, \yText) {Niveau 0};
+
+        % Niveau 1 (englobe Q1 et E1)
+        \draw[thick, black!60] (1.2, \yAxis) -- (1.2, \yTicks);
+        \draw[thick, black!60] (3.6, \yAxis) -- (3.6, \yTicks);
+        \node[font=\footnotesize\bfseries] at (2.4, \yText) {Niveau 1};
+
+        % Niveau 2 (englobe Q2 et E2)
+        \draw[thick, black!60] (4.2, \yAxis) -- (4.2, \yTicks);
+        \draw[thick, black!60] (6.6, \yAxis) -- (6.6, \yTicks);
+        \node[font=\footnotesize\bfseries] at (5.4, \yText) {Niveau 2};
+
+        % Niveau 3 (englobe Q3 et E3)
+        \draw[thick, black!60] (7.2, \yAxis) -- (7.2, \yTicks);
+        \draw[thick, black!60] (9.6, \yAxis) -- (9.6, \yTicks);
+        \node[font=\footnotesize\bfseries] at (8.4, \yText) {Niveau 3};
+
+    \end{tikzpicture}
+    \caption{Structure alternée par niveaux dans un plan d'ensembles d'actions. Chaque niveau $i \geqslant 1$ applique simultanément un ensemble d'actions indépendantes $Q_i$ sur l'état courant pour produire le nouvel état de fluents $E_i$.}
+    \label{fig:graphplan-frise-niveaux}
+\end{figure}
+
+% -----------------------------------------------------------
+\subsection{Exclusions mutuelles (\emph{Mutex})}
+
+Le graphe de planification sur-approximant l'ensemble des états atteignables, des relations d'exclusion mutuelle (\emph{mutex}) sont introduites à chaque niveau pour contraindre la recherche et élaguer les combinaisons physiquement irréalisables. La relation est symétrique et binaire et est définie aussi bien sur les actions que sur les fluents. 
+
+\begin{definition}[Exclusion mutuelle entre actions]
+    Soient deux actions $a_1, a_2$ appartenant au même niveau d'actions $i$. Les actions $a_1$ et $a_2$ sont dites \emph{mutuellement exclusives} au niveau $i$, noté $\operatorname{Mutex}(a_1, a_2)$, si et seulement si l'une des deux conditions suivantes est vérifiée :
+    \begin{enumerate}
+        \item \textbf{Non-indépendance (conflit direct) :} Les actions $a_1$ et $a_2$ ne sont pas indépendantes ($a_1 \not \mathrel{\#} a_2$), c'est-à-dire :
+        \begin{equation}
+            \operatorname{Del}(a_1) \cap \big(\operatorname{Prec}(a_2) \cup \operatorname{Add}(a_2)\big) \neq \emptyset \quad \text{ou}  \quad \operatorname{Del}(a_2) \cap \big(\operatorname{Prec}(a_1) \cup \operatorname{Add}(a_1)\big) \neq \emptyset
+        \end{equation}
+        \item \textbf{Besoins concurrents (conflit hérité) :} Il existe au moins une paire de préconditions mutuellement exclusives au niveau de fluents précédent $F_{i-1}$ :
+        \begin{equation}
+            \exists (p, q) \in \operatorname{Prec}(a_1) \times \operatorname{Prec}(a_2) \quad \text{tel que} \quad \operatorname{Mutex}(p, q) \text{ dans } F_{i-1}
+        \end{equation}
+    \end{enumerate}
+\end{definition}
+
+\begin{definition}[Exclusion mutuelle entre fluents]
+    Soient deux fluents $p, q \in F_i$ au niveau de fluents $i$. Les fluents $p$ et $q$ sont dits \emph{mutuellement exclusifs} au niveau $i$, noté $\operatorname{Mutex}(p, q)$, si et seulement si \textbf{toutes} les paires d'actions susceptibles de les produire simultanément à ce niveau sont en exclusion mutuelle :
+    \begin{equation}
+        \forall (a_1, a_2) \in A_i \times A_i, \quad \big(p \in \operatorname{Add}(a_1) \land q \in \operatorname{Add}(a_2)\big) \implies \operatorname{Mutex}(a_1, a_2)
+    \end{equation}
+    Autrement dit, $p$ et $q$ ne sont pas mutex dans $F_i$ dès lors qu'il existe au moins une paire d'actions $(a_1, a_2)$ non mutex à l'étape $i$ telle que $p \in \operatorname{Add}(a_1)$ et $q \in \operatorname{Add}(a_2)$.
+\end{definition}
+
+\begin{remark}[Rôle des actions de persistance]
+    Une action de maintien $N_f = \langle \{f\}, \{f\}, \emptyset \rangle$ est traitée comme une action usuelle. Par conséquent, si une action $a \in A_i$ supprime le fluent $f$ ($f \in \operatorname{Del}(a)$), elle entre directement en conflit de non-indépendance avec $N_f$ car $\operatorname{Del}(a) \cap \operatorname{Add}(N_f) = \{f\} \neq \emptyset$. Cela garantit qu'un fluent $f$ et sa négation deviennent automatiquement mutex au niveau suivant.
+\end{remark}
+
+% ===========================================================
+% Améliorations
+
+\section{Améliorations}
+
