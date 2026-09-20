@@ -278,3 +278,54 @@ L'application de la forme unilatérale de McDiarmid fournit alors le contrôle d
     
     Toutefois, le problème n'est pas encore résolu : la déviation se concentre autour d'une espérance théorique inconnue $\mathbb{E}_S\left[ \sup_{f \in \mathcal{F}} (\hat{R}_S(f) - R(f)) \right]$. Si la classe $\mathcal{F}$ est arbitrairement riche (par exemple l'ensemble de toutes les fonctions mesurables), cette espérance vaut identiquement $1$ pour tout $n$. L'objectif de la section suivante consiste donc à borner cette espérance résiduelle à l'aide de la \emph{symétrisation} et de la \emph{complexité de Rademacher}.
 \end{remark}
+
+
+% ======================================================================
+% Complexité de Rademacher
+
+\section{Complexité de Rademacher}
+
+\begin{notation}
+    Pour alléger les calculs, on note $z = (x,y)$ et $z_i = (x_i, y_i)$ tirés selon la loi $\myP$. Pour tout prédicteur $f \in \mathcal{F}$ et toute fonction de perte $l : \mathcal{Y} \times \mathcal{Y} \to \R$, on associe la fonction de perte induite $h_f : \mathcal{X} \times \mathcal{Y} \to \R$ définie par $h_f(z) = l(y, f(x))$. On étudie ainsi la classe de fonctions :
+    \begin{equation}
+        \mathcal{H} = l \circ \mathcal{F} = \{ z \mapsto l(y, f(x)) \mid f \in \mathcal{F} \}. 
+    \end{equation}
+    Le risque empirique devient $\hat{R}_S(f) = \frac{1}{n} \sum_{i=1}^n h(z_i)$ et le risque théorique $R(f) = \mathbb{E}_z[h(z)]$.
+\end{notation}
+
+La section précédente a établi que la déviation uniforme se concentre autour de son espérance théorique :
+\begin{equation}
+    \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) \right] = \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right].
+\end{equation}
+Le processus de \emph{symétrisation} permet de majorer cette espérance par une quantité calculable à partir de perturbations aléatoires de l'échantillon.
+
+% -------------------------------------------------
+\subsection{Le procédé de symétrisation}
+
+\begin{proposition}[Symétrisation par échantillon fantôme]
+    Soit $S' = (z_1', \dots, z_n') \sim \myP^{\otimes n}$ un second échantillon (dit \emph{échantillon fantôme}) indépendant de $S$ et de même loi. Par linéarité de l'espérance :
+    \begin{equation}
+        \mathbb{E}_z[h(z)] = \mathbb{E}_{S'} \left[ \frac{1}{n} \sum_{i=1}^n h(z_i') \right].
+    \end{equation}
+    Le premier échantillon $S$ étant indépendant de $S'$, on regroupe les termes :
+    \begin{equation}
+        \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) = \mathbb{E}_{S'} \left[ \frac{1}{n} \sum_{i=1}^n \big(h(z_i') - h(z_i)\big) \right].
+    \end{equation}
+    Par convexité de la fonction supremum (inégalité de Jensen, $\sup \mathbb{E} \leqslant \mathbb{E} \sup$), puis en intégrant par rapport à $S$ :
+    \begin{equation}
+        \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right] \leqslant \mathbb{E}_{S, S'} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \big(h(z_i') - h(z_i)\big) \right].
+    \end{equation}
+\end{proposition}
+
+\begin{proposition}[Injection des variables de Rademacher]
+    Posons $d_i = h(z_i') - h(z_i)$. Comme $z_i$ et $z_i'$ sont i.i.d., $d_i \overset{\mathcal{L}}{=} -d_i$. Soient $\varepsilon_1, \dots, \varepsilon_n$ des variables de Rademacher indépendantes de $S, S'$ telles que $\myP(\varepsilon_i = 1) = \myP(\varepsilon_i = -1) = \frac{1}{2}$. Alors $(d_1, \dots, d_n) \overset{\mathcal{L}}{=} (\varepsilon_1 d_1, \dots, \varepsilon_n d_n)$ pour tout $h \in \mathcal{H}$ conjointement :
+    \begin{align*}
+        \mathbb{E}_{S, S'} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n d_i \right] 
+        &= \mathbb{E}_{S, S', \varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i \big(h(z_i') - h(z_i)\big) \right] \\
+        &\leqslant \mathbb{E}_{S', \varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i h(z_i') \right] + \mathbb{E}_{S, \varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n (-\varepsilon_i) h(z_i) \right].
+    \end{align*}
+    Comme $-\varepsilon_i \overset{\mathcal{L}}{=} \varepsilon_i$, les deux termes sont égaux et l'échantillon fantôme s'élimine :
+    \begin{equation}
+        \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right] \leqslant 2 \, \mathbb{E}_{S, \varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i h(z_i) \right].
+    \end{equation}
+\end{proposition}
