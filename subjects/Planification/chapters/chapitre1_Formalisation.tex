@@ -1,0 +1,153 @@
+\minitoc 
+
+% ===========================================================
+% Introduction 
+
+% TODO : Rédiger un intro à la matière 
+
+La planification est un outil essentiel dans beaucoup de domaines aujourd'hui et est utilisée par tout le monde : que ce soit pour prévoir des tâches à effectuer, suivre une recette de cuisine ou anticiper et prévoir l'évolution d'un programme industriel. 
+
+Toutes ces applications peuvent être formalisées et généralisées au sein de la théorie de la planification. Celle-ci cherche à synthétiser et résoudre de manière automatique un \emph{problème de planification} par la production d'un \emph{plan}. Ce dernier peut se voir comme une collection d'actions à effectuer pour modifier l'état courant de la tâche dans le but d'atteindre un \emph{état cible} appelé \emph{but}. L'exécution de ce plan est donc la réalisation de ces différentes étapes dans le monde pour lequel a été défini le problème. 
+
+Nous allons ici formaliser mathématiquement ces concepts pour l'instant abstrait et brièvement étudier la notion de complexité de résolution de tels problèmes. 
+
+% ===========================================================
+% Le cadre classique 
+
+\section{Le cadre classique}
+
+Commençons donc par définir formellement ce qu'est un problème de planification et les différents objets utilisés pour le résoudre. 
+
+\subsection{États et Actions}
+
+\begin{definition}[État -- Fluent]
+    On appelle \emph{état} un ensemble fini de formules atomiques sans symbole de variable pour un monde défini. Cet ensemble représente un état possible du problème considéré. 
+
+    Une formule atomique (suite finie d'éléments d'un alphabet ne contenant aucun symbole de variable) est appelée un \emph{fluent}. 
+\end{definition}
+
+Pour passer d'un état à un autre, on définira des \emph{actions}. 
+
+\begin{definition}[Opérateur -- Action]
+    On appellera \emph{opérateur} $o$ un modèle d'action. Il est défini par deux éléments : 
+    \begin{enumerate}
+        \item son nom, 
+        \item un triplet d'ensembles $\langle\operatorname{pr}, \operatorname{add}, \operatorname{de}\rangle$ finis de formules atomiques représentant respectivement les \emph{préconditions}, les \emph{ajouts} et les \emph{suppression} de fluents opérés par l'opérateur sur l'état courant. 
+    \end{enumerate}
+    On appellera \emph{action}, notée $a$, une instance d'un opérateur $o$ (i.e toutes les variables de $o$ sont instanciées à partir des variables/constantes du problème). On notera $ \operatorname{Pre}(o), \operatorname{Add}(o)$ et $ \operatorname{Del}(o)$ les ensembles $\operatorname{pr}, \operatorname{add}$ et $\operatorname{de}$ de l'opérateur $o$ (idem pour $a$). 
+\end{definition}
+
+\begin{definition}[Action Applicable]
+    Soit $E$ un état et $a$ une action d'un problème de planification. On dira que $a$ est applicable à $E$ si les préconditions de $a$ son vérifiées dans $E$, formellement, cela revient à dire que : 
+    \begin{equation}
+        \operatorname{Pre}(a) \subseteq E. 
+    \end{equation}
+    On définira alors l'état résultant $E'$ de l'action de $a$ sur $E$ par : 
+    \begin{equation}
+        E' := E \uparrow a = (E \setminus \operatorname{Del}(a)) \cup \operatorname{Add}(a). 
+    \end{equation}
+\end{definition}
+
+\begin{example}
+    Considérons la préparation d'un gâteau nécessitant de mélanger des ingrédients puis de les cuire.
+    Définissons un opérateur permettant de cuire un ingrédient ou une préparation désignée par la variable $?x$:
+    \begin{align*}
+        \operatorname{Cuire}(?x) = \big\langle & \operatorname{Pre} = \{\operatorname{melange}(?x), \operatorname{cru}(?x), \operatorname{four\_chaud}\}, \\
+        & \operatorname{Add} = \{\operatorname{cuit}(?x)\}, \\
+        & \operatorname{Del} = \{\operatorname{cru}(?x)\} \big\rangle
+    \end{align*}
+    
+    En instanciant la variable $?x$ avec la constante $\text{pate}$, on obtient l'action close :
+    \begin{align*}
+        a = \operatorname{Cuire}(\text{pate}) = \big\langle & \operatorname{Pre}(a) = \{\operatorname{melange}(\text{pate}), \operatorname{cru}(\text{pate}), \operatorname{four\_chaud}\}, \\
+        & \operatorname{Add}(a) = \{\operatorname{cuit}(\text{pate})\}, \\
+        & \operatorname{Del}(a) = \{\operatorname{cru}(\text{pate})\} \big\rangle
+    \end{align*}
+
+    Soit l'état courant :
+    \begin{equation*}
+        E = \{\operatorname{melange}(\text{pate}), \operatorname{cru}(\text{pate}), \operatorname{four\_chaud}, \operatorname{propre}(\text{moule})\}
+    \end{equation*}
+    Puisque $\operatorname{Pre}(a) \subseteq E$, l'action $a$ est applicable. L'état résultant $E' = E \mathbin{\uparrow} a$ est :
+    \begin{align*}
+        E' &= \bigl(E \setminus \operatorname{Del}(a)\bigr) \cup \operatorname{Add}(a) \\
+        &= \{\operatorname{melange}(\text{pate}), \operatorname{four\_chaud}, \operatorname{propre}(\text{moule}), \operatorname{cuit}(\text{pate})\}
+    \end{align*}
+    On note que le fait $\operatorname{propre}(\text{moule})$ reste vrai dans $E'$ sans qu'il ait été nécessaire de mentionner son invariance (résolution du problème du décor).
+\end{example}
+
+\subsection{Plan d'action et problème de planification}
+
+La résolution d'un problème se fait par l'application séquentielle d'actions applicables sur un état initial $E$. On appelera cela, un \emph{plan séquentiel}. 
+
+\begin{definition}[Plan Séquentiel -- Application]
+    On appelle $P$ un \emph{plan séquentiel}, une séquence finie d'actions $ \langle a_1, a_2, \dots, a_n \rangle$. L'application d'un plan $P$ à un état $E$, notée $E \mathcal{A} P$, est définie par récurrence sur la longueur de $P$ :
+    \begin{itemize}
+        \item Si $E = \bot$, alors $\bot \mathcal{A} P := \bot$.
+        \item Pour le plan vide : $E \mathcal{A} \langle \rangle := E$.
+        \item Pour $P = \langle a \rangle \cdot P'$ (où $a$ est une action et $P'$ une séquence d'actions) :
+        \begin{equation}
+            E \mathcal{A} (\langle a \rangle \cdot P') := 
+            \begin{cases}
+                (E \uparrow a) \mathcal{A} P' & \text{si } \operatorname{Prec}(a) \subseteq E, \\
+                \bot & \text{sinon.}
+            \end{cases}
+        \end{equation}
+    \end{itemize}
+\end{definition}
+
+On peut alors définir le concept de \emph{problème de planification}, noté $ \langle \mathcal{O}, I, B \rangle$ tel que :
+\begin{itemize}
+    \item $ \mathcal{O}$ désigne l'ensemble des opérateurs utilisables dans le domaine considéré. $A$ désigne l'ensemble des actions que l'on peut instancier à partir des opérateurs de $ \mathcal{O}$.
+    \item $I$ est l'état initial du problème composé d'un ensemble de fluents.
+    \item $B$ est le but du problème (un état), aussi composé de fluents.
+\end{itemize}
+% Un \emph{plan-solution} $P$ est donc un séquence finie d'actions telle que son application à $I$ dans le contexte $ \mathcal{O}$ permet d'atteindre l'état $B$ (i.e $ B \subseteq I \mathcal{A} P$).
+
+
+\begin{definition}[Plan-solution -- flexibilité]
+    Soit $\mathcal{P} = \langle \mathcal{O}, I, B \rangle$ un problème de planification. Un plan séquentiel $P$ est un \emph{plan-solution} (ou \emph{plan correct}) si et seulement si :
+    \begin{equation}
+        I \mathcal{A} P \neq \bot \quad \text{et} \quad B \subseteq (I \mathcal{A} P)
+    \end{equation}
+    La \emph{flexibilité} d'un plan-solution désigne sa capacité à subir des modifications (modification de l'ordonnancement d'actions non contraintes, instanciation retardée de variables libres) sans perdre sa correction.
+\end{definition}
+
+\subsection{Propriétés et hypothèses du cadre classique}
+
+Enfin, la production d'un \emph{plan-solution} sera réalisée par un algorithme de planification, noté $ \operatorname{Planif}$. On pourra définir plusieurs propriétés recherchées pour cet algorithme. 
+
+\begin{prop}[Planificateur]
+    Soit un algorithme de planification $\operatorname{Planif}$ opérant sur un formalisme donné.
+    \begin{itemize}
+        \item \textbf{Sain (ou correct) :} $\operatorname{Planif}$ est sain si tout plan qu'il produit pour une instance $\mathcal{P}$ est un plan-solution.
+        \item \textbf{Complet :} $\operatorname{Planif}$ est complet si, dès lors qu'il existe au moins un plan-solution pour $\mathcal{P}$, il en produit un en temps fini.
+        \item \textbf{Systématique :} $\operatorname{Planif}$ est systématique si deux feuilles distinctes quelconques de son arbre de recherche correspondent à des plans-solutions distincts (absence de redondance dans l'exploration).
+        \item \textbf{Optimal :} $\operatorname{Planif}$ est optimal relativement à un critère de coût donné (nombre d'actions, temps d'exécution, parallélisme) si tout plan-solution produit minimise ce critère.
+    \end{itemize}
+\end{prop} 
+
+Toute la complexité de la planification réside donc dans la recherche d'un tel algorithme. 
+
+\begin{proposition}[Hypothèses du cadre classique]
+    Le cadre classique de la planification restreint l'environnement et l'espace d'actions selon six hypothèses :
+    \begin{enumerate}
+        \item \textbf{Fini :} L'ensemble des objets et des fluents est fini.
+        \item \textbf{Statique :} Le monde n'évolue que sous l'effet des actions de l'agent (pas d'événements exogènes).
+        \item \textbf{Observabilité totale :} L'état courant est parfaitement et entièrement connu à chaque étape.
+        \item \textbf{Déterministe :} L'application d'une action $a$ sur un état $E$ produit un unique état résultant prévisible.
+        \item \textbf{Discret :} Les transitions d'états s'effectuent par sauts discrets.
+        \item \textbf{Instantané :} Les actions n'ont pas de durée propre (durée nulle) et ne consomment pas de ressources continues.
+    \end{enumerate}
+\end{proposition}
+
+La résolution d'un problème de planification par la recherche d'un plan-solution est assez difficile car elle nécessite de définir l'ensemble des objets pour modéliser le problème (états, fluents, actions, etc\dots). Il faut définir des actions pertinentes en fonction des états choisis et être capable de les décrire au mieux pour permettre un ordonnancement exécutable des plans d'actions générés. 
+Le théorème ci-dessous donne un ordre d'idée de la complexité de cette recherche. 
+
+\begin{theorem}[Complexité en cadre classique]
+    Pour un problème de planification classique $\mathcal{P} = \langle \mathcal{O}, I, B \rangle$ représenté en logique propositionnelle / STRIPS :
+    \begin{itemize}
+        \item Le problème de décision de l'\emph{existence d'un plan-solution} (PLANEXIST) est \textbf{PSPACE-complet}.
+        \item Le problème de décision de l'\emph{existence d'un plan-solution de longueur inférieure ou égale à $k \in \mathbb{N}$} (avec $k$ encodé en unaire) est \textbf{NP-complet}.
+    \end{itemize}
+\end{theorem}
