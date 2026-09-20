@@ -18,6 +18,7 @@ Nous allons ici formaliser mathématiquement ces concepts pour l'instant abstrai
 
 Commençons donc par définir formellement ce qu'est un problème de planification et les différents objets utilisés pour le résoudre. 
 
+% -----------------------------------------------------------
 \subsection{États et Actions}
 
 \begin{definition}[État -- Fluent]
@@ -76,6 +77,7 @@ Pour passer d'un état à un autre, on définira des \emph{actions}.
     On note que le fait $\operatorname{propre}(\text{moule})$ reste vrai dans $E'$ sans qu'il ait été nécessaire de mentionner son invariance (résolution du problème du décor).
 \end{example}
 
+% -----------------------------------------------------------
 \subsection{Plan d'action et problème de planification}
 
 La résolution d'un problème se fait par l'application séquentielle d'actions applicables sur un état initial $E$. On appelera cela, un \emph{plan séquentiel}. 
@@ -113,6 +115,7 @@ On peut alors définir le concept de \emph{problème de planification}, noté $ 
     La \emph{flexibilité} d'un plan-solution désigne sa capacité à subir des modifications (modification de l'ordonnancement d'actions non contraintes, instanciation retardée de variables libres) sans perdre sa correction.
 \end{definition}
 
+% -----------------------------------------------------------
 \subsection{Propriétés et hypothèses du cadre classique}
 
 Enfin, la production d'un \emph{plan-solution} sera réalisée par un algorithme de planification, noté $ \operatorname{Planif}$. On pourra définir plusieurs propriétés recherchées pour cet algorithme. 
@@ -151,3 +154,140 @@ Le théorème ci-dessous donne un ordre d'idée de la complexité de cette reche
         \item Le problème de décision de l'\emph{existence d'un plan-solution de longueur inférieure ou égale à $k \in \mathbb{N}$} (avec $k$ encodé en unaire) est \textbf{NP-complet}.
     \end{itemize}
 \end{theorem}
+
+% ===========================================================
+% Algorithmes et Langages de représentation
+
+\section{Algorithmes et Langages de représentation}
+
+Cette section introduit les principaux paradygmes de résolution d'un problème de planification. On présentera les différentes méthodes canoniques avant d'introduire les langages de représentation (PDDL, STRIPS) et nous finirons par une introduction à GRAPHLAN avant de le traiter plus en détail dans le chapitre suivant. 
+
+% -----------------------------------------------------------
+\subsection{Typologie des approches algorithmiques}
+
+La résolution effective d'un problème de planification $\mathcal{P} = \langle \mathcal{O}, I, B \rangle$ se heurte à l'explosion combinatoire de l'espace de recherche. Les algorithmes du cadre classique se divisent en deux grandes familles fondamentales.
+
+La première se concentre sur une recherche directe dans les espaces de recherche. 
+Cette approche explore explicitement un graphe orienté où chaque transition correspond à une décision de planification. On distingue deux espaces fondamentaux :
+
+\begin{itemize}
+    \item \textbf{Espace des états :} Les nœuds du graphe sont des états complets du monde (voir Figure~\ref{fig:graph-states}). On peut alors trouver un plan-solution par \emph{progression (chaînage avant)} en explorant l'espace depuis l'état initial $I$ et en appliquant des actions applicables jusqu'à atteindre un état contenant $B$.
+    Ou alors, par \emph{régression (chaînage arrière)} : on part de la spécification du but $B$ et on remonte vers l'état initial $I$ par calcul de préconditions inverses.
+    
+    \item \textbf{Espace des plans partiels (POCL -- \emph{Partial Order Causal Link}) :} Les nœuds sont des plans incomplets (actions partiellement ordonnées, variables non totalement instanciées et liens causaux). La recherche consiste à éliminer les défauts du plan (préconditions non satisfaites ou conflits causaux) jusqu'à obtenir un plan valide.
+\end{itemize}
+
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.4cm,
+        state/.style={rectangle, draw=black!80, fill=blue!5, thick, minimum height=0.8cm, minimum width=2.4cm, rounded corners=2pt, font=\small},
+        plan/.style={rectangle, draw=black!80, fill=green!5, thick, minimum height=0.8cm, minimum width=2.4cm, rounded corners=2pt, font=\small},
+        arrow/.style={-{Stealth[scale=1.1]}, thick, draw=black!70}
+    ]
+        % Recherche état
+        \node[state] (s0) {$I$};
+        \node[state, right=of s0] (s1) {$E_1$};
+        \node[state, right=of s1] (s2) {$E_2$};
+        \node[state, right=of s2] (sg) {$E_B \supseteq B$};
+        
+        \draw[arrow] (s0) -- node[midway, above, font=\scriptsize] {$a_1$} (s1);
+        \draw[arrow] (s1) -- node[midway, above, font=\scriptsize] {$a_2$} (s2);
+        \draw[arrow, dashed] (s2) -- node[midway, above, font=\scriptsize] {$a_n$} (sg);
+    \end{tikzpicture}
+    \caption{Schéma d'un espace d'états d'un problème de planification. On représente les états dans un graphe orienté où chaque arrête traduit l'effet d'une action applicable entre deux états.}
+    \label{fig:graph-states}
+\end{figure}
+
+Plutôt que d'explorer l'espace d'états de manière séquentielle, les approches par \emph{compilation de plans} (voir Figure~\ref{fig:pipeline-resolution-generique}) traduisent le problème de planification de taille ou d'horizon fixé $k$ en une instance d'un problème cible bien caractérisé, bénéficiant ainsi de l'efficacité des solveurs génériques modernes.
+
+\begin{itemize}
+    \item \textbf{SATPLAN / BLACKBOX (Compilation propositionnelle) :} Le problème de planification borné à $k$ pas de temps est codé sous la forme d'une formule propositionnelle en forme normale conjonctive (CNF). Un solveur SAT (DPLL, CDCL) recherche une affectation satisfaisable dont le modèle est ensuite décodé en un plan-solution.
+    
+    \item \textbf{GP-CSP (Compilation en CSP) :} Les interactions entre fluents et actions sont modélisées sous la forme d'un problème de satisfaction de contraintes (CSP) où les variables représentent les supports d'actions et les contraintes modélisent les exclusions et préconditions.
+    
+    \item \textbf{GRAPHPLAN :} Approche intermédiaire qui commence par construire en temps polynomial un graphe compact alternant couches de fluents et d'actions, annoté d'exclusions mutuelles (\emph{mutex}), avant d'y extraire une solution par retour arrière ou compilation.
+\end{itemize}
+
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+        node distance=2.2cm,
+        block/.style={rectangle, draw=black!80, fill=orange!5, thick, minimum height=1cm, minimum width=2.6cm, align=center, rounded corners=2pt, font=\small},
+        target/.style={rectangle, draw=black!80, fill=purple!5, thick, minimum height=1cm, minimum width=2.6cm, align=center, rounded corners=2pt, font=\small},
+        arrow/.style={-{Stealth[scale=1.1]}, thick, draw=black!70}
+    ]
+        \node[block] (pb) {Problème de\\planification $\mathcal{P}$};
+        \node[target, right=of pb] (trans) {Structure compilée\\ SAT / Graphe / CSP};
+        \node[target, right=of trans] (sol) {Modèle / Solution\\du solveur};
+        \node[block, below=1.2cm of sol] (plan) {Plan-solution $P$};
+        
+        \draw[arrow] (pb) -- node[midway, above, font=\scriptsize] {Codage} (trans);
+        \draw[arrow] (trans) -- node[midway, above, font=\scriptsize] {Résolution} (sol);
+        \draw[arrow] (sol) -- node[midway, right, font=\scriptsize] {Décodage} (plan);
+    \end{tikzpicture}
+    \caption{Schéma représentant les étapes de construction d'un plan-solution à l'aide d'une méthode par compilation de plans.}
+    \label{fig:pipeline-resolution-generique}
+\end{figure}
+
+La formalisation effective d'un univers de planification impose un compromis fondamental entre le pouvoir expressif du langage de modélisation et la complexité algorithmique du calcul des transitions d'états. L'évolution des formalismes historiques traduit la recherche de cet équilibre.
+
+\subsection{Formalisme STRIPS et résolution du problème du décor}
+
+Le formalisme STRIPS (\emph{Stanford Research Institute Problem Solver}) constitue le noyau minimaliste de la planification classique.
+
+\begin{definition}[Modélisation STRIPS]
+    Dans le formalisme STRIPS, le langage est restreint à la logique propositionnelle sans négation explicite :
+    \begin{itemize}
+        \item Un état $E \subseteq \mathcal{F}$ est une conjonction finie de formules atomiques closes (fluents). Les faits absents de $E$ sont réputés faux en vertu de l'\emph{hypothèse du monde clos}.
+        \item Un opérateur $o$ est défini par le triplet $\langle \operatorname{Prec}(o), \operatorname{Add}(o), \operatorname{Del}(o) \rangle$, où chaque ensemble ne contient que des littéraux atomiques positifs.
+    \end{itemize}
+\end{definition}
+
+\begin{proposition}[Résolution du problème du décor -- \emph{Frame Problem}]
+    Soit une action $a$ applicable sur un état $E$ (i.e $\operatorname{Prec}(a) \subseteq E$). STRIPS résout le problème du décor par le principe de persistance implicite :
+    \begin{equation}
+        \forall f \in E, \quad f \notin \operatorname{Del}(a) \implies f \in (E \uparrow a)
+    \end{equation}
+    Aucun axiome d'invariance n'est nécessaire : les fluents non mentionnés dans $\operatorname{Del}(a)$ sont conservés par défaut après l'application de $a$ sur l'état $E$. 
+\end{proposition}
+
+\begin{remark}[Verrous expressifs de STRIPS]
+    La simplicité de STRIPS garantit un calcul de transition $E \uparrow a$ en temps linéaire, mais restreint la modélisation. En effet, il devient impossible de formuler des préconditions négatives ou disjonctives. L'impact d'une action sur un état est aussi statique et indépendant de faits périphériques. Enfin, il est impossible de quantifier sur des ensembles : modifier $n$ entités impose de concevoir et planifier $n$ actions unitaires distinctes.
+\end{remark}
+
+\subsection{Extension ADL -- \emph{Action Description Language} et PDDL}
+
+Introduit pour lever la rigidité de STRIPS, ADL enrichit la description des opérateurs en intégrant des fragments de la logique du premier ordre.
+
+\begin{definition}[Caractéristiques du formalisme ADL]
+    Dans ADL, un opérateur est caractérisé par un couple $\langle \operatorname{Prec}(o), \operatorname{Eff}(o) \rangle$ :
+    \begin{itemize}
+        \item \textbf{Préconditions du premier ordre :} $\operatorname{Prec}(o)$ autorise les connecteurs booléens usuels ($\wedge, \vee, \neg$), les prédicats d'égalité ($=$) et les quantificateurs ($\forall, \exists$).
+        \item \textbf{Effets conditionnels :} $\operatorname{Eff}(o)$ accepte des clauses d'implication de la forme :
+        \begin{equation}
+            c \longrightarrow e
+        \end{equation}
+        Le littéral $e$ (positif ou négatif) n'est appliqué à l'état que si la condition $c$ était satisfaite avant le déclenchement de l'action.
+        \item \textbf{Effets universels :} Des expressions de type $\forall x \, (P(x) \to e(x))$ permettent de mettre à jour un ensemble arbitraire d'objets en une seule transition.
+    \end{itemize}
+\end{definition}
+
+PDDL \emph{Planning Domain Description Language} sépare formellement la physique du système de l'instance concrète à résoudre afin de rendre les solveurs indépendants des domaines d'application.
+
+\begin{definition}[Architecture PDDL]
+    Une instance PDDL dissocie la modélisation en deux composantes :
+    \begin{enumerate}
+        \item \textbf{Fichier Domaine (\texttt{domain.pddl}) :} Spécifie les types d'objets, la liste des prédicats relationnels admis et les schémas d'actions paramétrés.
+        \item \textbf{Fichier Problème (\texttt{problem.pddl}) :} Déclare les constantes réelles (objets), l'état initial exhaustif $I$ et la formule logique du but $B$.
+    \end{enumerate}
+\end{definition}
+
+% \begin{remark}[Ouverture hors du cadre classique]
+%     Les extensions de PDDL intègrent des dynamiques incompatibles avec les hypothèses classiques :
+%     \begin{itemize}
+%         \item \textbf{PDDL 2.1 (Niveaux 1 à 3) :} Modélisation de variables numériques continues (fonctions de coût, énergie, carburant) et d'actions duratives (\texttt{:durative-action}) avec contraintes temporelles locales (\texttt{at start}, \texttt{over all}, \texttt{at end}).
+%         \item \textbf{PDDL+ / PDDL 3 :} Représentation des flux continus autonomes, événements exogènes et contraintes sur les trajectoires d'états (exprimées en logique temporelle LTL).
+%     \end{itemize}
+% \end{remark}
+
