@@ -2,6 +2,8 @@
 % Chapitre : Théorie de l'Apprentissage et Minimisation du Risque Empirique
 % ======================================================================
 
+\minitoc 
+
 Dans les chapitres précédents, nous avons présenté différentes méthodes d'apprentissage basées sur la minimisation du risque empirique (ERM, \emph{Empirical Risk Minimization}). Or la seule analyse de la convergence de ces méthodes que nous ayons faite est la décomposition biais-variance du risque ainsi que la décomposition de son erreur en deux : l'erreur \emph{d'approximation} et l'erreur \emph{d'estimation}. 
 
 Dans la seconde partie de ce chapitre, nous nous attardons justement sur l'erreur faite sur le risque lors de l'apprentissage. Pour cela, nous développons une nouvelle théorie basée sur la complexité de l'espace de recherche $ \mathcal{F}$. 
@@ -148,6 +150,7 @@ On souhaite maintenant estimer (ou borner) l'erreur maximale que l'on peut faire
 
 % -------------------------------------------------
 \subsection{Majoration de l'erreur du risque -- cas fini}
+\label{sub-seq:cas-fini}
 
 On suppose ici que $\mathcal{F}$ dispose d'un nombre fini d'éléments $|\mathcal{F}| = M < \infty$ et que les pertes sont bornées par $l_\infty$. Pour majorer cette quantité, on utilise l'inégalité de Hoeffding. 
 
@@ -326,6 +329,283 @@ Le processus de \emph{symétrisation} permet de majorer cette espérance par une
     \end{align*}
     Comme $-\varepsilon_i \overset{\mathcal{L}}{=} \varepsilon_i$, les deux termes sont égaux et l'échantillon fantôme s'élimine :
     \begin{equation}
-        \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right] \leqslant 2 \, \mathbb{E}_{S, \varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i h(z_i) \right].
+        \mathbb{E}_S \left[ \sup_{h \in \mathcal{H}} \left( \mathbb{E}_z[h(z)] - \frac{1}{n} \sum_{i=1}^n h(z_i) \right) \right] \leqslant 2 \, \mathbb{E}_{S, \varepsilon} \left[ \sup_{h \in \mathcal{H}} \frac{1}{n} \sum_{i=1}^n \varepsilon_i h(z_i) \right]. \label{eq:rademacher-popping}
     \end{equation}
 \end{proposition}
+
+% -------------------------------------------------
+\subsection{Définitions et propriétés}
+
+Les calculs précédents nous ont introduit une nouvelle grandeur (voir Équation~\ref{eq:rademacher-popping}) définissant la \emph{complexité de Rademacher}. 
+
+\begin{definition}[Complexité de Rademacher]
+    Soit $ \mathcal{H}$ une classe de fonctions à valeurs réelles et $ S = (z_1, \dots, z_n)$. On définit la \emph{complexité de Rademacher empirique} de l'espace $ \mathcal{H}$ sous $S$ par : 
+    \begin{equation}
+        \mathfrak{R}_S( \mathcal{H}) = \mathbb{E}_{ \varepsilon} \left[ \underset{h \in \mathcal{H}}{\sup} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i h(z_i)\right]. 
+    \end{equation}
+    Plus généralement, lorsque $ \mathcal{H}$ dépend d'une loi de probabilité $ \myP$, on définit la complexité de Rademacher par : 
+    \begin{equation}
+        \mathfrak{R}_n( \mathcal{H}) = \mathbb{E}_{S \sim \myP^{\otimes n}}\left[\mathfrak{R}_S( \mathcal{H})\right] 
+    \end{equation}
+    où les $ \varepsilon_i \in \{-1, 1\}$. 
+\end{definition}
+
+Cette complexité traduit la capacité de l'espace de fonction $ \mathcal{H}$ à approximer données $S$ bruitées par les $ \varepsilon_i$. Une classe pour laquelle c'est le cas a une complexité de l'ordre de $ \sup_h \sup_i \left| h(z_i)\right|$, dans le cas contraire, sa complexité de Rademacher tends vers $0$ à mesure que $n$ augmente. 
+
+Nous pouvons donc conclure notre procédé de symétrisation par le théorème suivant. 
+
+\begin{theorem}[Symétrisation]
+    Soit $ \mathcal{H}$ une classe de fonctions, une famille de valeurs $ z_1, \dots, z_n$ et une famille de coefficients $ \varepsilon_i \in \{-1, 1\}^n$. On a le résultat suivant : 
+    \begin{equation}
+        \mathbb{E}_S \left[ \underset{h \in \mathcal{H}}{\sup} \left( \frac{1}{n} \sum_{i \leqslant n} h(z_i) - \mathbb{E}_z [h(z)]\right)\right] \leqslant 2 \mathfrak{R}_n( \mathcal{H})
+    \end{equation}
+    \begin{equation}
+        \mathbb{E}_S \left[ \underset{h \in \mathcal{H}}{\sup} \left( \mathbb{E}_z [h(z)] - \frac{1}{n} \sum_{i \leqslant n} h(z_i)\right)\right] \leqslant 2 \mathfrak{R}_n( \mathcal{H})
+    \end{equation}
+\end{theorem}
+
+\begin{remark}
+    Le second résultat est issu du même processus de symétrisation appliqué à la classe de fonctions $ - \mathcal{H} = \{-h \mid h \in \mathcal{H}\}$. 
+\end{remark}
+
+Définissons maintenant quelques propiétés calculatoires de la complexité de Rademacher. 
+
+\begin{prop}[Complexité de Rademacher]
+    Soient $ \mathcal{H}$ une classe de fonctions, $ h_0 \in \mathcal{H}$ et $c \in \R$, on a : 
+    \begin{itemize}
+        \item \emph{Homogénéité} : $ \mathfrak{R}_S(c \mathcal{H}) = |c| \mathfrak{R}_S(\mathcal{H})$. 
+        \item \emph{Translation} :  $ \mathfrak{R}_S(\mathcal{H} + h_0) = \mathfrak{R}_S(\mathcal{H})$. 
+        \item \emph{Enveloppe convexe} : $ \mathfrak{R}_S(\operatorname{conv} \mathcal{H}) = \mathfrak{R}_S(\mathcal{H})$. 
+    \end{itemize}
+\end{prop}
+
+\begin{proof}
+    \begin{enumerate}
+        \item Par linéarité de l'opérateur d'application, de la somme, du $\sup$ et de l'espérance. Le cas $c < 0$ est vérifié par le fait que l'application de la fonction $ \varepsilon \longmapsto - \varepsilon$ ne change pas la loi des variables aléatoires et donc la valeur de l'espérance. 
+        \item On observe que $ \sup_h \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i (h+h_0)(z_i) = \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i h_0(z_i) + \sup_h \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i h(z_i)$. Or la moyenne sur le premier terme s'annule du fait de la distribution uniforme des $ \varepsilon_i$ sur $\{-1, 1\}$. 
+        \item Pour $ \varepsilon$ fixé, l'application $ h \longmapsto \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i h(z_i)$ est linéaire et donc maximisée sur un point extrême de l'enveloppe convexe de $ \mathcal{H}$. Point qui est déjà inclut dans le $ \sup$. 
+    \end{enumerate}
+\end{proof}
+
+% -------------------------------------------------
+\subsection{Le retour du cas fini}
+
+On souhaite ici appliquer les résultats théoriques précédents sur la complexité de Rademacher au cas fini vu en début de chapitre. Pour cela, on défini pour chaque fonction $ h \in \mathcal{H}$ un vecteur $a_h$ tel que : 
+\begin{equation}
+    a_h = (h(z_1), \dots, h(z_n))^\top \in \R^n. 
+\end{equation}
+Si $ \mathcal{H}$ est fini, cet ensemble de vecteurs forme un sous-ensemble fini $A$ de $ \R^n$ tel que$ A = \{a_h \mid h \in \mathcal{H}\} \subset \R^n$. On peut donc observer l'égalité entre la complexité de Rademacher $\mathfrak{R}_S( \mathcal{H})$ de $ \mathcal{H}$ et le maximum de la moyenne des $a_i$ pondérée par les $ \varepsilon_i$ pour tout $a \in A$ : 
+\begin{equation}
+    \underset{h \in \mathcal{H}}{\sup} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i h(z_i) = \underset{a \in A}{\max} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i a_i. \label{eq:rademacher-before-massart}
+\end{equation}
+
+Développons un peu de théorie pour borner le terme de gauche à l'aide du lemme de Massart. 
+
+\begin{lemma}[Massart]
+    Soit $A \subset \R^n$ fini, non vide et $ \rho = \max_{a \in A} \|a\|_2$. Alors on a : 
+    \begin{equation}
+        \mathbb{E}_{ \varepsilon} \left[ \underset{a \in A}{\max} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i a_i\right] \leqslant \frac{ \rho \sqrt{2 \ln|A|}}{n}. 
+    \end{equation}
+\end{lemma}
+
+Pour la démonstration de ce lemme, on s'appuie sur le lemme de Hoeffding ci-dessous. 
+
+\begin{lemma}[Hoeffding]
+    Pour toute variable aléatoire réelle $X$ centrée (i.e $ \mathbb{E}[X] = 0$) et bornée $ X \in [u, v]$ p.s, alors : 
+    \begin{equation}
+        \forall \lambda \in \R, \quad \mathbb{E} \left[ e^{ \lambda X}\right] \leqslant \exp \left( \frac{ \lambda^2 (v- u)^2}{8}\right). 
+    \end{equation}
+    On dit alors que $X$ est \emph{sous-gaussienne} de paramètre $ \sigma^2 = \frac{(v - u)^2}{4}$. On notera alors $ X \sim \mathcal{G}( \sigma^2)$. 
+\end{lemma}
+
+\begin{proof}
+    Soit $ A \subset \R^n$ borné par $ \rho = \underset{a \in A}{\max} \|a\|_2$. Pour tout $a = (a_1, \dots, a_n)^\top \in A$, on pose $ X_i = \varepsilon_i a_i$ où les $ \varepsilon_i$ sont les variables de Rademacher. 
+
+    On remarque que : 
+    \begin{equation}
+        \mathbb{E}(X_i) = a_i \mathbb{E}( \varepsilon_i) = 0, \quad \text{et} \quad X_i \in [- |a_i|, |a_i|]. 
+    \end{equation}
+    D'après le lemme de Hoeffding, on a donc que $ X_i \sim \mathcal{G}( \sigma^2)$ avec $ \sigma^2 = \frac{4 a_i^2}{4} = a_i^2$, d'où :
+    \begin{equation}
+        \forall \lambda \in \R, \quad \mathbb{E}_{ \varepsilon} \left[ e^{ \lambda \varepsilon_i a_i}\right] \leqslant \exp \left( \frac{ \lambda^2 a_i^2}{2}\right). 
+    \end{equation}
+    Or les $ \varepsilon_i$ sont deux à deux indépendants, donc en posant $W_a = \sum_{i \leqslant n} \varepsilon_i a_i$, on a : 
+    \begin{align*}
+        \mathbb{E}_{ \varepsilon} \left[ e^{ \lambda W_a}\right] &= \mathbb{E}_\varepsilon \left[ \prod_{i \leqslant n} e^{ \lambda \varepsilon_i a_i}\right] 
+        = \prod_{i \leqslant n} \mathbb{E}_\varepsilon \left[ e^{ \lambda \varepsilon_i a_i}\right] \\ 
+        &\leqslant \prod_{i \leqslant n} \exp \left( \frac{ \lambda^2 a_i^2}{2}\right) = \exp \left( \frac{ \lambda^2 \|a\|_2^2}{2}\right). 
+    \end{align*}
+    Or, par construction, $ \|a\|_2^2 \leqslant \rho^2$, donc $ W_a \sim \mathcal{G}( \rho^2)$. On peut donc appliquer successivement l'inégalité de Jensen et poser $ \lambda = \sqrt{2 \ln|A|} / \rho$ : 
+    \begin{align*}
+        e^{ \lambda \mathbb{E} [ \max_{a \in A} W_a]} &\leqslant \mathbb{E} \left[e^{ \lambda \max_{a \in A} W_a}\right] \leqslant \sum_{a \in A} \mathbb{E} \left[ e^{ \lambda W_a}\right] \leqslant |A| \exp \left( \frac{ \lambda^2 \rho^2}{2}\right) \\ 
+        &\iff \mathbb{E} \left[ \max_{a \in A} W_a\right] \leqslant \frac{\ln|A|}{ \lambda} + \frac{ \lambda \rho^2}{2} \\ 
+        &\iff \mathbb{E}_{ \varepsilon} \left[ \max_{a \in A} \frac{1}{n} \sum_{ i \leqslant n} \varepsilon_i a_i\right] \leqslant \frac{ \rho \sqrt{2 \ln|A|}}{n}. 
+    \end{align*}
+\end{proof}
+
+\begin{proposition}
+    En appliquant le lemme de Massart sur le contexte présenté en début de sous-section, on obtient l'inégalité suivante : 
+    \begin{equation}
+        \mathbb{E}_\varepsilon \left[ \underset{a \in A}{\max} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i a_i \right] \leqslant \frac{ \rho \sqrt{2 \ln|A|}}{n}. 
+    \end{equation}
+    Pour faire le lien avec la complexité de Rademacher, il suffit de prendre l'espérance sur \ref{eq:rademacher-before-massart} et on retrouve le résultat énoncé pour le cas fini en \ref{sub-seq:cas-fini} : 
+    \begin{align}
+        \mathfrak{R}_S( \mathcal{H}) = \mathbb{E}_\varepsilon \left[ \underset{a \in A}{\max} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i a_i \right]
+        = \mathbb{E}_\varepsilon \left[ \underset{a \in A}{\max} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i a_i\right] 
+        \leqslant \frac{ \rho \sqrt{2 \ln|A|}}{n}. 
+    \end{align}
+\end{proposition}
+
+% -------------------------------------------------
+\subsection{Principe de contraction}
+
+Les résultats présentés jusqu'à maintenant sont très forts pour donner une borne supérieure de l'erreur d'approximation que l'on fait en choisissant une classe de fonction $ \mathcal{F}$. Or, si l'on regarde bien l'expression de la complexité de Rademacher, on s'apperçoit que celle-ci dépend de la fonction de \emph{loss} utilisée : 
+\begin{equation}
+    \mathfrak{R}_n( \mathcal{H}) = \mathfrak{R}_n(l \circ \mathcal{F}) = \mathbb{E}_{S, \varepsilon} \left[ \underset{f \in \mathcal{F}}{\sup} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i l(y_i, f(x_i))\right]. 
+\end{equation}
+Or, on souhaiterait être capable de calculer cette complexité indépendamment du processus d'apprentissage, et donc de la fonction de perte $l$ choisie. C'est le principe de contraction qui l'assure. 
+
+\begin{proposition}[Principe de contraction]
+    Soit $ A \subset \R^n$ et $g_1, \dots, g_n : \R \longrightarrow \R$ des applications $G$-lipschitziennes. On a alors : 
+    \begin{equation}
+        \mathbb{E}_{ \varepsilon} \left[ \underset{a \in A}{\sup} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i g_i(a_i)\right] \leqslant G \cdot \mathbb{E}_{ \varepsilon} \left[ \underset{a \in A}{\sup} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i (a_i)\right]. 
+    \end{equation}
+\end{proposition}
+
+Si l'on fait l'hypothèse simple que la fonction de perte utilisée $l(y_i, \cdot)$ est $G$-lipschitzienne, on a alors que : 
+\begin{equation}
+    \mathfrak{R}_S(l \circ \mathcal{F}) \leqslant G \cdot \mathfrak{R}_S( \mathcal{F}), \quad \text{donc} \quad \mathfrak{R}_n(l \circ \mathcal{F}) \leqslant G \cdot \mathfrak{R}_n( \mathcal{F})
+\end{equation}
+pour un domaine $ A = \{(f(x_1), \dots, f(x_n)) \mid f \in \mathcal{F}\}$. 
+
+\begin{remark}
+    Ce principe de contraction permet donc de séparer complètement les erreurs d'apprentissage dues à l'échantillon de celles dues à l'approximation faite par le choix de la classe $ \mathcal{F}$. 
+    Ainsi, grâce à la contraction, la borne d'excès de risque sépare les aspects du problème en trois parties :  l'optimisation numérique et la régularité du critère sont prises en charge par la constante $ G$ et la \emph{loss} $l$, la géométrie de l'architecture d'apprentissage est entièrement contenue dans $ \mathfrak{R}_n( \mathcal{F})$, et les fluctuations statistiques de l'échantillon sont, quant à elles, contenues dans le terme de McDiarmid en $ \mathcal{O}(1 / \sqrt{n})$.
+\end{remark}
+
+% -------------------------------------------------
+\subsection{Modèles linéaires contraints et dualité de normes}
+
+On applique les résultats précédents à des prédicteurs linéaires sous contrainte de régularisation :
+\begin{equation}
+    \mathcal{F} = \{f_\theta : x \longmapsto \theta^\top \varphi(x) \mid \Omega(\theta) \leqslant D\},
+\end{equation}
+où $\varphi : \mathcal{X} \to \R^d$ est une \emph{feature map}, $\Omega$ une norme sur $\R^d$ et $D > 0$ le rayon de la boule de contrainte. 
+On rappelle que la \emph{norme duale} $\Omega^*$ de $\Omega$ est définie par :
+\begin{equation}
+    \Omega^*(u) = \sup_{\Omega(\theta) \leqslant 1} \langle \theta, u \rangle.
+\end{equation}
+La complexité de Rademacher de cette classe se réduit à l'espérance de la norme duale d'une somme de vecteurs symétriques :
+\begin{align*}
+    \mathfrak{R}_n(\mathcal{F}) 
+    &= \mathbb{E}_{S, \varepsilon} \left[ \sup_{\Omega(\theta) \leqslant D} \frac{1}{n} \sum_{i \leqslant n} \varepsilon_i \theta^\top \varphi(x_i) \right] \\
+    &= \mathbb{E}_{S, \varepsilon} \left[ \sup_{\Omega(\theta) \leqslant D} \frac{1}{n} \theta^\top (\Phi^\top \varepsilon) \right] \\
+    &= \frac{D}{n} \mathbb{E}_{S, \varepsilon} \left[ \Omega^*(\Phi^\top \varepsilon) \right],
+\end{align*}
+où $\Phi \in \R^{n \times d}$ est la matrice dont la $i$-ème ligne est $\varphi(x_i)^\top$, et $\Phi^\top \varepsilon = \sum_{i \leqslant n} \varepsilon_i \varphi(x_i) \in \R^d$.
+
+\begin{proposition}[Cas euclidien $\ell_2$]
+    On pose $\Omega = \|\cdot\|_2$, auto-duale ($\Omega^* = \|\cdot\|_2$). Par concavité de la racine carrée (inégalité de Jensen) et cyclicité de la trace :
+    \begin{align*}
+        \mathfrak{R}_n(\mathcal{F}) 
+        &= \frac{D}{n} \mathbb{E} \left[ \|\Phi^\top \varepsilon\|_2 \right] \\
+        &\leqslant \frac{D}{n} \sqrt{\mathbb{E} \left[ \|\Phi^\top \varepsilon\|_2^2 \right]} \\
+        &= \frac{D}{n} \sqrt{\mathbb{E} \left[ \operatorname{tr}\left( \Phi \Phi^\top \varepsilon \varepsilon^\top \right) \right]} \\
+        &= \frac{D}{n} \sqrt{\mathbb{E}_S \left[ \operatorname{tr}(\Phi \Phi^\top) \right]} \quad \quad \text{car } \mathbb{E}_\varepsilon[\varepsilon \varepsilon^\top] = I_n \text{ et } \varepsilon \bot S \\
+        &= \frac{D}{n} \sqrt{\sum_{i=1}^n \mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]} \\
+        &= \frac{D}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]}.
+    \end{align*}
+    La dimension ambiante $d$ a disparu : seule compte l'énergie moyenne des descripteurs $\mathbb{E}[\|\varphi(x)\|_2^2]$ et le rayon $D$. Le résultat reste donc valide en dimension infinie ($d = \infty$), notamment pour les méthodes à noyaux (RKHS).
+\end{proposition}
+
+\begin{proposition}[Cas parcimonieux $\ell_1$ -- Lasso]
+    On pose $\Omega = \|\cdot\|_1$, dont la norme duale est $\Omega^* = \|\cdot\|_\infty$. On suppose que les descripteurs sont bornés composante par composante : $|\varphi_j(x)| \leqslant B_\infty$ pour tout $j \in \llbracket 1, d \rrbracket$ et tout $x \in \mathcal{X}$. On a :
+    \begin{equation}
+        \mathfrak{R}_n(\mathcal{F}) = \frac{D}{n} \mathbb{E}_{S, \varepsilon} \left[ \|\Phi^\top \varepsilon\|_\infty \right] = \frac{D}{n} \mathbb{E}_{S, \varepsilon} \left[ \max_{j \leqslant d} \left| \sum_{i \leqslant n} \varepsilon_i \varphi_j(x_i) \right| \right].
+    \end{equation}
+    Puisque $|u| = \max\{u, -u\}$, on ramène ce terme au maximum sur l'ensemble fini $A \subset \R^n$ des $2d$ vecteurs colonnes orientés :
+    \begin{equation}
+        A = \left\{ \pm \left( \varphi_j(x_1), \dots, \varphi_j(x_n) \right)^\top \mid j \leqslant d \right\} \subset \R^n.
+    \end{equation}
+    Ainsi, $\max_{j \leqslant d} |\sum_{i \leqslant n} \varepsilon_i \varphi_j(x_i)| = \max_{a \in A} \sum_{i \leqslant n} \varepsilon_i a_i$. On a $|A| \leqslant 2d$, et pour tout $a \in A$ :
+    \begin{equation}
+        \|a\|_2^2 = \sum_{i \leqslant n} \varphi_j(x_i)^2 \leqslant n B_\infty^2 \implies \rho = \max_{a \in A} \|a\|_2 \leqslant B_\infty \sqrt{n}.
+    \end{equation}
+    En appliquant le lemme de Massart conditionnellement à $S$ :
+    \begin{equation}
+        \frac{1}{n} \mathbb{E}_\varepsilon \left[ \max_{a \in A} \sum_{i \leqslant n} \varepsilon_i a_i \right] \leqslant \frac{\rho \sqrt{2 \ln |A|}}{n} \leqslant B_\infty \sqrt{\frac{2 \ln(2d)}{n}}.
+    \end{equation}
+    Comme cette borne est indépendante de $S$, elle survit à l'espérance $\mathbb{E}_S$ :
+    \begin{equation}
+        \mathfrak{R}_n(\mathcal{F}) \leqslant D B_\infty \sqrt{\frac{2 \ln(2d)}{n}}.
+    \end{equation}
+\end{proposition}
+
+\begin{remark}[Comparaison géométrique $\ell_1$ versus $\ell_2$]
+    En dimension finie $d$, si chaque composante vérifie $|\varphi_j(x)| \leqslant B_\infty$, l'énergie euclidienne est de l'ordre de $\mathbb{E}[\|\varphi(x)\|_2^2] \approx d B_\infty^2$, ce qui donne une complexité $\ell_2$ en $\mathcal{O}\left( D B_\infty \sqrt{d/n} \right)$.
+    
+    Contraindre la norme $\ell_1$ remplace le facteur $\sqrt{d}$ par $\sqrt{\ln(2d)}$. C'est la justification quantitative fondamentale du Lasso : en très grande dimension ($d \gg n$), la régularisation $\ell_1$ brise le fléau de la dimension dès lors que le vecteur cible admet une représentation parcimonieuse.
+\end{remark}
+
+% ======================================================================
+% Théorèmes d'excès de risque pour les modèles linéaires
+
+\section{Théorèmes d'excès de risque pour les modèles linéaires}
+
+Nous pouvons désormais assembler l'ensemble des résultats établis au cours de ces deux sections pour borner l'erreur d'estimation des modèles linéaires.
+
+\subsection{Borne en espérance}
+
+\begin{theorem}[Excès de risque en espérance]
+    Soit $\mathcal{F} = \{f_\theta : \|\theta\|_2 \leqslant D\}$ et supposons que pour tout $y \in \mathcal{Y}$, la perte $u \mapsto l(y, u)$ est $G$-lipschitzienne. Soit $\hat{f}_S$ un minimiseur exact du risque empirique sur $\mathcal{F}$. Alors :
+    \begin{equation}
+        \mathbb{E}_S [R(\hat{f}_S)] \leqslant \inf_{\|\theta\|_2 \leqslant D} R(f_\theta) + \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]}.
+    \end{equation}
+\end{theorem}
+
+\begin{proof}
+    Soit $f^\dagger \in \arg\min_{f \in \mathcal{F}} R(f)$. La décomposition canonique donne :
+    \begin{equation*}
+        \mathbb{E}_S[R(\hat{f}_S)] - R(f^\dagger) = \mathbb{E}_S[R(\hat{f}_S) - \hat{R}_S(\hat{f}_S)] + \mathbb{E}_S[\hat{R}_S(\hat{f}_S) - \hat{R}_S(f^\dagger)] + \mathbb{E}_S[\hat{R}_S(f^\dagger) - R(f^\dagger)].
+    \end{equation*}
+    Par définition du minimiseur empirique exact, $\hat{R}_S(\hat{f}_S) - \hat{R}_S(f^\dagger) \leqslant 0$. De plus, $f^\dagger$ étant indépendant de $S$, $\mathbb{E}_S[\hat{R}_S(f^\dagger)] = R(f^\dagger)$, donc le dernier terme est nul. Il reste :
+    \begin{align*}
+        \mathbb{E}_S[R(\hat{f}_S)] - R(f^\dagger) 
+        &\leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) \right] \\
+        &\leqslant 2 \, \mathfrak{R}_n(l \circ \mathcal{F}) \quad \text{(par symétrisation)} \\
+        &\leqslant 2G \, \mathfrak{R}_n(\mathcal{F}) \quad \text{(par contraction de Ledoux-Talagrand)} \\
+        &\leqslant \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]} \quad \text{(par la borne euclidienne)}.
+    \end{align*}
+\end{proof}
+
+\subsection{Borne à grande probabilité}
+
+\begin{theorem}[Excès de risque à grande probabilité]
+    On suppose de plus que la fonction de perte est bornée : $l(y, f(x)) \in [0, l_\infty]$ presque sûrement. Pour tout $\delta \in ]0, 1[$, avec probabilité au moins $1 - \delta$ sur le tirage de $S \sim \mathbb{P}^{\otimes n}$ :
+    \begin{equation}
+        R(\hat{f}_S) \leqslant \inf_{\|\theta\|_2 \leqslant D} R(f_\theta) + \frac{2GD}{\sqrt{n}} \sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]} + 2 l_\infty \sqrt{\frac{\ln(2/\delta)}{2n}}.
+    \end{equation}
+\end{theorem}
+
+\begin{proof}
+    On reprend la décomposition trajectorielle :
+    \begin{equation*}
+        R(\hat{f}_S) - R(f^\dagger) \leqslant \sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) + \big( \hat{R}_S(f^\dagger) - R(f^\dagger) \big).
+    \end{equation*}
+    \begin{enumerate}
+        \item D'après McDiarmid, $\sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f)) \leqslant \mathbb{E}_S\left[\sup_{f \in \mathcal{F}} (R(f) - \hat{R}_S(f))\right] + l_\infty \sqrt{\frac{\ln(2/\delta)}{2n}}$ avec probabilité au moins $1 - \delta/2$. L'espérance est bornée par $\frac{2GD}{\sqrt{n}}\sqrt{\mathbb{E}[\|\varphi(x)\|_2^2]}$ comme démontré précédemment.
+        \item Pour le prédicteur fixé $f^\dagger$, l'inégalité de Hoeffding unilatérale assure que $\hat{R}_S(f^\dagger) - R(f^\dagger) \leqslant l_\infty \sqrt{\frac{\ln(2/\delta)}{2n}}$ avec probabilité au moins $1 - \delta/2$.
+    \end{enumerate}
+    Un \emph{Union Bound} sur les deux événements garantit que les deux inégalités ont lieu simultanément avec probabilité au moins $1 - \delta$.
+\end{proof}
+
+\begin{remark}[Bilan structurel : le compromis régularisation/généralisation]
+    Cette borne synthétise tout le problème de l'apprentissage statistique dans une seule formule :
+    \begin{equation*}
+        R(\hat{f}_S) \leqslant \underbrace{\inf_{\|\theta\|_2 \leqslant D} R(f_\theta)}_{\text{Erreur d'approximation}} + \underbrace{\frac{2GD}{\sqrt{n}}\sqrt{\mathbb{E}_x \left[ \|\varphi(x)\|_2^2 \right]} + 2 l_\infty \sqrt{\frac{\ln(2/\delta)}{2n}}}_{\text{Erreur d'estimation}}.
+    \end{equation*}
+    \begin{itemize}
+        \item \emph{Rôle du rayon $D$} : augmenter $D$ enrichit la classe d'hypothèses, ce qui fait décroître l'erreur d'approximation mais croître linéairement l'erreur d'estimation. Le réglage de l'hyperparamètre de régularisation (le choix de $D$) matérialise l'arbitrage exact entre sous-apprentissage et sur-apprentissage.
+        \item \emph{Vitesse universelle en $n^{-1/2}$} : que la classe soit finie ou infinie, la vitesse de convergence reste universellement en $\mathcal{O}(1/\sqrt{n})$.
+    \end{itemize}
+\end{remark}
