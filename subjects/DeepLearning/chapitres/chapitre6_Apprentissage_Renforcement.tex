@@ -1,0 +1,163 @@
+% =============================================================
+% Apprentissage par Renforcement
+% =============================================================
+
+\minitoc
+
+Dans ce chapitre, nous présentons et développons brièvement la théorie de l'Apprentissage par Renforcement. Au contraire de l'apprentissage dit \emph{supervisé} traité jusqu'ici, on ne dispose plus de \emph{données} ou \emph{d'étiquettes} pour celles-ci mais d'un \emph{agent} dans un \emph{environnement}. 
+
+% =============================================================
+% Cadre général 
+
+\section{Cadre général}
+
+Commençons donc par formaliser le cadre général de \emph{l'apprentissage par renforcement}. 
+
+\subsection{Agent et environnement}
+
+On considère donc un \emph{environnement} dans lequel évolue un \emph{agent} (voir Figure~\ref{fig:reinforcement-basic-schema}). Ce dernier peut effectuer des \emph{actions} qui influent sur son état actuel ainsi que celui de l'environnement. On pourra classifier/ordonner les différentes actions jouées par l'agent en fonction de leur \emph{intérêt} à réaliser une tâche : pour cela, on leur associera un coût et une pénalité. 
+
+\begin{figure}[thbp]
+    \centering
+    \begin{tikzpicture}[
+        >=stealth,
+        node distance=2.2cm,
+        boite/.style={
+            rectangle, 
+            draw=black, 
+            thick, 
+            rounded corners=3pt,
+            minimum width=3.2cm, 
+            minimum height=1.1cm, 
+            align=center,
+            font=\bfseries
+        },
+        fleche/.style={
+            draw, 
+            thick, 
+            ->
+        }
+    ]
+        % Blocs
+        \node[boite, fill=blue!10] (agent) {Agent};
+        \node[boite, fill=green!10, below=of agent] (env) {Environnement};
+
+        % Action (Agent -> Environnement)
+        \draw[fleche] (agent.east) -- ++(1.5,0) 
+            |- node[pos=0.25, right] {Choix d'une action} (env.east);
+
+        % Retour (Environnement -> Agent)
+        \draw[fleche] (env.west) -- ++(-1.5,0) 
+            |- node[pos=0.25, left, align=right] {Nouvel état\\+ Récompense / Coût} (agent.west);
+    \end{tikzpicture}
+    \caption{Schéma simplifié de l'évolution d'un agent dans un environnement.}
+    \label{fig:reinforcement-basic-schema}
+\end{figure}
+
+L'objectif est de faire \emph{apprendre} à l'agent un comportement en fonction de la structure de l'environnement pour qu'il réalise une tâche donnée. On appellera cela l'apprentissage d'une \emph{politique}. 
+
+\begin{example}[Gestion de l'énergie d'un satellite en orbite]
+    Considérons un nano-satellite en orbite basse équipé d'une batterie et d'un instrument scientifique (caméra ou émetteur). À chaque révolution orbitale, un agent embarqué doit décider du mode d'opération en fonction de la réserve d'énergie disponible.
+
+    On discrétise la capacité de la batterie en trois niveaux de charge :
+    \begin{itemize}
+        \item $s_0$ : \emph{Batterie critique} (niveau minimal de survie),
+        \item $s_1$ : \emph{Batterie moyenne},
+        \item $s_2$ : \emph{Batterie pleine}.
+    \end{itemize}
+    Depuis chaque état, l'agent peut choisir entre deux modes d'action :
+    \begin{itemize}
+        \item $a_{\text{eco}}$ (\emph{Mode veille / recharge}) : les instruments sont coupés pour recharger la batterie grâce aux panneaux solaires,
+        \item $a_{\text{mission}}$ (\emph{Exécution de mission}) : l'instrument est activé pour acquérir et transmettre des données scientifiques, ce qui consomme une quantité importante d'énergie.
+    \end{itemize}
+    Chaque transmission réussie rapporte une récompense positive ($+10$), tandis que laisser le satellite tomber en décharge critique ($s_0$) ou tenter d'activer la charge utile sans énergie suffisante engendre une pénalité sévère (coût négatif ou risque de perte de la mission).
+\end{example}
+
+\subsection{Cadre mathématique : processus Markovien}
+
+Définissons maintenant un cadre mathématique à l'étude des modèles d'apprentissage par renforcement. 
+
+\begin{definition}[Cadre Markovien]
+    On peut modéliser ce problème d'apprentissage de la façon suivante : 
+    \begin{itemize}
+        \item $S$ représente l'espace des états, 
+        \item $A$ est l'ensemble des actions, 
+        \item $A(s)$ est l'ensemble des actions réalisables dans l'état $s \in S$, 
+        \item $r(s,a) \in \R$ est la récompense immédiate lorsque l'agent exécute l'action $a \in A(s)$ à partir de l'état $s \in S$, 
+        \item $ \delta(s, a) \in S$ donne l'état résultant de l'action $a$ depuis l'état $s$. 
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    On peut noter que l'on fait une hypothèse forte sur le système étudié : chaque état ne dépend que de l'état précédent et de l'action effectuée. C'est une \emph{hypothèse Markovienne}. 
+\end{remark}
+
+\begin{example}[Gestion de l'énergie d'un satellite en orbite]
+    On peut désormais reprendre l'exemple introduit précédemment pour lui appliquer le formalisme tout juste défini. On a donc : 
+    \begin{itemize}
+        \item {Espace des états} : $S = \{s_0, s_1, s_2\}$ avec $|S| = 3$.
+        \item {Espace des actions} : $A = \{a_{\text{eco}}, a_{\text{mission}}\}$, avec $A(s) = A$ pour tout $s \in S$.
+        \item {Dynamique déterministe} $\delta : S \times A \to S$ :
+        \begin{align*}
+            \delta(s_0, a_{\text{eco}}) &= s_1, & \delta(s_0, a_{\text{mission}}) &= s_0, \\
+            \delta(s_1, a_{\text{eco}}) &= s_2, & \delta(s_1, a_{\text{mission}}) &= s_0, \\
+            \delta(s_2, a_{\text{eco}}) &= s_2, & \delta(s_2, a_{\text{mission}}) &= s_1.
+        \end{align*}
+        \item {Fonction de récompense} $r : S \times A \to \R$ :
+        \begin{align*}
+            r(s_0, a_{\text{eco}}) &= 0,  & r(s_0, a_{\text{mission}}) &= -10 \quad \text{(échec / pénalité critique)}, \\
+            r(s_1, a_{\text{eco}}) &= 0,  & r(s_1, a_{\text{mission}}) &= +10, \\
+            r(s_2, a_{\text{eco}}) &= 0,  & r(s_2, a_{\text{mission}}) &= +10.
+        \end{align*}
+    \end{itemize}
+\end{example}
+
+\begin{remark}[Transitions stochastiques et incertitude]
+    Dans certaines situations, on peut définir des modèles \emph{non déterministes}. Autrement dit, il se peut que les transitions entre les états soient probabilistes : pour un même état de départ et une même action, l'agent peut se retrouver dans des états différents. 
+    En pratique, on connaît rarement tout le domaine $S$ ou l'on est incapable de calculer/stocker les matrices $r$. 
+\end{remark}
+
+\subsection{Politique}
+
+Dans le cadre de l'apprentissage par renforcement, la notion d'apprentissage est modélisée par une \emph{politique}. 
+
+\begin{definition}[Politique]
+    Soit le cadre mathématique défini plus haut. On appelle \emph{politique} associée à un agent et un environnement donné, l'application $ \pi : S \longrightarrow A$ telle que $ \forall s \in S, \pi(s) \in A(s)$.
+\end{definition}
+
+Cette application définit l'action que doit effectuer l'agent pour chaque état atteignable $s \in S$. La propriété $ \forall s \in S, \pi(s) \in A(s)$ permet de toujours orienter l'agent vers un état atteignable depuis l'état courant. 
+
+\begin{remark}
+    Une politique est une application $ \pi : S \longrightarrow A$, il existe donc $ |A|^{|S|}$ politiques possible pour chaque ensemble $A$ et $S$. Dans notre exemple précédent il existe donc $2^3 = 8$ politiques différentes. On pourrait ainsi toutes les considérer et choisir celle qui maximise la récompense $r$ pour l'ensemble des transitions. En pratique, il est souvent impossible d'énumérer toutes les politiques possibles pour choisir la meilleure. On doit donc développer des approches algorithmiques plus performantes. 
+\end{remark}
+
+\begin{definition}[Récompense à long terme]
+    L'objectif de l'apprentissage d'une politique est de maximiser les récompenses de l'agent sur le long terme. On définit donc la \emph{récompense à long terme} comme la somme des récompenses obtenues depuis le début de la simulation : 
+    \begin{equation}
+        R(s) = \sum_{i=0}^{\infty} \gamma^i \cdot r(s_i, a_i)
+    \end{equation}
+    pour une séquence d'états et d'actions $s = (s_0, a_0, s_1, a_1, \dots)$ donnée. On prendra $ \gamma \in ]0, 1]$ tel que $ \gamma < 1$ favorise les récompenses immédiates et la convergence de la somme si les récompenses sont bornées. 
+\end{definition}
+
+\begin{proposition}
+    Soit $ \pi$ une politique, on peut alors calculer la récompense obtenue par l'application de cette politique à partir de l'état $s_0 \in S$ avec :
+    \begin{equation}
+        V_\pi(s_0) = R( \pi, s_0) = \sum_{i=0}^{\infty} \gamma^i \cdot r(s_i, a_i) \quad \text{avec} \quad a_i = \pi(s_i), s_{i+1} = \delta(s_i, a_i). 
+    \end{equation}
+\end{proposition}
+
+\begin{proposition}[Comparaison de politiques]
+    On peut comparer deux politiques $ \pi$ et $ \pi'$ sur deux mêmes espaces $A$ et $S$ en comparant simplement leur récompense à long terme. On dira alors que $ \pi \succeq \pi'$ ssi 
+    \begin{equation}
+        \forall s_0 \in S, \quad R( \pi, s_0) \geqslant R( \pi', s_0). 
+    \end{equation}
+\end{proposition}
+
+On peut alors se demander s'il existe une politique optimale pour un problème d'apprentissage par renforcement donné et s'il est possible de concevoir un algorithme qui nous permette de l'apprendre. 
+
+% =============================================================
+% Équations de Bellman et Programmation Dynamique
+
+\section{Des équations de Bellman à la Programmation Dynamique}
+
+% TODO : continue this part
