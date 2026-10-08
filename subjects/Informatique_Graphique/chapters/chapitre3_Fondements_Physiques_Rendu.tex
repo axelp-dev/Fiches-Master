@@ -14,13 +14,13 @@ Avant de parler d'équation du transfert radiatif, commençons par définir corr
 % ---------------------------------------------
 \subsection{Principe du rendu}
 
-\input{subjects/Informatique_Graphique/figures/principe_chaine_rendu.tex}
-
 On modélise ces interactions simplement par trois éléments : la source, la matière et le détecteur représentés en Figure~\ref{fig:chaine_rendu_principe}. 
 Un signal $ \mathcal{E}$ est émis par une source lumineuse (soleil, ampoule) et est transporté sous la forme de rayonnements jusqu'aux objets de la scène. On définit alors un \emph{opérateur de transport} $ \mathcal{T}$ décrivant l'interaction de ce signal avec la matière (absorption, réflexion). Enfin un capteur (caméra, oeil) acquiert le signal reçu $ \mathcal{S} = \mathcal{T} \cdot \mathcal{E}$. En fonction de sa sensibilité à chaque longueur d'onde $ \mathcal{V}$, celui le capte différement, on obtient donc l'équation suivante : 
 \begin{equation}
     \mathcal{R} = \int \mathcal{V}( \lambda) \cdot \mathcal{S}( \lambda) \mathrm{d} \lambda. 
 \end{equation}
+
+\input{subjects/Informatique_Graphique/figures/principe_chaine_rendu.tex}
 
 L'objectif du rendu est de modéliser l'ensemble de ces notions physiques. La principale difficulté est dans l'estimation du transport $ \mathcal{T}$. On considèrera pour cela les interactions \emph{microscopiques} (entre les photons et la structure atomique du matériaux) et les interactions \emph{macroscopiques}. 
 
@@ -389,3 +389,153 @@ L'intégrale cumule la contribution de chaque élément d'aire infinitésimal de
     \item \emph{Fonction de diffusion bidirectionnelle $f_r(x' \to x \to x'')$} : elle pondère quelle proportion de cette énergie incidente en $x$ est renvoyée précisément vers l'observateur en $x''$.
 \end{enumerate}
 
+
+% ============================================================
+% Modélisation de la réflexion
+
+\section{Modélisation de la réflexion}
+
+Dans le développement précédent ayant permis l'énoncé de l'équation du transfert radiatif et l'équation du rendu, nous avons utilisé une application $f_r$ exprimant la proportion de l'énergie incidente sur une surface renvoyé vers la scène. 
+En supposant que la radiance du rayon lumineux $ \vec{u}$ est invariante (i.e $(L_i(x \rightarrow \omega_i) = L(x' \to x))$), alors c'est ce terme $f_r$ qui dicte quelle partie de l'énergie électromagnétique est perdue par rebonds successifs sur les objets de la scène. 
+
+Dans cette section, nous développons donc les outils physiques et mathématiques permettant de l'exprimer en décrivant les phénomènes de base de la réflexion jusqu'aux méthodes d'approximation utilisées en pratique. 
+
+\subsection{L'intuition de la corde : transversalité et polarisation}
+
+Un faisceau lumineux se déplace en ligne droite dans un milieu homogène tant qu'il ne rencontre pas d'interface entre deux milieux aux propriétés optiques différentes. Pour comprendre la nature de son onde sans recourir aux équations de Maxwell, on peut se le représenter comme une corde tendue perpendiculairement à un mur en face de soi.
+
+\input{subjects/Informatique_Graphique/figures/figure_light_as_rope_on_wall.tex}
+
+Si l'on secoue la corde, la perturbation ondulatoire se propage vers l'avant, mais le déplacement de la corde s'effectue toujours de manière transverse (perpendiculaire à l'axe de visée). On peut secouer la corde de gauche à droite ou de bas en haut : la trajectoire du mouvement se projette alors sur le mur dans un plan orthogonal à la corde. Ce plan vectoriel de dimension 2 admet une base orthonormée $(\vec{e}_1, \vec{e}_2)$ qui permet de décomposer toute oscillation transverse arbitraire.
+
+En transposant cette analogie à la lumière, la corde matérialise la direction de propagation $\vec{u}$. En chaque point du trajet, le champ électrique $\vec{E}(t)$ est strictement confiné dans le plan orthogonal $\vec{u}^\perp$. Les deux directions de base $(\vec{e}_1, \vec{e}_2)$ représentent les deux états de polarisation linéaire indépendants de l'onde. La fréquence temporelle d'oscillation fixe la longueur d'onde $\lambda$ (la couleur spectrale), tandis que l'amplitude du vecteur $\vec{E}(t)$ régit l'énergie transportée.
+
+% ---------------------------------------------
+\subsection{Réflexion \& Réfraction}
+
+Les principes de réflexion et réfraction décrivent le comportement d'un faisceau traversant une discontinuité entre deux milieux aux propriétés optiques distinctes. Pour quantifier la réponse de ces milieux vis-à-vis de la lumière, on introduit la notion \emph{d'indice de réfraction}.
+
+\begin{definition}[Indice de réfraction]
+    Soit un milieu homogène et isotrope, on appelle \emph{indice de réfraction} $n$ de ce milieu le rapport adimensionnel entre la vitesse de la lumière dans le vide $c$ et la vitesse de phase $v$ de l'onde dans ce milieu :
+    \begin{equation}
+        n = \frac{c}{v}.
+    \end{equation}
+    Puisque la vitesse dans la matière vérifie $v \leqslant c$, on a généralement $n \geqslant 1$ dans le domaine optique. Plus l'indice $n$ est élevé, plus le milieu est dit \emph{réfringent} et plus la propagation de l'onde y est ralentie.
+\end{definition}
+
+Soient deux milieux d'indices respectifs $n_1$ (milieu incident) et $n_2$ (milieu de transmission). On étudie le comportement d'un rayon lumineux frappant une interface plane séparant ces deux milieux (voir Figure~\ref{fig:fresnel_polarisation_schema}).
+
+\input{subjects/Informatique_Graphique/figures/figure_reflexion_3d.tex}
+
+Le rayon incident est modélisé par sa direction unitaire $\vec{\omega}_i$, faisant un angle $\theta_i \in [0, \frac{\pi}{2}]$ avec la normale sortante $\vec{n}$ à l'interface. L'interaction génère deux composantes :
+\begin{itemize}
+    \item un rayon réfléchi $\vec{\omega}_r$, dont l'angle vérifie la loi de réflexion spéculaire $\theta_r = \theta_i$ ;
+    \item un rayon réfracté (ou transmis) $\vec{\omega}_t$, dont l'angle $\theta_t$ dans le second milieu est dicté par la loi de Snell-Descartes :
+    \begin{equation}
+        n_1 \sin\theta_i = n_2 \sin\theta_t.
+    \end{equation}
+\end{itemize}
+
+\begin{remark}[Réflexion totale interne]
+    Lorsque le faisceau se propage d'un milieu plus réfringent vers un milieu moins réfringent ($n_1 > n_2$), la quantité $\frac{n_1}{n_2}\sin\theta_i$ peut excéder $1$. Il existe alors un angle critique $\theta_c = \arcsin\left(\frac{n_2}{n_1}\right)$ au-delà duquel aucun rayon ne peut être transmis dans le second milieu : toute l'énergie est réfléchie dans le premier milieu (\emph{réflexion totale interne}).
+\end{remark}
+
+\begin{proposition}[Décomposition géométrique de la polarisation]
+    Pour analyser l'oscillation du champ électrique transverse $\vec{E} \in \vec{\omega}_i^\perp$, la présence de la surface brise l'isotropie spatiale et impose un plan de référence. Deux vecteurs non colinéaires $\vec{\omega}_i$ et $\vec{n}$ définissent le \emph{plan d'incidence} $\mathcal{P} = \operatorname{Vect}(\vec{\omega}_i, \vec{n})$.
+
+    Le plan des oscillations permises $\vec{\omega}_i^\perp$ admet alors une décomposition canonique en deux directions orthogonales :
+    \begin{enumerate}
+        \item \textbf{Direction orthogonale $\vec{t}_\perp$ (polarisation $s$)} : perpendiculaire au plan d'incidence $\mathcal{P}$, obtenue par produit vectoriel :
+        \begin{equation}
+            \vec{t}_\perp = \frac{\vec{\omega}_i \times \vec{n}}{\|\vec{\omega}_i \times \vec{n}\|}.
+        \end{equation}
+        Ce vecteur est par construction orthogonal à $\vec{n}$ : il oscille parallèlement à l'interface matérielle.
+        \item \textbf{Direction parallèle $\vec{t}_\parallel$ (polarisation $p$)} : contenue dans le plan d'incidence $\mathcal{P}$ et orthogonale à la direction de propagation $\vec{\omega}_i$ :
+        \begin{equation}
+            \vec{t}_\parallel = \vec{\omega}_i \times \vec{t}_\perp.
+        \end{equation}
+    \end{enumerate}
+    Toute onde incidente se projette de façon unique sur cette base : $\vec{E}_i = E_\perp \vec{t}_\perp + E_\parallel \vec{t}_\parallel$.
+\end{proposition}
+
+\begin{proposition}[Équations de Fresnel et bilan énergétique]
+    La conservation de l'énergie impose que la somme de la réflectance $R$ et de la transmittance $T$ vaille $1$. Les équations de Fresnel fournissent les coefficients de réflexion énergétique exacts pour chacune des deux polarisations :
+    \begin{align}
+        R_\perp(\theta_i) &= \left( \frac{n_1 \cos\theta_i - n_2 \cos\theta_t}{n_1 \cos\theta_i + n_2 \cos\theta_t} \right)^2 = \left( \frac{\sin(\theta_i - \theta_t)}{\sin(\theta_i + \theta_t)} \right)^2, \label{eq:fresnel_perp} \\
+        R_\parallel(\theta_i) &= \left( \frac{n_2 \cos\theta_i - n_1 \cos\theta_t}{n_2 \cos\theta_i + n_1 \cos\theta_t} \right)^2 = \left( \frac{\tan(\theta_i - \theta_t)}{\tan(\theta_i + \theta_t)} \right)^2. \label{eq:fresnel_para}
+    \end{align}
+\end{proposition}
+
+En synthèse d'images, la lumière naturelle et les sources d'éclairage sont modélisées comme non polarisées : les directions d'oscillation dans $\vec{\omega}_i^\perp$ sont réparties de manière isotrope. Le coefficient de Fresnel effectif $F(\theta_i)$ est la moyenne équipondérée des deux modes ($s = p = 0{,}5$) :
+\begin{equation}
+    F(\theta_i) = \frac{R_\perp(\theta_i) + R_\parallel(\theta_i)}{2}.
+\end{equation}
+
+\begin{proposition}[Approximation de Schlick]
+    Pour éviter l'évaluation trigonométrique coûteuse des équations~(\ref{eq:fresnel_perp}) et~(\ref{eq:fresnel_para}) lors du tracé de rayons, on utilise l'approximation polynomiale de Schlick :
+    \begin{equation}
+        F(\theta_i) \approx R_0 + (1 - R_0)(1 - \cos\theta_i)^5
+    \end{equation}
+    où $R_0$ représente la réflectance mesurée à incidence normale ($\theta_i = 0$, soit $\cos\theta_i = 1$) :
+    \begin{equation}
+        R_0 = \left( \frac{n_1 - n_2}{n_1 + n_2} \right)^2.
+    \end{equation}
+\end{proposition}
+
+Cette approximation reproduit fidèlement deux propriétés physiques majeures :
+\begin{itemize}
+    \item À incidence normale ($\theta_i \approx 0$), la réflectance vaut $R_0$ (typiquement de l'ordre de $0{,}04$ pour des matériaux tels que verre et l'eau);
+    \item À incidence rasante ($\theta_i \to \frac{\pi}{2}$, $\cos\theta_i \to 0$), le terme $(1 - \cos\theta_i)^5 \to 1$, d'où $F(\theta_i) \to 1$ : toute surface devient un réflecteur parfait aux angles rasants.
+\end{itemize}
+
+% ---------------------------------------------
+\subsection{Fonction de distribution de la réflectance bidirectionnelle - BRDF}
+
+Les modèles vus précédement caractérisent la réponse locale d'une interface plane et optiquement lisse, où la réflexion est exclusivement spéculaire. Pour modéliser des matériaux macroscopiques réels présentant de la rugosité ou des phénomènes de diffusion interne, il est nécessaire d'introduire un formalisme reliant l'irradiance incidente à la radiance réémise dans chaque direction de l'espace.
+Ici, nous commençons par présenter le modèle général puis proposons une simplification utilisant des lois de probabilités. 
+
+Dans le cas le plus général, le transport de lumière à une frontière matérielle est un phénomène continu à 12 dimensions :
+\begin{equation}
+    S(x_i, \vec{\omega}_i, t_i, \lambda_i \;\to\; x_r, \vec{\omega}_r, t_r, \lambda_r)
+\end{equation}
+où $x_i, x_r$ sont les positions spatiales d'entrée et de sortie, $\vec{\omega}_i, \vec{\omega}_r$ les directions sphériques correspondantes, $t_i, t_r$ les instants d'interaction, et $\lambda_i, \lambda_r$ les longueurs d'onde associées.
+
+\begin{proposition}[Simplification]
+    En synthèse d'images usuelle, trois hypothèses simplificatrices sont admises :
+    \begin{itemize}
+        \item \textbf{Indépendance temporelle} ($t_i = t_r$) : la vitesse de propagation est considérée infinie à l'échelle de la scène, excluant les effets de phosphorescence.
+        \item \textbf{Cohérence spectrale} ($\lambda_i = \lambda_r$) : la lumière réfléchie conserve sa longueur d'onde incidente, excluant la fluorescence.
+        \item \textbf{Hypothèse de localité spatiale} ($x_i \approx x_r = x$) : pour les matériaux opaques, la distance de diffusion interne sous la surface est négligeable devant les échelles macroscopiques. La fonction de diffusion sous-surfacique (BSSRDF, en dimension 8) se réduit alors à une fonction locale définie en un unique point matériel $x$.
+    \end{itemize}    
+\end{proposition}
+
+Cette réduction dimensionnelle aboutit à la \emph{Bidirectional Reflectance Distribution Function} (BRDF), fonction à quatre paramètres angulaires $(\theta_i, \phi_i, \theta_r, \phi_r)$ paramétrée par la longueur d'onde $\lambda$.
+
+\begin{definition}[BRDF]
+    Soit un point $x$ sur une surface, la BRDF, notée $f_r$, est le rapport différentiel entre la radiance réfléchie $\dd L_r$ dans la direction $\vec{\omega}_r$ et l'irradiance incidente différentielle $\dd E_i$ arrivant depuis le secteur solide élémentaire $\dd\omega_i$ autour de $\vec{\omega}_i$ :
+    \begin{equation}
+        f_r(x, \vec{\omega}_i, \vec{\omega}_r, \lambda) = \frac{\dd L_r(x \to \vec{\omega}_r, \lambda)}{\dd E_i(x \leftarrow \vec{\omega}_i, \lambda)} = \frac{\dd L_r(x \to \vec{\omega}_r, \lambda)}{L_i(x \leftarrow \vec{\omega}_i, \lambda) \cos\theta_i \, \dd\omega_i}.
+    \end{equation}
+    Elle s'exprime en stéradians inverses ($\mathrm{sr}^{-1}$).
+\end{definition}
+
+\begin{prop}[Fondamentales]
+    Pour être physiquement admissible, tout modèle mathématique de BRDF doit impérativement respecter deux contraintes thermodynamiques :
+    \begin{enumerate}
+        \item \textbf{Réciprocité d'Helmholtz} : la fonction de transfert optique est invariante par inversion du sens de parcours de la lumière :
+        \begin{equation}
+            f_r(x, \vec{\omega}_i, \vec{\omega}_r, \lambda) = f_r(x, \vec{\omega}_r, \vec{\omega}_i, \lambda).
+        \end{equation}
+        Cette propriété garantit l'équivalence entre les algorithmes traçant les rayons depuis l'observateur (\emph{path tracing}) et ceux partant des sources de lumière (\emph{ligh-tracing}).
+        \item \textbf{Conservation de l'énergie} : une surface passive ne pouvant amplifier l'énergie incidente, la puissance totale réémise sur l'hémisphère supérieur $\Omega^+$ ne peut excéder la puissance reçue. Pour toute direction incidente $\vec{\omega}_i$ :
+        \begin{equation}
+            \int_{\Omega^+} f_r(x, \vec{\omega}_i, \vec{\omega}_r, \lambda) \cos\theta_r \, \dd\omega_r \leqslant 1.
+        \end{equation}
+    \end{enumerate}
+\end{prop}
+
+% Les modèles de réflectance se divisent canoniquement en deux approches :
+% \begin{itemize}
+%     \item \textbf{Modèles implicites (phénoménologiques ou projectifs)} : ils font abstraction de la géométrie locale et approximent le comportement lumineux via des formulations empiriques ou analytiques simples (modèles de Lambert, Phong, Blinn-Phong).
+%     \item \textbf{Modèles explicites (microfacettes)} : ils modélisent explicitement la rugosité de la surface sous la forme d'une distribution statistique de facettes microscopiques lisses orientées selon une densité de normales. La réponse globale intègre alors les fonctions de masquage/ombrage géométrique $G$, la distribution des normales $D$ et le terme de Fresnel spéculaire $F$ (modèles de Cook-Torrance, Beckmann, GGX).
+% \end{itemize}
