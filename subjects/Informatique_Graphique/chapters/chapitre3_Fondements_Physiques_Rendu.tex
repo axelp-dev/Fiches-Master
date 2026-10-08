@@ -265,153 +265,127 @@ On peut en proposer une version plus condensé pour obtenir sa formulation canon
 \begin{proposition}[Forme canonique de l'ETR]
     En paramétrant le rayon lumineux par son abscisse curviligne $s$ le long de la direction $\vec{u}$, l'ETR se réécrit comme une équation différentielle linéaire du premier ordre à coefficients non constants :
     \begin{equation}
-        \boxed{\frac{\dd L_\lambda(s)}{\dd s} + k_\lambda(s) L_\lambda(s) = L_{i, \lambda}(s).}
+        \boxed{\frac{\dd L_\lambda(s)}{\dd s} + k_\lambda(s) L_\lambda(s) = L_{i, \lambda}(s).} \label{eq:etr-canonical}
     \end{equation}
 \end{proposition}
 
+% ---------------------------------------------
+\subsection{Résolution analytique : forme intégrale de l'ETR}
+
+L'équation différentielle linéaire du premier ordre établie précédemment décrit le comportement local du transport lumineux. Pour déterminer la radiance atteignant un observateur en un point $x$, on intègre cette équation le long du rayon lumineux en partant du premier obstacle matériel rencontré en $x_0$ jusqu'à $x$.
+
+\begin{theorem}[Forme intégrale de l'ETR]
+    Soit un rayon paramétré par son abscisse curviligne $s \in [0, d]$ où $s=0$ correspond à la surface frontière $x_0$ et $s=d$ au point de réception $x$. La radiance perçue en $x$ s'exprime par :
+    \begin{equation}
+        L(x \leftarrow \vec{\omega}) = \tau(x_0, x) \, L_r(x_0 \to \vec{\omega}) + \int_{x_0}^x \tau(s, x) \, L_i(s \leftarrow \vec{\omega}) \, \dd s
+    \end{equation}
+    où $\tau(s_1, s_2)$ est la transmittance volumique entre deux points du trajet.
+\end{theorem}
+
+\begin{proof}
+    On résout l'équation différentielle scalaire non homogène :
+    \begin{equation}
+        \frac{\dd L(s)}{\dd s} + k(s) L(s) = L_i(s).
+    \end{equation}
+    On introduit le facteur intégrant $\mu(s) = \exp\left( \int_0^s k(t) \, \dd t \right)$. Sa dérivée vaut :
+    \begin{equation}
+        \mu'(s) = k(s) \exp\left( \int_0^s k(t) \, \dd t \right) = k(s) \mu(s).
+    \end{equation}
+    En multipliant l'équation différentielle par $\mu(s)$, le membre de gauche s'identifie à la dérivée d'un produit :
+    \begin{equation}
+        \frac{\dd}{\dd s} \left[ L(s) \mu(s) \right] = \left( \frac{\dd L(s)}{\dd s} + k(s) L(s) \right) \mu(s) = L_i(s) \mu(s).
+    \end{equation}
+    On intègre cette égalité par rapport à la variable muette $s'$ entre l'origine sur la frontière ($s'=0$) et la position d'évaluation ($s'=d$) :
+    \begin{equation}
+        \left[ L(s') \mu(s') \right]_0^d = \int_0^d L_i(s') \exp\left( \int_0^{s'} k(t) \, \dd t \right) \dd s'.
+    \end{equation}
+    Comme $\mu(0) = \exp(0) = 1$, le membre de gauche se développe en :
+    \begin{equation}
+        L(d) \mu(d) - L(0) = \int_0^d L_i(s') \exp\left( \int_0^{s'} k(t) \, \dd t \right) \dd s'.
+    \end{equation}
+    En isolant $L(d)$ et en multipliant par $\mu(d)^{-1} = \exp\left( -\int_0^d k(t) \, \dd t \right)$ :
+    \begin{equation}
+        L(d) = L(0) \exp\left( -\int_0^d k(t) \, \dd t \right) + \int_0^d L_i(s') \exp\left( \int_0^{s'} k(t) \, \dd t - \int_0^d k(t) \, \dd t \right) \dd s'.
+    \end{equation}
+    Par la relation de Chasles, $\int_0^{s'} k(t) \, \dd t - \int_0^d k(t) \, \dd t = -\int_{s'}^d k(t) \, \dd t$. On définit alors la \emph{transmittance volumique} (loi de Beer-Lambert) entre deux abscisses quelconques $a \leqslant b$ :
+    \begin{equation}
+        \tau(a, b) = \exp\left( -\int_a^b k(t) \, \dd t \right) \in [0, 1].
+    \end{equation}
+    On identifie directement $\tau(0, d) = \tau(x_0, x)$ pour l'atténuation du rayonnement de surface $L(0) = L_r(x_0 \to \vec{\omega})$, et $\tau(s', d) = \tau(s', x)$ pour l'atténuation du terme source volumique émis en $s'$. L'évaluation finale en $x$ donne la formule intégrale recherchée.
+\end{proof}
+
+% ---------------------------------------------
+\subsection{De l'ETR à l'équation du rendu de Kajiya}
+
+La forme intégrale de l'ETR fait apparaître une condition aux limites : la radiance $L_r(x_0 \to \vec{\omega})$ réfléchie par la surface d'un objet matériel situé en $x_0$. 
+
+Dans la majorité des scènes de synthèse classiques, on fait l'hypothèse d'un \emph{milieu non participant} (air clair, vide). L'absence d'absorption et de diffusion dans le milieu implique $k(s) = 0$ et $L_i(s) = 0$. La transmittance est alors totale ($\tau(x_0, x) = 1$) et la radiance se conserve le long du rayon :
+\begin{equation}
+    L(x \leftarrow \vec{\omega}) = L_r(x_0 \to \vec{\omega}).
+\end{equation}
+Le problème du rendu se ramène dès lors entièrement à l'évaluation de cette condition aux limites sur les surfaces de la scène.
+
+\begin{proposition}[Formulation directionnelle -- hémisphérique]
+    Considérons un point $x$ sur une surface opaque orientée par sa normale unitaire sortante $\vec{n}$. On note $\Omega^+ = \{ \vec{\omega} \in \mathbb{S}^2 \mid \langle \vec{\omega}, \vec{n} \rangle \geqslant 0 \}$ l'hémisphère supérieur visible depuis $x$.
+    La radiance sortante dans une direction d'observation $\omega_r$ résulte de deux contributions énergétiques :
+    \begin{itemize}
+        \item L'émission propre de la surface $L_e(x \to \omega_r)$ (non nulle si la surface est une source de lumière).
+        \item La réflexion de la radiance incidente provenant de l'ensemble des directions $\omega_i \in \Omega^+$.
+    \end{itemize}
+    Chaque direction incidente $\omega_i$ apporte une irradiance élémentaire $\dd E_i = L_i(x \leftarrow \omega_i) \cos\theta_i \dd\omega_i$. En intégrant ces contributions pondérées par la BRDF du matériau $f_r$, on obtient la formulation hémisphérique suivante. 
+\end{proposition}
+
+\begin{theorem}[Équation du rendu -- Kajiya, 1986]
+    La radiance sortante en un point de surface $x$ dans la direction $\omega_r$ s'exprime par :
+    \begin{equation}
+        L_r(x \to \omega_r) = L_e(x \to \omega_r) + \int_{\Omega^+} f_r(x, \omega_i, \omega_r) \, L_i(x \leftarrow \omega_i) \cos\theta_i \, \dd\omega_i.
+    \end{equation}
+\end{theorem}
+
+Pour résoudre cette équation par des méthodes globales (radiosité, algorithmes de Monte-Carlo), il est commode de transformer l'intégrale directionnelle sur le dôme $\Omega^+$ en une intégrale spatiale sur l'ensemble des surfaces visibles de la scène, noté $\mathcal{M}$.
+
+Soit un point $x' \in \mathcal{M}$ visible depuis $x$ le long de la direction incidente $\omega_i$. L'élément d'angle solide $\dd\omega_i$ sous-tendu par la surface élémentaire $\dd A(x')$ s'écrit :
+\begin{equation}
+    \dd\omega_i = \frac{\cos\theta_{x'}}{\|x - x'\|^2} \, \dd A(x')
+\end{equation}
+où $\theta_{x'}$ est l'angle entre la normale en $x'$ et la direction du rayon vers $x$. En injectant cette relation dans le terme sous l'intégrale et en notant $\theta_x$ l'angle d'incidence en $x$, on obtient le terme différentiel de transport :
+\begin{equation}
+    \cos\theta_x \dd\omega_i = \frac{\cos\theta_x \cos\theta_{x'}}{\|x - x'\|^2} \, \dd A(x').
+\end{equation}
+
+Pour étendre l'intégration à l'ensemble des surfaces $\mathcal{M}$, on introduit :
+\begin{itemize}
+    \item La fonction de visibilité binaire $V(x, x') \in \{0, 1\}$, qui vaut $1$ si le segment reliant $x$ et $x'$ n'est intercepté par aucun obstacle, et $0$ sinon.
+    \item Le \emph{terme géométrique} symétrique $G(x \leftrightarrow x')$ :
+    \begin{equation}
+        G(x \leftrightarrow x') = V(x, x') \frac{\cos\theta_x \cos\theta_{x'}}{\|x - x'\|^2}.
+    \end{equation}
+\end{itemize}
+
+En exploitant l'invariance de la radiance le long du rayon dans le vide ($L_i(x \leftarrow \omega_i) = L(x' \to x)$), l'équation du rendu prend sa forme surfacique intégrale de Fredholm de seconde espèce :
+
+\begin{proposition}[Formulation surfacique de l'équation du rendu]
+    Pour trois points consécutifs $x', x, x'' \in \mathcal{M}$ :
+    \begin{equation}
+        L(x \to x'') = L_e(x \to x'') + \int_{\mathcal{M}} f_r(x' \to x \to x'') \, L(x' \to x) \, G(x \leftrightarrow x') \, \dd A(x').
+    \end{equation}
+\end{proposition}
+
+L'équation surfacique ci-dessus explicite le bilan énergétique via une chaîne de trois points $x' \to x \to x''$ sur la variété $\mathcal{M}$ :
+\begin{itemize}
+    \item $x'$ : un point émetteur ou réflecteur quelconque de la scène ;
+    \item $x$ : le point matériel d'interaction en cours d'évaluation ;
+    \item $x''$ : le point de destination (capteur ou surface suivante).
+\end{itemize}
+
+L'intégrale cumule la contribution de chaque élément d'aire infinitésimal de la scène. Sous l'intégrale, le produit se décompose en trois termes physiques :
+\begin{enumerate}
+    \item \emph{Radiance émise ou réfléchie en amont $L(x' \to x)$} : la quantité de lumière quittant $x'$ en direction de $x$.
+    \item \emph{Noyau géométrique $G(x \leftrightarrow x')$} : il couple spatialement les deux éléments de surface selon :
+    \begin{equation}
+        G(x \leftrightarrow x') = V(x, x') \frac{\cos\theta_x \cos\theta_{x'}}{\|x - x'\|^2}.
+    \end{equation}
+    La visibilité binaire $V(x, x')$ gère l'occlusion (ombres portées), le dénominateur $\|x - x'\|^2$ traduit l'atténuation en carré inverse de la distance, et les cosinus projettent les aires selon l'inclinaison relative des normales. Le produit $L(x' \to x) G(x \leftrightarrow x') \dd A(x')$ quantifie ainsi l'irradiance différentielle $\dd E(x)$ reçue en $x$ depuis la pastille $\dd A(x')$.
+    \item \emph{Fonction de diffusion bidirectionnelle $f_r(x' \to x \to x'')$} : elle pondère quelle proportion de cette énergie incidente en $x$ est renvoyée précisément vers l'observateur en $x''$.
+\end{enumerate}
 
-
-
-% * **Chapitre 1 — Fondements physiques et modélisation du transport radiatif** (CM1 complet).
-
-% * **Chapitre 2 — Résolution numérique et méthodes dans l'espace des chemins** (CM2 et CM3, très orientés intégration Monte-Carlo et algorithmes de synthèse).
-
-% ---
-
-% ## Chapitre 1 — Modélisation physique et équations du rendu
-
-% ### 1. Grandeurs radiométriques fondamentales
-
-% L'objectif est d'évacuer l'ambiguïté du vocabulaire photonique en posant un tableau de synthèse rigoureux et des définitions précises avec leurs unités SI :
-
-% * **Angle solide élémentaire :** $d\omega = \sin\theta \, d\theta \, d\varphi$ (en $\text{sr}$), relation avec l'aire projetée $d\omega \approx \frac{\cos\theta \, dA}{r^2}$.
-
-% * **Flux (Puissance rayonnante) $\Phi$ ou $P$ :** en Watts ($\text{W}$).
-
-% * **Énergie surfacique :** Irradiance incidente $E = \frac{dP}{dA}$ et Exitance sortante $M = \frac{dP}{dA}$ (en $\text{W}\cdot\text{m}^{-2}$).
-
-% * **Intensité radiative :** $I = \frac{dP}{d\omega}$ (en $\text{W}\cdot\text{sr}^{-1}$).
-
-% * **Radiance (Luminance spectrique) $L$ :** quantité élémentaire centrale conservée le long d'un rayon dans le vide :
-
-% $$L(x, \vec{\omega}) = \frac{d^2 P}{dA \, \cos\theta \, d\vec{\omega}} \quad [\text{W}\cdot\text{m}^{-2}\cdot\text{sr}^{-1}]$$
-
-
-% ### 2. Synthèse expéditive : de la couleur à la restitution
-
-% *(Section compacte : juste les définitions utiles sans délayage)*
-
-% * **Passage continu $\to$ tristimulus :** intégration sur le spectre visible ($380-720\ \text{nm}$) pondérée par les fonctions d'efficacité lumineuse de la CIE $\bar{x}(\lambda), \bar{y}(\lambda), \bar{z}(\lambda)$ pour obtenir $(X, Y, Z)$.
-
-% * **Espaces de calcul vs perception :**
-% * Linéarité de l'espace de calcul (RGB / XYZ) pour le transport physique.
-
-% * Non-linéarité perceptive : espace $\text{CIE } L^*a^*b^*$ et métrique $\Delta E^*$ (distance euclidienne modélisant le seuil de discrimination visuelle $\Delta E^* \approx 1$).
-
-% * **Restitution (Affichage) :** nécessité de la correction gamma ($I \propto V^\gamma$, d'où $V_c \propto V_s^{1/\gamma}$) et principe du *Tone Mapping* (opérateur global logarithmique type Reinhard : passage des luminances physiques HDR à la dynamique LDR de l'écran).
-
-% ### 3. Modélisation de la réflexion locale (BRDF)
-
-% * **Définition différentielle de Nicodemus :**
-
-% $$f_r(x, \omega_i, \omega_r) = \frac{dL_r(x \to \omega_r)}{dE_i(x, \omega_i)} = \frac{dL_r(x \to \omega_r)}{L_i(x \leftarrow \omega_i) \cos\theta_i \, d\omega_i} \quad [\text{sr}^{-1}]$$
-
-% * **Propriétés physiques incontournables (admissibilité physique) :**
-% * *Positivité :* $f_r \ge 0$.
-% * *Réciprocité de Helmholtz :* $f_r(x, \omega_i, \omega_r) = f_r(x, \omega_r, \omega_i)$.
-
-% * *Conservation de l'énergie :* $\forall \omega_i, \; \int_{\Omega^+} f_r(x, \omega_i, \omega_r) \cos\theta_r \, d\omega_r \le 1$.
-
-% * **Lois d'interface :** loi de Snell-Descartes et coefficient de réflexion de Fresnel (formules exactes et approximation de Schlick $R(\theta) \approx R_0 + (1 - R_0)(1 - \cos\theta)^5$).
-
-% * **Classification fonctionnelle :** de la BSSRDF (8D) à la BRDF (4D) jusqu'aux approximations séparables diffuse/spéculaire (modèles phénoménologiques vs microfacettes).
-
-% ### 4. Les équations de transport
-
-% * **Équation des transferts radiatifs en milieu participant (ETR de Chandrasekhar) :**
-% * Forme différentielle sur l'abscisse curviligne $s$ : bilan absorption ($-\kappa L$), diffusion sortante ($-\sigma L$), émission propre ($\kappa L_b$) et diffusion entrante (in-scattering intégrale avec fonction de phase $\Phi$).
-
-% * Forme intégrale et transmittance volumique $\tau(x_0, x) = \exp\left(-\int k(s)\,ds\right)$.
-
-% * **Équation du rendu de Kajiya (1986) aux interfaces :**
-% * *Formulation hémisphérique directionnelle :*
-
-% $$L_r(x \to \omega_r) = L_e(x \to \omega_r) + \int_{\Omega^+} f_r(x, \omega_i, \omega_r) L_i(x \leftarrow \omega_i) \cos\theta_i \, d\omega_i$$
-
-% * *Formulation surfacique (changement de variable $d\omega_i = \frac{\cos\theta_{x'} \, dA'}{\Vert{}x - x'\Vert{}^2}$) :*
-
-% $$L(x \to x'') = L_e(x \to x'') + \int_{\mathcal{M}} f_r(x' \to x \to x'') L(x' \to x) G(x \leftrightarrow x') \, dA(x')$$
-
-% où $G(x \leftrightarrow x') = V(x, x') \frac{\vert{}\cos\theta_x\vert{} \vert{}\cos\theta_{x'}\vert{}}{\Vert{}x - x'\Vert{}^2}$ est le terme géométrique.
-
-% ---
-
-% ## Chapitre 2 — Résolution numérique et méthodes de Monte-Carlo
-
-% ### 1. Approche déterministe : Méthode des radiosités (Éléments Finis)
-
-% * Hypothèse de surfaces purement diffuses (lambertiennes : $L$ indépendant de la direction).
-
-% * Discrétisation spatiale sur une base de fonctions $\Phi_{i,\alpha}$ (approximation constante par morceaux).
-
-% * Formulation matricielle $(I - K)L = E$ avec calcul des facteurs de forme géométriques $K_{i,j}$. Limites : explosion en $O(N^2)$, inadapté au spéculaire.
-
-
-% ### 2. Intégration stochastique de Monte-Carlo
-
-% * **Estimateur primaire :** pour $I = \int_D f(x)\,dx$, calcul de $\langle I \rangle_N = \frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{p(X_i)}$ avec $X_i \sim p$.
-
-% * **Convergence et variance :** vitesse en $\mathcal{O}(1/\sqrt{N})$, indépendante de la dimension $d$.
-
-% * **Algorithmique d'échantillonnage :**
-% * Méthode de la transformée inverse via la fonction quantile $Q(u) = F^{-1}(u)$.
-
-% * Échantillonnage de directions : demi-sphère uniforme vs pondération en cosinus ($p(\omega) = \frac{\cos\theta}{\pi}$).
-
-% * **Réduction de variance :**
-% * Échantillonnage par importance ($p(x) \propto \vert{}f(x)\vert{}$).
-
-% * Échantillonnage stratifié et suites à discrépance faible (Quasi-Monte Carlo, borne de Koksma-Hlawka).
-
-% * Contrôle en ligne : algorithme de Welford, intervalles de confiance et arrêt adaptatif.
-
-% ### 3. Formulation intégrale dans l'espace des chemins (Veach, 1997)
-
-% * Définition d'un chemin $\bar{x} = x_0 x_1 \dots x_k$ de longueur $k$ reliant la source au capteur.
-
-% * **Mesure sur l'espace des chemins :** $d\mu(\bar{x}) = \prod_{i=0}^k dA(x_i)$ sur $\Omega = \bigcup_{k=1}^\infty \mathcal{M}^{k+1}$.
-
-% * **Formulation générale du flux reçu par un pixel :**
-
-% $$I_j = \int_{\Omega} f_j(\bar{x}) \, d\mu(\bar{x}) = \sum_{k=1}^\infty \int_{\mathcal{M}^{k+1}} f_j(x_0, \dots, x_k) \, dA(x_0) \dots dA(x_k)$$
-
-
-% * **Fonction de contribution d'un chemin :**
-
-% $$f_j(\bar{x}) = L_e(x_0 \to x_1) \left[ \prod_{i=1}^{k-1} f_s(x_{i-1} \to x_i \to x_{i+1}) G(x_i \leftrightarrow x_{i+1}) \right] G(x_0 \leftrightarrow x_1) W_e^j(x_{k-1} \to x_k)$$
-
-
-% ### 4. Algorithmes de rendu dans l'espace des chemins
-
-% * **Opérations locales élémentaires :** échantillonnage *a priori* (sources/capteurs), échantillonnage directionnel (BRDF) et connexion de visibilité.
-
-% * **Traçage unidirectionnel :**
-% * *Path Tracing :* départ capteur, marche aléatoire jusqu'à la source.
-
-% * *Light Tracing :* départ source vers le capteur.
-
-% * *Arrêt stochastique :* la roulette russe pour conserver un estimateur non biaisé sans récursion infinie.
-
-% * **Multiple Importance Sampling (MIS - Veach & Guibas) :**
-% * Problème des intégrandes multimodales (conflit entre lobe de BRDF piqué et petite source lumineuse).
-
-% * Combinaison d'estimateurs et heuristiques de pondération (balance heuristic $\frac{p_a}{p_a + p_b}$, power heuristic $\frac{p_a^\beta}{p_a^\beta + p_b^\beta}$).
-
-% * **Bidirectional Path Tracing (BDPT) :**
-% * Génération conjointe d'un sous-chemin caméra et d'un sous-chemin lumière, puis connexion de tous les sommets intermédiaires via MIS.
-
-% * Robustesse sur les caustiques et l'éclairage indirect complexe.
-
-% ---
-
-% Est-ce que cette architecture te convient, ou préfères-tu regrouper le tout en un unique grand chapitre scindé en 4 ou 5 sections ?
