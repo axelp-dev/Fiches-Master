@@ -1,0 +1,417 @@
+\minitoc 
+
+On s'intéresse dans ce chapitre et les suivants à la modélisation de l'éclairage sur une scène déjà modélisée numériquement. 
+L'intérêt est de distribuer de façon réaliste une partie du spectre électromagnétique généré par une source de lumière sur les objets pour générer des images réalistes. 
+On se base pour cela sur les propriétés physiques des matériaux représentés pour estimer numériquement leurs interactions avec la lumière. Théoriquement, on se basera sur des équations aux dérivées partielles décrivant ces interactions. Nous les résoudrons ensuite via des méthodes numériques, notament par des méthodes de Monte-Carlo. 
+
+% ============================================================
+% Grandeurs radiométriques fondamentales 
+
+\section{Grandeurs radiométriques fondamentales}
+
+Avant de parler d'équation du transfert radiatif, commençons par définir correctement les grandeurs physiques utilisées pour la description des interactions du spectre électromagnétique avec la matière. 
+
+% ---------------------------------------------
+\subsection{Principe du rendu}
+
+\input{subjects/Informatique_Graphique/figures/principe_chaine_rendu.tex}
+
+On modélise ces interactions simplement par trois éléments : la source, la matière et le détecteur représentés en Figure~\ref{fig:chaine_rendu_principe}. 
+Un signal $ \mathcal{E}$ est émis par une source lumineuse (soleil, ampoule) et est transporté sous la forme de rayonnements jusqu'aux objets de la scène. On définit alors un \emph{opérateur de transport} $ \mathcal{T}$ décrivant l'interaction de ce signal avec la matière (absorption, réflexion). Enfin un capteur (caméra, oeil) acquiert le signal reçu $ \mathcal{S} = \mathcal{T} \cdot \mathcal{E}$. En fonction de sa sensibilité à chaque longueur d'onde $ \mathcal{V}$, celui le capte différement, on obtient donc l'équation suivante : 
+\begin{equation}
+    \mathcal{R} = \int \mathcal{V}( \lambda) \cdot \mathcal{S}( \lambda) \mathrm{d} \lambda. 
+\end{equation}
+
+L'objectif du rendu est de modéliser l'ensemble de ces notions physiques. La principale difficulté est dans l'estimation du transport $ \mathcal{T}$. On considèrera pour cela les interactions \emph{microscopiques} (entre les photons et la structure atomique du matériaux) et les interactions \emph{macroscopiques}. 
+
+Pour cela, on développera des modèles statistiques macroscopiques basés sur les propriétés microscopiques des matériaux : on parlera de \emph{modèles hybrides}. 
+
+% ---------------------------------------------
+\subsection{De l'angle 2D à l'angle solide}
+
+Nous posons ici les définitions fondamentales de la radiométrie. Intuitivement, on part de la puissance d'un rayonnement émis et on essaye de décrire ses interactions avec la matière en fonction de son angle incident ainsi que la quantité de surface (aire) interceptée. 
+
+\begin{definition}[Angle solide]
+    Pour quantifier la partition de l'espace visuel sous-tendue par un objet vu depuis un point quelconque, on défini la notion \emph{d'angle solide}. 
+    Pour cela, on projette l'objet sur une sphère de rayon $r$ centrée sur le point de vue, on obtient alors l'expression de la surface de la sphère interceptée à partir de l'aire couverte par le rayonnement et son rayon : 
+    \begin{equation}
+        \dd \omega = \frac{ \dd A_{\text{sphère}}}{r^2}
+    \end{equation}
+    exprimé en stéradians ($ \mathrm{sr}$). En utilisant les coordonnées sphériques, pour une petite variation $\dd \theta$ de la colatitude $ \theta$ et une variation $ \dd \varphi$ de la longitude $ \varphi$, on a la formule suivante : 
+    \begin{equation}
+        \dd \omega = \sin \theta \dd \theta \dd \varphi. 
+    \end{equation} 
+    Dans le cas d'une surface dont la normale fait un angle $ \theta$ avec la direction d'observation, alors l'aire induite n'est que de $ \dd A \cos \theta$, on peut alors approximer l'angle solide par : 
+    \begin{equation}
+        \dd \omega \simeq \frac{\dd A \cos \theta}{r^2}. 
+    \end{equation}
+\end{definition}
+
+\begin{proposition}
+    % TODO : Décrire les calculs pour les angles solides
+\end{proposition}
+
+% ---------------------------------------------
+\subsection{Grandeurs physiques}
+
+Les angles solides permettent ensuite de définir de nouvelles notions et grandeurs physiques permettant de décrire le comportement du spectre électromagnétique. Ici, on commence donc par proposer quelques métriques permettant de quantifier l'énergie émise par une source (flux et intensité rayonnante) puis on présente des métriques quantifiant le rayonnement reçu ou réfléchit par des surfaces. 
+
+\begin{definition}[Puissance Rayonnante - Flux]
+    On appelle \emph{puissance rayonnante} ou \emph{flux} $P$ (ou $ \Phi$) l'énergie totale émise, transportée ou reçue par unité de temps. Elle s'exprime en Joules par secondes dont l'unité internationnale est le Watts. 
+\end{definition}
+
+\begin{definition}[Intensité rayonnante]
+    On considère une source ponctuelle émettant de l'énergie par rayonnement d'une puissance $P$. On s'intéresse à la quantité d'énergie qu'elle distribue dans la direction $ \dd \omega$ d'un angle solide. Cette dernière est appelée \emph{intensité rayonnante} et est définie par : 
+    \begin{equation}
+        I = \frac{\dd P}{\dd \omega} \quad [\mathrm{W} \cdot \mathrm{sr}^{-1}]
+    \end{equation}
+    Elle s'exprime en Watts par stéradians. Si la source émet la même quantité d'énergie dans toutes les directions, on dit qu'elle est \emph{isotrope} et on a $I = \frac{P}{4 \pi}\; \mathrm{W} \cdot \mathrm{sr}^{-1}$. 
+\end{definition}
+
+On peut maintenant s'intéresser à la quantité d'énergie acquise ou émise par une surface quelconque. On défini pour cela l'exitance et l'irradiance. 
+
+\begin{definition}[Exitance -- Irradiance]
+    Soit une surface $ \dd A$ émettant du rayonnement de flux $ P_{\text{émis}}$ et recevant un rayonnement de flux $ P_{\text{reçu}}$. On peut alors définir la densité surfacique de rayonnement qui quitte la surface, appelée \emph{exitance} : 
+    \begin{equation}
+        M = \frac{P_{\text{émis}}}{\dd A} \quad [\mathrm{W} \cdot \mathrm{m}^{-2}]. 
+    \end{equation}
+    De même, on définit la densité surfacique de rayonnement qui arrive sur la surface par \emph{l'irradiance} : 
+    \begin{equation}
+        E = \frac{P_{\text{reçu}}}{\dd A} \quad [\mathrm{W} \cdot \mathrm{m}^{-2}]. 
+    \end{equation}
+\end{definition}
+
+Ces trois dernières grandeurs nous permettent de quantifier une quantité de rayonnement par rapport à une surface précise (exitance/irradiance) ou une direction donnée (intensité rayonnante). On souhaiterait maintenant combiner les deux : quantifier la puissance émise/reçu par une surface donnée dans une direction donnée, c'est la \emph{radiance}. 
+
+\begin{definition}[Radiance/Luminance]
+    Soit un objet de surface $ \dd A$, une direction donnée par l'angle solide $ \dd \omega$ et une intensité $I$. On défini la \emph{radiance} (ou luminance) de cette surface dans la direction $\dd \omega$ par : 
+    \begin{equation}
+        L = \frac{\dd[2]{P}}{\dd A \cos \theta \dd \omega} \quad [\mathrm{W} \cdot \mathrm{m}^{-2} \cdot \mathrm{sr}^{-1}]
+    \end{equation}
+\end{definition}
+
+\begin{remark}
+    La radiance est invariante dans le vide en position. En effet pour un observateur d'une surface $ \dd A$, la quantité de rayonnement (intensité) qui part dans sa direction $ \dd \omega$ depuis la surface est égale à celle qu'il reçoit. 
+    D'autre part, la réponse du capteur est proportionnelle à la radiance du corps qu'il observe. 
+\end{remark}
+
+\begin{proposition}[Transfert radiatif]
+    Soient deux éléments de surfaces dont une source $ \dd A_1$ et un récepteur $ \dd A_2$ séparés par une distance $r$ représentés dans la Figure~\ref{fig:transfert_radiatif_surfaces}. On suppose que la source émet de la radiance $L$ sous un angle $ \theta_1$ par rapport à la direction (en bleu). Le récepteur $ \dd A_2$ sous-tend depuis $ \dd A_1$ un angle solide $\dd \omega_1$ tel que : 
+    \begin{equation}
+        \dd \omega_1 = \frac{\dd A_2 \cos \theta_2}{r^2}. 
+    \end{equation}
+    En réinjectant $ \dd \omega_1$ dans la formule de la radiance $ \dd[2]{P} = L \cdot \dd A_1 \cdot \cos \theta_1 \dd \omega_1$, on obtient l'expression du transfert élémentaire d'énergie entre les deux surfaces : 
+    \begin{equation}
+        \dd[2]{P} = L \frac{\cos \theta_1 \cos \theta_2}{r^2} \dd A_1 \dd A_2
+        = L \cdot G(x_1, x2) \cdot \dd A_1 \dd A_2. 
+    \end{equation}
+    Où l'on note $G(x_1, x_2) = \frac{ \cos \theta_1 \cos \theta2}{\|x_1 - x_2 \|^2}$ le \emph{terme géométrique}. 
+\end{proposition}
+
+\input{subjects/Informatique_Graphique/figures/transfert_radiatif_surfaces.tex}
+
+% ---------------------------------------------
+\subsection{Distribution spectrale et émission thermique : le corps noir}
+
+Les grandeurs précédement définies ne tenaient pas compte de la longueur d'onde d'émission/réception des objets ni de leur température. Or l'énergie transportée par un rayonnement en dépend fortement. L'introduction du principe du \emph{corps noir} permet justement de formaliser cette différence. 
+
+En physique, un corps noir est un objet idéal qui absorbe tout le rayonnement reçu. Pour rester en équilibre thermodynnamique à une température $T$, il réémet cet excès d'énergie sous la forme de rayonnement spectral isotrope. 
+
+\begin{definition}[Exitance du corps noir]
+    La loi de Planck donne l'exitance monochromatique $M_\lambda^0$ (pour une longueur d'onde donnée) du corps noir : 
+    \begin{equation}
+        M_\lambda^0 = \frac{2 \pi h c^2}{ \lambda^5 \left( \exp \left( \frac{hc}{k \lambda T}\right) -1\right)} \quad [\mathrm{W} \cdot \mathrm{m}^{-2} \cdot \mathrm{nm}^{-1}]. 
+    \end{equation}
+    Où $h$ est la constante de Planck, $c$ la célérité de la lumière dans le vide, $k$ la constante de Boltzman et $T$ la température du corps en kelvin. 
+\end{definition}
+
+Cette équation défini la quantité de rayonnement émise par un corps noir à température constante pour une longueur d'onde donnée par unité de surface. 
+
+\begin{proposition}[Radiance Spectrique]
+    Comme le corps noir diffuse son surplus d'énergie de manière isotrope, on peut calculer sa radiance spectrique (radiance pour une longueur d'onde donnée) à l'aide de la relation $ M_\lambda^0 = \pi L_{\lambda, b}$. On a donc : 
+    \begin{equation}
+        L_{\lambda, b} = \frac{2 h c^2}{ \lambda^5 \left( \exp \left( \frac{hc}{k \lambda T}\right) -1\right)} \quad [\mathrm{W} \cdot \mathrm{m}^{-2} \cdot \mathrm{sr}^{-1} \cdot \mathrm{nm}^{-1}]. 
+    \end{equation}
+\end{proposition}
+
+Dans une scène réelle, les matériaux ne se comportent pas comme des corps noirs parfaits : ils n'absorbent qu'une fraction du rayonnement incident et n'émettent qu'une partie du flux théorique prédit par la loi de Planck. On introduit alors des coefficients spectraux adimensionnels compris dans $[0, 1]$ pour caractériser leur comportement radiatif.
+
+\begin{definition}[Émissivité, absorptivité et albédo]
+    Pour un matériau donné à la température $T$ et pour une longueur d'onde $\lambda$ :
+    \begin{itemize}
+        \item L'\emph{émissivité} $\epsilon_\lambda \in [0, 1]$ est le rapport entre l'exitance réelle du matériau $M_\lambda$ et celle du corps noir équivalent $M_\lambda^0$ à la même température :
+        \begin{equation}
+            \epsilon_\lambda = \frac{M_\lambda}{M_\lambda^0} \in [0, 1].
+        \end{equation}
+        \item L'\emph{absorptivité} $\alpha_\lambda \in [0, 1]$ correspond à la fraction du flux énergétique incident absorbée par le matériau à la longueur d'onde $\lambda$.
+        \item L'\emph{albédo} spectral (ou réflectance hémisphérique) $\rho_\lambda \in [0, 1]$ est la proportion du flux incident réfléchie par la surface.
+    \end{itemize}
+\end{definition}
+
+\begin{proposition}[Loi de Kirchhoff et conservation de l'énergie]
+    À l'équilibre thermodynamique local, la \emph{loi du rayonnement de Kirchhoff} établit que l'émissivité d'un corps est égale à son absorptivité pour chaque longueur d'onde :
+    \begin{equation}
+        \epsilon_\lambda = \alpha_\lambda.
+    \end{equation}
+    Dès lors, pour un matériau opaque (pour lequel aucune transmission interne n'a lieu, i.e. transmittance nulle), le principe fondamental de conservation de l'énergie impose $\rho_\lambda + \alpha_\lambda = 1$. On en déduit la relation liant la réflectance à l'émissivité :
+    \begin{equation}
+        \rho_\lambda = 1 - \alpha_\lambda = 1 - \epsilon_\lambda.
+    \end{equation}
+\end{proposition}
+
+Cette formulation permet de paramétrer directement les termes sources et les propriétés de surface : un corps noir correspond au cas limite $\epsilon_\lambda = \alpha_\lambda = 1$ et $\rho_\lambda = 0$, tandis qu'un réflecteur idéal satisfait $\rho_\lambda = 1$ et $\epsilon_\lambda = 0$.
+
+% ============================================================
+% Équation des transferts radiatif & Équation du rendu
+
+\section{Équation des transferts radiatif \& Équation du rendu}
+
+Maintenant que nous avons posé le contexte de la modélisation de l'éclairage ainsi que les métriques nécessaires à sa description, nous pouvons nous intéresser à sa modélisation mathématique. 
+
+% ---------------------------------------------
+\subsection{Modélisation du capteur et de la caméra}
+
+Au début de ce chapitre, nous avons fait l'hypothèse que le signal reçu par un capteur est de la forme : 
+\begin{equation}
+    \mathcal{R} = \int \mathcal{V}( \lambda) \cdot \mathcal{T}( \lambda) \cdot \mathcal{E}( \lambda)\mathrm{d} \lambda
+\end{equation}
+où $ \mathcal{T}$ est l'opérateur de transport du rayonnement, $ \mathcal{E}$ représente l'émission, $ \mathcal{V}$ la sensibilité du capteur et $ \mathcal{R}$ le signal reçu par ce dernier. 
+
+\begin{proposition}
+    Soit $S(x,y)$ le signal reçu par un pixel $(x,y)$ du capteur de la caméra. Pour que celui-ci reçoit de la lumière de la scène 3d, le signal doit traverser la lentille du capteur de surface $\mathcal{L}$ paramétrée par $(u,v)$ (ex: focale, largeur, etc...). Ainsi la quantité de lumière perçue par le capteur est le cumul de tous les rayons collectés sur l'étendue de la lentille $ \dd A(u,v)$ dans toutes les directions incidentes possibles $ \dd \omega_l$ pendant toute la durée de l'exposition $ \dd t$. 
+    On peut donc modéliser ces notions par des applications : 
+    \begin{itemize}
+        \item $W(x, y, x_l, \omega_l, t)$ la fonction représentant le transfert optique de la lentille, 
+        \item $L_i(x, y, \omega_l, t)$ est la radiance arrivant sur la lentille au point $x_l$, depuis la direction $\omega_l$, à l'instant $t$. 
+    \end{itemize}
+    On peut alors exprimer le signal reçu par le pixel $(x,y)$ du capteur :
+    \begin{equation}
+        S(x,y) = \int_T \int_\mathcal{L} \int_\Omega W(x, y, x_l, \omega_l, t) L_i(x, y, \omega_l, t) \dd \omega_l \dd A(u,v) \dd t. 
+    \end{equation}
+\end{proposition}
+
+Or un pixel $P$ sur un écran n'est pas un point mathématique sans dimension : il correspond à une petite zone bidimensionnelle centrée en $(x_P, y_P)$. En réalité, le capteur physique intègre toute la lumière qui tombe sur sa zone sensible. De plus, en traitement du signal graphique, on applique un filtre de reconstruction noté $h_P$. L'intégrale du pixel s'écrit donc :
+\begin{equation}
+    I_p = \int_{s(h_P)} h_P(\Delta x, \Delta y) \, S(x_P + \Delta x, \, y_P + \Delta y) \, \mathrm{d}\mathcal{A}(\Delta x, \Delta y)
+\end{equation}
+où : 
+\begin{itemize}
+    \item $(\Delta x, \Delta y)$ est le décalage local par rapport au centre du pixel $(x_P, y_P)$.
+    \item $s(h_P)$ : le support spatial du filtre (par exemple, un carré de $1 \times 1$ pixel pour un filtre boîte élémentaire, ou une zone de $2 \times 2$ pixels pour une gaussienne ou un filtre de Mitchell-Netravali).
+    \item $h_P(\Delta x, \Delta y)$ : la fonction de pondération (le noyau du filtre). Elle donne plus d'importance aux rayons qui frappent le centre du pixel qu'à ceux qui touchent la périphérie. Pour conserver l'énergie, on a toujours $\int h_P = 1$.
+    \item $\mathrm{d}\mathcal{A}(\Delta x, \Delta y)$ : l'élément d'aire infinitésimal sur la surface du pixel ($\mathrm{d}x\,\mathrm{d}y$). 
+\end{itemize}
+
+On peut donc maintenant se demander comment exprimer la radiance arrivant sur la lentille au point $x_i$. Celle-ci dépend directement de la géométrie de la scène et des propriétés de son éclairage. 
+
+% ---------------------------------------------
+\subsection{Formulation de l'ETR}
+
+La section précédente s'est concentrée sur la modélisation physique de la réception d'un rayon par un capteur. Ici, on s'intéresse aux interactions de ce rayon dans l'environnement de la scène (air, eau, poussière). On appellera cette équation \emph{l'équation du transfert radiatif}. 
+
+\input{subjects/Informatique_Graphique/figures/figure_ETR_schemae.tex}
+
+Soit un rayon lumineux $ \vec{u} $ traversant un milieu (voir Figure~\ref{fig:etr_bilan_interactions_simple}), on note $x$ un point de ce rayon et on s'intéresse à la variation de luminance de ce rayon pour une petite variation d'abscisse $ \dd l$ de $x$. On peut alors observer différentes interactions avec l'environnement :
+\begin{itemize}
+    \item \textbf{Absorption} : Une partie des photons composant le rayon sont absorbés par le milieu, notament lors de percussions avec des atomes, qui augmente le niveau d'énergie. C'est de l'énergie perdu pour le rayon $ \vec{u} $, elle s'exprime de la façon suivante : 
+    \begin{equation}
+        \left( \frac{\partial L_\lambda}{ \partial l}\right)_{\text{abs}} = - \kappa_\lambda L_\lambda(x \to \vec{u} ). 
+    \end{equation}
+    où $ \kappa_\lambda$ est le coefficient d'absorption du milieu en $ m^{-1}$. 
+    \item \textbf{Diffusion sortante} : Des photons peuvent se propager dans le milieu dû à l'énergie environnante. Lorsqu'ils entrent en collision avec le rayon, certains photons de ce dernier peuvent être déviés et perdus dans le milieu. On exprime cette perte par : 
+    \begin{equation}
+        \left( \frac{ \partial L_\lambda}{ \partial l}\right)_{\text{diff, out}} = - \sigma_\lambda L_\lambda(x \to \vec{u})
+    \end{equation}
+    avec $ \sigma_\lambda$ le coefficient de diffusion du milieu en $m^{-1}$. 
+    \item \textbf{Émission propre} : Le milieu n'étant pas vide et à une certaine température, ce surplus d'énergie est transféré sous la forme de rayonnement dont une partie est transmise au rayon $ \vec{u}$ :
+    \begin{equation}
+         \left( \frac{ \partial L_\lambda}{ \partial l}\right)_{\text{emis}} = \kappa_\lambda L_{\lambda, b}(x)
+    \end{equation}
+    avec $ L_{\lambda, b}(x)$ l'émission du corps noir. 
+    \item \textbf{Diffusion entrante} :  À l'inverse, des photons du milieu percutant le rayon $ \vec{u} $ peuvent être déviés dans le direction de ce rayon, c'est donc de l'énergie gagnée. On a : 
+    \begin{equation}
+        \left( \frac{ \partial L_\lambda}{ \partial l}\right)_{\text{diff, in}} = \frac{ \sigma_\lambda}{4 \pi} \int_{4 \pi} L_\lambda (x \leftarrow \vec{u'} ) \Phi ( \lambda, \vec{u} , \vec{u'} ) \dd \omega( \vec{u'} )
+    \end{equation}
+    où $ \Phi ( \lambda, \vec{u} , \vec{u'} )$ est la fonction de phase (BRDF volumique) : elle normalise la probabilité qu'un photon venant d'un autre rayon $ \vec{u'} $ soit dévié par $ \vec{u} $. On intègre cette probabilité sur toute la sphère autour de $x$ pour prendre en compte tous les rayons possibles $ \vec{u'} $ du milieu. 
+\end{itemize}
+
+L'équation du transfert radiatif s'écrit alors simplement comme la somme de toutes ces variations. 
+
+\begin{theorem}[ETR -- Chandrasekhar, 1960]
+    L'équation du transfert radiatif dans le contexte posé précédement fut proposée par Chandrasekhar en 1960. Elle s'exprime sous la forme : 
+    \begin{align}
+        \frac{ \partial}{ \partial l} L_\lambda(x \to \vec{u} ) &= - ( \kappa_\lambda + \sigma_\lambda) L_\lambda(x \to \vec{u} ) + \kappa_\lambda L_{\lambda, b}(x) \\
+        &+ \frac{ \sigma_\lambda}{4 \pi} \int_{4 \pi} L_\lambda (x \to \vec{u'} ) \Phi ( \lambda, \vec{u} , \vec{u'} ) \dd \omega( \vec{u'} ). 
+    \end{align}
+    On peut poser $k(s) = \kappa(s) + \sigma(s)$ représentant la perte par unité de longueur $ \dd l$. 
+\end{theorem}
+
+On peut en proposer une version plus condensé pour obtenir sa formulation canonique. 
+
+\begin{definition}[Coefficient d'extinction et terme source volumique]
+    Afin de condenser l'écriture différentielle, on regroupe les mécanismes selon leur nature (pertes proportionnelles au flux incident vs gains locaux) :
+    \begin{itemize}
+        \item Le \emph{coefficient d'extinction} $k_\lambda(x)$ quantifie l'atténuation totale subie par le faisceau par unité de longueur :
+        \begin{equation}
+            k_\lambda(x) = \kappa_\lambda(x) + \sigma_\lambda(x) \quad [\mathrm{m}^{-1}].
+        \end{equation}
+        \item Le \emph{terme source volumique} $L_{i, \lambda}(x \to \vec{u})$ regroupe l'ensemble de l'énergie thermique créée et de l'énergie ambiante rabattue vers la direction $\vec{u}$ par le milieu :
+        \begin{equation}
+            L_{i, \lambda}(x \to \vec{u}) = \kappa_\lambda(x) L_{\lambda, b}(x) + \frac{\sigma_\lambda(x)}{4 \pi} \int_{4 \pi} L_\lambda(x \leftarrow \vec{u}') \, \Phi(\lambda, \vec{u}, \vec{u}') \, \dd \omega(\vec{u}').
+        \end{equation}
+    \end{itemize}
+\end{definition}
+
+\begin{proposition}[Forme canonique de l'ETR]
+    En paramétrant le rayon lumineux par son abscisse curviligne $s$ le long de la direction $\vec{u}$, l'ETR se réécrit comme une équation différentielle linéaire du premier ordre à coefficients non constants :
+    \begin{equation}
+        \boxed{\frac{\dd L_\lambda(s)}{\dd s} + k_\lambda(s) L_\lambda(s) = L_{i, \lambda}(s).}
+    \end{equation}
+\end{proposition}
+
+
+
+
+% * **Chapitre 1 — Fondements physiques et modélisation du transport radiatif** (CM1 complet).
+
+% * **Chapitre 2 — Résolution numérique et méthodes dans l'espace des chemins** (CM2 et CM3, très orientés intégration Monte-Carlo et algorithmes de synthèse).
+
+% ---
+
+% ## Chapitre 1 — Modélisation physique et équations du rendu
+
+% ### 1. Grandeurs radiométriques fondamentales
+
+% L'objectif est d'évacuer l'ambiguïté du vocabulaire photonique en posant un tableau de synthèse rigoureux et des définitions précises avec leurs unités SI :
+
+% * **Angle solide élémentaire :** $d\omega = \sin\theta \, d\theta \, d\varphi$ (en $\text{sr}$), relation avec l'aire projetée $d\omega \approx \frac{\cos\theta \, dA}{r^2}$.
+
+% * **Flux (Puissance rayonnante) $\Phi$ ou $P$ :** en Watts ($\text{W}$).
+
+% * **Énergie surfacique :** Irradiance incidente $E = \frac{dP}{dA}$ et Exitance sortante $M = \frac{dP}{dA}$ (en $\text{W}\cdot\text{m}^{-2}$).
+
+% * **Intensité radiative :** $I = \frac{dP}{d\omega}$ (en $\text{W}\cdot\text{sr}^{-1}$).
+
+% * **Radiance (Luminance spectrique) $L$ :** quantité élémentaire centrale conservée le long d'un rayon dans le vide :
+
+% $$L(x, \vec{\omega}) = \frac{d^2 P}{dA \, \cos\theta \, d\vec{\omega}} \quad [\text{W}\cdot\text{m}^{-2}\cdot\text{sr}^{-1}]$$
+
+
+% ### 2. Synthèse expéditive : de la couleur à la restitution
+
+% *(Section compacte : juste les définitions utiles sans délayage)*
+
+% * **Passage continu $\to$ tristimulus :** intégration sur le spectre visible ($380-720\ \text{nm}$) pondérée par les fonctions d'efficacité lumineuse de la CIE $\bar{x}(\lambda), \bar{y}(\lambda), \bar{z}(\lambda)$ pour obtenir $(X, Y, Z)$.
+
+% * **Espaces de calcul vs perception :**
+% * Linéarité de l'espace de calcul (RGB / XYZ) pour le transport physique.
+
+% * Non-linéarité perceptive : espace $\text{CIE } L^*a^*b^*$ et métrique $\Delta E^*$ (distance euclidienne modélisant le seuil de discrimination visuelle $\Delta E^* \approx 1$).
+
+% * **Restitution (Affichage) :** nécessité de la correction gamma ($I \propto V^\gamma$, d'où $V_c \propto V_s^{1/\gamma}$) et principe du *Tone Mapping* (opérateur global logarithmique type Reinhard : passage des luminances physiques HDR à la dynamique LDR de l'écran).
+
+% ### 3. Modélisation de la réflexion locale (BRDF)
+
+% * **Définition différentielle de Nicodemus :**
+
+% $$f_r(x, \omega_i, \omega_r) = \frac{dL_r(x \to \omega_r)}{dE_i(x, \omega_i)} = \frac{dL_r(x \to \omega_r)}{L_i(x \leftarrow \omega_i) \cos\theta_i \, d\omega_i} \quad [\text{sr}^{-1}]$$
+
+% * **Propriétés physiques incontournables (admissibilité physique) :**
+% * *Positivité :* $f_r \ge 0$.
+% * *Réciprocité de Helmholtz :* $f_r(x, \omega_i, \omega_r) = f_r(x, \omega_r, \omega_i)$.
+
+% * *Conservation de l'énergie :* $\forall \omega_i, \; \int_{\Omega^+} f_r(x, \omega_i, \omega_r) \cos\theta_r \, d\omega_r \le 1$.
+
+% * **Lois d'interface :** loi de Snell-Descartes et coefficient de réflexion de Fresnel (formules exactes et approximation de Schlick $R(\theta) \approx R_0 + (1 - R_0)(1 - \cos\theta)^5$).
+
+% * **Classification fonctionnelle :** de la BSSRDF (8D) à la BRDF (4D) jusqu'aux approximations séparables diffuse/spéculaire (modèles phénoménologiques vs microfacettes).
+
+% ### 4. Les équations de transport
+
+% * **Équation des transferts radiatifs en milieu participant (ETR de Chandrasekhar) :**
+% * Forme différentielle sur l'abscisse curviligne $s$ : bilan absorption ($-\kappa L$), diffusion sortante ($-\sigma L$), émission propre ($\kappa L_b$) et diffusion entrante (in-scattering intégrale avec fonction de phase $\Phi$).
+
+% * Forme intégrale et transmittance volumique $\tau(x_0, x) = \exp\left(-\int k(s)\,ds\right)$.
+
+% * **Équation du rendu de Kajiya (1986) aux interfaces :**
+% * *Formulation hémisphérique directionnelle :*
+
+% $$L_r(x \to \omega_r) = L_e(x \to \omega_r) + \int_{\Omega^+} f_r(x, \omega_i, \omega_r) L_i(x \leftarrow \omega_i) \cos\theta_i \, d\omega_i$$
+
+% * *Formulation surfacique (changement de variable $d\omega_i = \frac{\cos\theta_{x'} \, dA'}{\Vert{}x - x'\Vert{}^2}$) :*
+
+% $$L(x \to x'') = L_e(x \to x'') + \int_{\mathcal{M}} f_r(x' \to x \to x'') L(x' \to x) G(x \leftrightarrow x') \, dA(x')$$
+
+% où $G(x \leftrightarrow x') = V(x, x') \frac{\vert{}\cos\theta_x\vert{} \vert{}\cos\theta_{x'}\vert{}}{\Vert{}x - x'\Vert{}^2}$ est le terme géométrique.
+
+% ---
+
+% ## Chapitre 2 — Résolution numérique et méthodes de Monte-Carlo
+
+% ### 1. Approche déterministe : Méthode des radiosités (Éléments Finis)
+
+% * Hypothèse de surfaces purement diffuses (lambertiennes : $L$ indépendant de la direction).
+
+% * Discrétisation spatiale sur une base de fonctions $\Phi_{i,\alpha}$ (approximation constante par morceaux).
+
+% * Formulation matricielle $(I - K)L = E$ avec calcul des facteurs de forme géométriques $K_{i,j}$. Limites : explosion en $O(N^2)$, inadapté au spéculaire.
+
+
+% ### 2. Intégration stochastique de Monte-Carlo
+
+% * **Estimateur primaire :** pour $I = \int_D f(x)\,dx$, calcul de $\langle I \rangle_N = \frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{p(X_i)}$ avec $X_i \sim p$.
+
+% * **Convergence et variance :** vitesse en $\mathcal{O}(1/\sqrt{N})$, indépendante de la dimension $d$.
+
+% * **Algorithmique d'échantillonnage :**
+% * Méthode de la transformée inverse via la fonction quantile $Q(u) = F^{-1}(u)$.
+
+% * Échantillonnage de directions : demi-sphère uniforme vs pondération en cosinus ($p(\omega) = \frac{\cos\theta}{\pi}$).
+
+% * **Réduction de variance :**
+% * Échantillonnage par importance ($p(x) \propto \vert{}f(x)\vert{}$).
+
+% * Échantillonnage stratifié et suites à discrépance faible (Quasi-Monte Carlo, borne de Koksma-Hlawka).
+
+% * Contrôle en ligne : algorithme de Welford, intervalles de confiance et arrêt adaptatif.
+
+% ### 3. Formulation intégrale dans l'espace des chemins (Veach, 1997)
+
+% * Définition d'un chemin $\bar{x} = x_0 x_1 \dots x_k$ de longueur $k$ reliant la source au capteur.
+
+% * **Mesure sur l'espace des chemins :** $d\mu(\bar{x}) = \prod_{i=0}^k dA(x_i)$ sur $\Omega = \bigcup_{k=1}^\infty \mathcal{M}^{k+1}$.
+
+% * **Formulation générale du flux reçu par un pixel :**
+
+% $$I_j = \int_{\Omega} f_j(\bar{x}) \, d\mu(\bar{x}) = \sum_{k=1}^\infty \int_{\mathcal{M}^{k+1}} f_j(x_0, \dots, x_k) \, dA(x_0) \dots dA(x_k)$$
+
+
+% * **Fonction de contribution d'un chemin :**
+
+% $$f_j(\bar{x}) = L_e(x_0 \to x_1) \left[ \prod_{i=1}^{k-1} f_s(x_{i-1} \to x_i \to x_{i+1}) G(x_i \leftrightarrow x_{i+1}) \right] G(x_0 \leftrightarrow x_1) W_e^j(x_{k-1} \to x_k)$$
+
+
+% ### 4. Algorithmes de rendu dans l'espace des chemins
+
+% * **Opérations locales élémentaires :** échantillonnage *a priori* (sources/capteurs), échantillonnage directionnel (BRDF) et connexion de visibilité.
+
+% * **Traçage unidirectionnel :**
+% * *Path Tracing :* départ capteur, marche aléatoire jusqu'à la source.
+
+% * *Light Tracing :* départ source vers le capteur.
+
+% * *Arrêt stochastique :* la roulette russe pour conserver un estimateur non biaisé sans récursion infinie.
+
+% * **Multiple Importance Sampling (MIS - Veach & Guibas) :**
+% * Problème des intégrandes multimodales (conflit entre lobe de BRDF piqué et petite source lumineuse).
+
+% * Combinaison d'estimateurs et heuristiques de pondération (balance heuristic $\frac{p_a}{p_a + p_b}$, power heuristic $\frac{p_a^\beta}{p_a^\beta + p_b^\beta}$).
+
+% * **Bidirectional Path Tracing (BDPT) :**
+% * Génération conjointe d'un sous-chemin caméra et d'un sous-chemin lumière, puis connexion de tous les sommets intermédiaires via MIS.
+
+% * Robustesse sur les caustiques et l'éclairage indirect complexe.
+
+% ---
+
+% Est-ce que cette architecture te convient, ou préfères-tu regrouper le tout en un unique grand chapitre scindé en 4 ou 5 sections ?

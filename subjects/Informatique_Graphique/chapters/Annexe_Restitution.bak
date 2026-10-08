@@ -1,0 +1,78 @@
+% NOTE : Pousser tout ça en annexe du chapitre 3 pour 
+% l'avoir dans le cours et en parler mais ne pas l'intégrer comme 
+% un chapitre entier. 
+
+% ============================================================
+% De la distribution spectrale à la restitution de l'image
+
+\section{De la distribution spectrale à la restitution de l'image}
+
+Le transport radiatif opère sur un spectre électromagnétique continu $\lambda \in [380, 720]\,\mathrm{nm}$. En pratique, le stockage et le calcul intégral pour chaque longueur d'onde s'avèrent rédhibitoires. On projette donc cette distribution spectrale continue sur des espaces colorimétriques de dimension 3 (trichromie).
+
+% ---------------------------------------------
+\subsection{Du passage continu au tristimulus : l'espace CIE XYZ}
+
+L'œil humain intègre le signal spectral reçu via trois types de photorécepteurs (cônes). La Commission Internationale de l'Éclairage (CIE, 1931) a standardisé cette réponse à travers trois fonctions colorimétriques $\bar{x}(\lambda)$, $\bar{y}(\lambda)$ et $\bar{z}(\lambda)$.
+
+\begin{definition}[Composantes trichromatiques -- CIE XYZ]
+    Soit $P$ la distribution spectrale de puissance reçue. Les coordonnées trichromatiques dans l'espace $\mathrm{CIE~XYZ}$ sont données par les projections intégrales :
+    \begin{equation}
+        X = k \int_{380}^{720} P(\lambda)\bar{x}(\lambda)\,\dd\lambda, \quad
+        Y = k \int_{380}^{720} P(\lambda)\bar{y}(\lambda)\,\dd\lambda, \quad
+        Z = k \int_{380}^{720} P(\lambda)\bar{z}(\lambda)\,\dd\lambda
+    \end{equation}
+    où $k$ est un facteur de normalisation constant et $\bar{y}$ est calibrée pour coïncider rigoureusement avec la sensibilité photopique de l'œil (la composante $Y$ mesure ainsi directement la luminance perceptive).
+\end{definition}
+
+% ---------------------------------------------
+\subsection{Espaces de calcul vs perception}
+
+Il est fondamental de distinguer deux catégories d'espaces :
+\begin{enumerate}
+    \item \textbf{Espaces linéaires de calcul ($\mathrm{CIE~XYZ}$, $\mathrm{RGB}$ linéaire) :}  
+    Le transport physique de la lumière est un phénomène linéaire régi par le principe de superposition :
+    \begin{equation}
+        f(\lambda_1 C_1 + \lambda_2 C_2) = \lambda_1 f(C_1) + \lambda_2 f(C_2)
+    \end{equation}
+    Les passages entre $\mathrm{RGB}$ linéaire et $\mathrm{XYZ}$ s'effectuent par simple transformation matricielle $3 \times 3$ dépendant des coordonnées des primaires et du blanc de référence (par exemple D65) :
+    \begin{equation}
+        \begin{bmatrix} X \\ Y \\ Z \end{bmatrix} = \begin{bmatrix} S_r X_r & S_g X_g & S_b X_b \\ S_r Y_r & S_g Y_g & S_b Y_b \\ S_r Z_r & S_g Z_g & S_b Z_b \end{bmatrix} \begin{bmatrix} R \\ G \\ B \end{bmatrix}
+    \end{equation}
+    Ces espaces sont réservés aux calculs physiques d'éclairement (mélanges, réflexions).
+    
+    \item \textbf{Espace perceptif uniforme : $\mathrm{CIE~L^*a^*b^*}$ :}  
+    L'œil n'ayant pas une sensibilité linéaire à la luminance, les distances euclidiennes dans les espaces $\mathrm{XYZ}$ ou $\mathrm{RGB}$ ne reflètent pas les écarts visuels réels. L'espace $\mathrm{CIE~L^*a^*b^*}$ non linéaire applique une transformation logarithmique / racine cubique à partir d'un blanc neutre $\{X_n, Y_n, Z_n\}$.  
+    La différence perceptible entre deux couleurs se mesure alors par la distance euclidienne :
+    \begin{equation}
+        \Delta E^* = \sqrt{(L_1^* - L_2^*)^2 + (a_1^* - a_2^*)^2 + (b_1^* - b_2^*)^2}
+    \end{equation}
+    Un écart $\Delta E^* \approx 1$ correspond au seuil de discrimination tout juste perceptible par un observateur moyen (utilisé pour mesurer l'erreur de rendu).
+\end{enumerate}
+
+% ---------------------------------------------
+\subsection{Restitution et affichage : Tone Mapping et Correction Gamma}
+
+Les valeurs physiques obtenues par simulation d'éclairage sont calculées en dynamique réelle ($\mathrm{HDR}$ -- \emph{High Dynamic Range}, pouvant couvrir plus de 10 ordres de grandeur), alors que les écrans usuels opèrent en dynamique étroite ($\mathrm{LDR}$).
+
+\begin{definition}[Compression dynamique -- \emph{Tone Mapping}]
+    Pour compresser la dynamique physique sans écrêtage violent des hautes lumières, on utilise un opérateur d'adaptation non linéaire (tel que l'opérateur global de Reinhard) :
+    \begin{equation}
+        L_p(x, y) = \frac{Y_r(x, y)}{1 + Y_r(x, y)}
+    \end{equation}
+    où $Y_r$ désigne la luminance locale normalisée par la luminance moyenne d'adaptation globale de la scène :
+    \begin{equation}
+        \hat{Y} = \exp\left( \frac{1}{N} \sum_{x, y} \ln(Y(x, y) + \epsilon) \right)
+    \end{equation}
+\end{definition}
+
+\begin{definition}[Correction Gamma]
+    La réponse optique d'un écran standard est non linéaire : le flux restitué suit une loi de puissance vis-à-vis de la tension appliquée : $I \propto V_s^\gamma$ (avec généralement $\gamma \approx 2{,}2$ à $2{,}4$).  
+    Pour que la restitution soit fidèle, le signal encodé linéairement $C_{\mathrm{lin}} \in [0, 1]$ doit être pré-compensé par la \emph{correction gamma} :
+    \begin{equation}
+        C_{\mathrm{sRGB}} = 
+        \begin{cases}
+            12{,}92 \, C_{\mathrm{lin}} & \text{si } C_{\mathrm{lin}} \leqslant 0{,}0031308 \\[4pt]
+            (1 + a) \, C_{\mathrm{lin}}^{\frac{1}{2{,}4}} - a & \text{si } C_{\mathrm{lin}} > 0{,}0031308 \quad (\text{avec } a = 0{,}055)
+        \end{cases}
+    \end{equation}
+\end{definition}
