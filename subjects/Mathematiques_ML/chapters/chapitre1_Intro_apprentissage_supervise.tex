@@ -62,15 +62,15 @@ Pour effectuer cet apprentissage, nous devons être capable de savoir à quel po
 
 \subsection{Les Risques}
 
-Ces différentes fonctions de pertes, aussi bien définies soient-elles, ne nous donnent d'un aperçu des erreurs du modèle en temps réel. Nous avons aussi besoin d'avoir une idée plus fine des performances du modèle vis-à-vis de la distribution de probabilité $\myP$ du jeu de données $D$. 
+Ces différentes fonctions de pertes, aussi bien définies soient-elles, ne nous donnent d'un apperçu des erreurs du modèle en temps réel. Nous avons aussi besoin d'avoir une idée plus fine des performances du modèle vis-à-vis de la distribution de probabilité $\myP$ du jeu de données $D$. 
 On définit pour cela les \emph{risques}. 
 
 \begin{definition}[Risque Moyen]
-    On définit le \emph{risque moyen}, noté $ \mathcal{R}(f)$, d'une fonction $f$ sur l'espace $ \mathcal{X} \times \mathcal{Y}$ par l'espérance de la perte du ce même jeu de données. 
+    On définit le \emph{risque moyen}, noté $ \mathcal{R}(f)$, d'une fonction $f$ sur l'espace $ \mathcal{X} \times \mathcal{Y}$ par l'espérance de la perte de $f$ sur ce même jeu de données. 
     \begin{equation}
         \boxed{\mathcal{R}(f) := \int_{ \mathcal{X} \times \mathcal{Y}} l(y, f(x)) \; dp(x, y) \; dx \; dy = \mathbb{E} \left(l(y, f(x))\right)}
     \end{equation}
-    où $p$ est le densité de la probabilité $ \myP$. 
+    où $p$ est la densité de la probabilité $ \myP$. 
 \end{definition}
 
 \begin{example}
@@ -93,8 +93,7 @@ On définit pour cela les \emph{risques}.
 
 \begin{proposition}[Convergence]
     Grâce aux hypothèses précédentes, on peut invoquer des théorèmes de convergence sur les suites de variables aléatoires pour caractériser la limite de ce risque empirique. 
-
-    Ainsi, si $ f \in L^1$ alors, d'après la \emph{Loi Forte des Grands Nombres}, on a que : 
+    Ainsi, si $ f \in L^1$, d'après la \emph{Loi Forte des Grands Nombres}, on a que : 
     \begin{equation}
         \hat{ \mathcal{R}}(f) \underset{n \to \infty}{\overset{\text{p.s}}{\longrightarrow}} \mathcal{R}(f).
     \end{equation}
@@ -139,7 +138,7 @@ Minimiser $\mathcal{R}(f)$ revient donc à minimiser l'espérance conditionnelle
 
 \subsection{Forme explicite selon la tâche}
 
-\begin{proposition}[Cas de la régression quadratique ($L^2$)]
+\begin{proposition}[Cas de la régression quadratique - $L^2$]
     Pour la perte quadratique $l(y, z) = (y - z)^2$, le prédicteur de Bayes est l'espérance conditionnelle de $Y$ sachant $X$ :
     \begin{equation}
         \boxed{f^*(x) = \mathbb{E}[Y \mid X = x]}
@@ -155,7 +154,7 @@ Minimiser $\mathcal{R}(f)$ revient donc à minimiser l'espérance conditionnelle
     $$\phi'(z) = -2\mathbb{E}[Y \mid X = x] + 2z = 0 \iff z = \mathbb{E}[Y \mid X = x]$$
 \end{proof}
 
-\begin{proposition}[Cas de la classification binaire (perte 0/1)]
+\begin{proposition}[Cas de la classification binaire - perte 0/1]
     Pour $\mathcal{Y} = \{0, 1\}$ et la perte 0/1 $l(y, z) = \mathbbm{1}_{y \neq z}$, le prédicteur de Bayes attribue la classe la plus probable a posteriori :
     \begin{equation}
         \boxed{f^*(x) = \mathbbm{1}_{\myP(Y = 1 \mid X = x) \geqslant 1/2}}
@@ -309,7 +308,7 @@ La règle de décision optimale est donnée par le maximum a posteriori (MAP) : 
 
 Il n'existe pas d'algorithme d'apprentissage universel optimal sur toutes les distributions possibles sans hypothèse préalable sur les données.
 
-\begin{theorem}[No Free Lunch (Devroye, Györfi, Lugosi)]
+\begin{theorem}[No Free Lunch - Devroye, Györfi, Lugosi]
     Soit le problème de classification binaire avec la perte 0/1 et $\mathcal{X}$ un ensemble infini. Soit $\mathcal{P}$ l'ensemble de toutes les lois de probabilité sur $\mathcal{X} \times \{0, 1\}$. Pour tout entier $n$ et tout algorithme d'apprentissage $\mathcal{A}$, on a :
     \begin{equation}
         \sup_{\myP \in \mathcal{P}} \left\{ \mathbb{E}_{S \sim \myP^{\otimes n}} \left[ \mathcal{R}_{\myP}(\mathcal{A}(S)) \right] - \mathcal{R}_{\myP}^* \right\} \geqslant\frac{1}{2}
