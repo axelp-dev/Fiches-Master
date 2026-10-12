@@ -1,0 +1,377 @@
+\minitoc 
+
+% ============================================================
+% Intro
+
+Le chapitre précédent a posé les bases physiques du rendu et a défini les modèles utilisés pour la modélisation de la lumière sur des géométries. 
+Dans ce chapitre, on s'intéresse à la résolution de ces modèles physiques (équation du rendu, transport radiatif) pour simuler efficacement et le plus rapidement possible la distribution de l'éclairage sur une scène. 
+
+On commence par proposer une méthode déterministe basée sur les \emph{radiosités}. Après avoir étudié ses limites, nous introduirons les méthodes par estimation Monte-Carlo des équations du rendu. Nous finirons par aborder la réduction de variance de ces méthodes (réduction du bruit) ainsi que des améliorations de celles-ci grâce à de meilleurs tirages aléatoires ou la modélisation sous forme de marche aléatoire. 
+
+% =======================================================
+% Problématique de résolution de l'équation du rendu
+
+\section{Problématique de résolution de l'équation du rendu}
+
+Retournons à l'équation du rendu énoncée précédement pour proposer des méthodes naïves de résolution. 
+
+% ---------------------------------------------
+\subsection{Solution analytique}
+
+Soit $x$ un point de la scène géométrique, sa luminance dans une direction donnée $ \omega_r$ vérifie l'équation intégrale suivante :
+\begin{equation}
+    L(x, \omega_r) = L_e(x, \omega_r) + \int_{\Omega^+} f_r(x, \omega_i, \omega_r) \, L_i(x, \omega_i) \cos\theta_i \, \dd\omega_i. 
+\end{equation}
+
+Celle-ci dépend de : 
+\begin{itemize}
+    \item La géométrie de la scène : la domaine d'intégrabilité $ \omega^+$ représentre les surfaces de la scène qui n'ont aucune forme canonique. 
+    \item La fonction de visibilité $ V(x, y) \in \{0,1\}$ : qui introduit des discontinuités franches entre les points. 
+    \item D'autres points de la scène : la radiance entrante en $x$ est égale à la radiance sortante d'un autre point de la scène ($L_i(x, \omega_i) = L(y, - w_i)$). Récursivement, on se retrouve à intégrer une quantité sur un espace de chemins infini. 
+\end{itemize}
+
+Il n'existe donc pas de solution analytique canonique à cette équation. Nous devons donc développer des méthodes \emph{d'approximation} pour estimer les solutions de ce problème. 
+
+% ---------------------------------------------
+\subsection{Méthode des radiosités et limites des approches déterministes}
+
+La \emph{méthode des radiosités} cherche à résoudre l'équation du rendu par une méthode d'éléments finis (FEM), en discrétisant spatialement l'ensemble des surfaces de la scène et en calculant les échanges énergétiques stationnaires entre chaque paire de facettes.
+
+On part de la formulation surfacique de l'équation du rendu, où le domaine d'intégration n'est plus l'hémisphère des directions $\Omega^+$, mais l'ensemble des surfaces visibles de la scène $\mathcal{M}$ :
+\begin{equation}
+    L(x) = L_e(x) + \int_{\mathcal{M}} K(x, x') L(x') \, \dd x'
+\end{equation}
+où $K(x, x')$ est le noyau d'interaction géométrique prenant en compte la BRDF locale, la visibilité mutuelle $V(x, x') \in \{0, 1\}$, la distance euclidienne $\|x - x'\|$ et les facteurs d'orientation géométrique $\cos\theta_x \cos\theta_{x'}$.
+
+\begin{proposition}[Méthode des radiosités -- Goral et al., 1984]
+    La méthode repose sur deux hypothèses majeures :
+    \begin{enumerate}
+        \item \textbf{Diffusion idéale} : la radiance émise et réfléchie ne dépend plus de la direction d'observation, de sorte que $L(x)$ est une grandeur purement scalaire pour chaque point de surface.
+        \item \textbf{Approximation constante par morceaux} : la scène est partitionnée en un maillage de $N$ éléments surfaciques disjoints $\{S_1, \dots, S_N\}$. La radiance est supposée constante sur chaque facette : $\forall x \in S_i, \; L(x) \approx L_i \in \mathbb{R}$.
+    \end{enumerate}
+
+    Sous ces hypothèses, on obtient le système discret suivant :
+    \begin{equation}
+        \boxed{L_i = E_i + \sum_{j=1}^N K_{i,j} L_j}
+    \end{equation}
+    où $E_i$ est la radiance émise par la facette $S_i$, et $K_{i,j}$ est le \emph{facteur de forme} géométrique représentant la fraction d'énergie quittant la facette $S_j$ qui atteint la facette $S_i$ :
+    \begin{equation}
+        K_{i,j} = \frac{1}{\operatorname{Aire}(S_i)} \int_{S_i} \int_{S_j} K(x, x') \, \dd x \, \dd x'.
+    \end{equation}
+\end{proposition}
+
+Sous forme matricielle, l'équation se réécrit comme un système linéaire de taille $N \times N$ :
+\begin{equation}
+    (I_N - K) L = E
+\end{equation}
+avec :
+\begin{itemize}
+    \item $K \in \mathcal{M}_N(\mathbb{R})$ la matrice des facteurs de forme (où $K_{ii} = 0$ pour les surfaces planes),
+    \item $E = (E_1, \dots, E_N)^\top \in \mathbb{R}^N$ le vecteur des émissions propres,
+    \item $L = (L_1, \dots, L_N)^\top \in \mathbb{R}^N$ le vecteur des radiances à déterminer.
+\end{itemize}
+
+Puisque le principe physique de conservation de l'énergie impose $\sum_i K_{i,j} \leqslant 1$, la matrice $I_N - K$ est strictement diagonalement dominante. La convergence de méthodes itératives déterministes classiques (Jacobi, Gauss-Seidel ou Southwell) est donc théoriquement garantie.
+
+\begin{remark}[Le mur algorithmique et mémoire]
+    Bien que mathématiquement élégante, cette approche se heurte en pratique à des limitations critiques qui la rendent inapplicable aux scènes 3D complexes :
+    \begin{itemize}
+        \item \emph{Complexité temporelle en $\mathcal{O}(N^2)$ pour le précalcul} : le calcul exact de chaque coefficient $K_{i,j}$ requiert l'évaluation de la fonction de visibilité mutuelle $V(x, x')$, nécessitant un lancer de rayons entre chaque couple de facettes. Pour une scène modeste de $N = 10^5$ polygones, cela représente $10^{10}$ tests de visibilité.
+        \item \emph{Stockage quadratique en $\mathcal{O}(N^2)$} : stocker explicitement la matrice $K$ saturera la mémoire vive dès que le maillage est suffisamment dense pour capturer des gradients d'ombre réalistes. 
+        \item \emph{Restrictions physiques strictes} : la méthode est intrinsèquement limitée aux matériaux purement lambertiens. Prendre en compte des surfaces spéculaires, des réfractions ou des BRDF arbitraires nécessiterait de discrétiser conjointement l'espace des surfaces et l'espace des directions angulaires, conduisant à une explosion dimensionnelle rédhibitoire.
+    \end{itemize}
+\end{remark}
+
+L'échec des méthodes déterministes par éléments finis face à la difficulté de la dimension et à la complexité géométrique justifie l'abandon du calcul exhaustif global de la scène au profit de l'évaluation ponctuelle locale. 
+
+Les méthodes probabilistes de Monte-Carlo permettent de s'affranchir de tout maillage préalable, n'ont besoin d'aucun stockage matriciel, gèrent n'importe quelle BRDF et possèdent une vitesse de convergence dont l'ordre de grandeur est rigoureusement indépendant de la dimension de l'intégrale.
+
+% =======================================================
+% Approximation Monte-Carlo
+
+\section{Approximation Monte-Carlo}
+
+Dans cette section, nous commençons par un bref rappel sur la méthode Monte-Carlo générale puis nous l'appliquons au problème du rendu. 
+
+% ---------------------------------------------
+\subsection{Fondements de l'intégration de Monte-Carlo}
+
+On cherche à évaluer numériquement l'intégrale d'une fonction $f$ sur un domaine $D \subset \mathbb{R}^d$ que l'on ne sait pas résoudre analytiquement :
+\begin{equation}
+    I = \int_D f(x) \, \dd x.
+\end{equation}
+
+L'idée est de réécrire cette intégrale comme l'espérance d'une variable aléatoire que l'on sait simuler numériquement. Ensuite, nous utiliserons la loi des grands nombres pour approcher cette intégrale par une moyenne empirique de tirages aléatoires. 
+
+\begin{proposition}[Réécriture Monte-Carlo]
+    Soit $X$ une variable aléatoire continue à valeurs dans $D$, de densité de probabilité $p$ strictement positive sur le support de $f$. D'après le théorème de transfert, on peut réécrire l'espérance la variable aléatoire $f(X)$ comme : 
+    \begin{equation}
+        \mathbb{E}(f(X)) = \int_D f(x) \cdot p(x) \; \dd x. 
+    \end{equation}
+    Donc en prenant $ \mathbb{E}\left( \frac{f(X)}{p(X)}\right)$, on obtient l'expression suivante : 
+    \begin{equation}
+        I = \int_D \frac{f(x)}{p(x)} \, p(x) \, \dd x = \mathbb{E}\left[ \frac{f(X)}{p(X)} \right]. 
+    \end{equation}
+    Le problème se ramène donc au calcul de l'espérance d'une variable aléatoire $Y = g(X) = \frac{f(X)}{p(X)}$.
+\end{proposition}
+
+Cette observation simple permet alors de définir un estimateur convergent de l'intégrale $I$ à partir de réalisation indépendantes de $X$. 
+
+\begin{remark}
+    À noter l'importance de la positivité de $p$ pour obtenir une intégrale qui converge. Nous devons aussi être capable d'évaluer $f$ et $p$ numériquement. 
+\end{remark}
+
+\begin{definition}[Estimateur de Monte-Carlo]
+    Soit $(X_1, \dots, X_N)$ un échantillon i.i.d de $N$ variables aléatoires selon la densité $p$. L'estimateur empirique de $I$, noté $\langle I \rangle_N$, est défini par :
+    \begin{equation}
+        \langle I \rangle_N = \frac{1}{N} \sum_{i=1}^N \frac{f(X_i)}{p(X_i)}.
+    \end{equation}
+\end{definition}
+
+\begin{prop}[Estimateur de Monte-Carlo]
+    Grâce à la loi des grands nombres et au TCL, l'estimateur précédement défini vérifie les propriétés suivantes : 
+    \begin{enumerate}
+        \item \emph{Absence de biais} : par linéarité de l'espérance,
+        \begin{equation}
+            \mathbb{E}\left[ \langle I \rangle_N \right] = \frac{1}{N} \sum_{i=1}^N \mathbb{E}\left[ \frac{f(X_i)}{p(X_i)} \right] = I.
+        \end{equation}
+        \item \emph{Variance et écart-type} : par indépendance mutuelle des réalisations,
+        \begin{equation}
+            \mathbb{V}\left( \langle I \rangle_N \right) = \frac{1}{N} \mathbb{V}\left( \frac{f(X)}{p(X)} \right) = \frac{\sigma^2}{N}, \quad \text{d'où} \quad \sigma(\langle I \rangle_N) = \frac{\sigma}{\sqrt{N}}.
+        \end{equation}
+        \item \emph{Convergence presque sûre} : par la Loi Forte des Grands Nombres, $\langle I \rangle_N \xrightarrow[N \to \infty]{\text{p.s.}} I$.
+        \item \emph{Comportement asymptotique} : par le Théorème Central Limite, pour $N$ grand, l'erreur d'estimation $\langle I \rangle_N - I$ suit une loi normale $\mathcal{N}\left(0, \frac{\sigma^2}{N}\right)$.
+    \end{enumerate}
+\end{prop}
+
+% \begin{remark}[Indépendance dimensionnelle de l'erreur]
+%     L'erreur standard décroît rigoureusement en $\mathcal{O}(N^{-1/2})$, quelle que soit la dimension $d$ du domaine $D$. Pour quadrupler la précision (diviser le bruit par deux), il faut quadrupler le nombre d'échantillons $N$.
+% \end{remark}
+
+La principale difficulté repose maintenant dans la simulation de la variable aléatoire $X$. Un cours précédent est consacré aux différentes techniques possibles. L'une des plus utilisées reste quand même la méthode par transformée inverse. 
+
+\begin{proposition}[Simulation par transformée inverse]
+    Pour simuler une variable aléatoire unidimensionnelle $X$ de fonction de répartition $F_X(x) = \mathbb{P}(X \le x)$ continue et strictement croissante, on utilise la fonction quantile $Q = F_X^{-1}$ vérifiant :
+    \begin{equation}
+        U \sim \mathcal{U}(]0, 1[) \implies X = F_X^{-1}(U) \sim p_X.
+    \end{equation}
+\end{proposition}
+
+% ---------------------------------------------
+\subsection{Application directe à l'équation du rendu}
+
+Appliquons la méthode vu précédement à notre équation du rendu. 
+L'évaluation de la luminance sortante $L(x, \vec{\omega}_r)$ nécessite de calculer l'intégrale de réflexion sur l'hémisphère $\Omega^+$ :
+\begin{equation}
+    L(x, \vec{\omega}_r) = L_e(x, \vec{\omega}_r) + \int_{\Omega^+} f_r(x, \vec{\omega}_i, \vec{\omega}_r) L_i(x, \vec{\omega}_i) \cos\theta_i \, \dd\omega_i.
+\end{equation}
+Le terme d'émission $L_e(x, \vec{\omega}_r)$ étant déterministe et directement connu, seule la partie réfléchie $L_r(x, \vec{\omega}_r)$ requiert une intégration numérique. On peut alors proposer deux méthodes, la première introduit une densité de probabilité $ p_\Omega$ sur l'hémisphère $ \Omega^+$ au dessus du point $x$ et permet d'échantillonner les directions à considérer. La seconde méthode, intègre la BRDF et la luminance entrante sur tout le domaine $ \Omega^+$. 
+
+\begin{proposition}[Formulation Angulaire]
+    Soit une densité de probabilité $p_\Omega(\vec{\omega})$ définie sur l'hémisphère $\Omega^+$, telle que $p_\Omega(\vec{\omega}) > 0$ dès que l'intégrande est non nul. 
+
+    En identifiant la fonction à intégrer à $f(\vec{\omega}_i) = f_r(x, \vec{\omega}_i, \vec{\omega}_r) L_i(x, \vec{\omega}_i) \cos\theta_i$, l'estimateur de Monte-Carlo primaire à $N$ échantillons s'écrit directement :
+    \begin{equation}
+        \langle L(x, \vec{\omega}_r) \rangle_N = L_e(x, \vec{\omega}_r) + \frac{1}{N} \sum_{k=1}^N \frac{f_r(x, \vec{\omega}_{i,k}, \vec{\omega}_r) \, L_i(x, \vec{\omega}_{i,k}) \cos\theta_{i,k}}{p_\Omega(\vec{\omega}_{i,k})},
+    \end{equation}
+    où les directions $(\vec{\omega}_{i,1}, \dots, \vec{\omega}_{i,N})$ sont des réalisations i.i.d.\ tirées sur $\Omega^+$ selon la loi $p_\Omega$.
+\end{proposition}
+
+\begin{example}[Échantillonnage hémisphérique uniforme]
+    Dans le cas le plus simple où l'on tire uniformément des directions sur l'hémisphère $\Omega^+$, la mesure totale de $\Omega^+$ valant $2\pi$ stéradians, la densité constante vaut $p_\Omega(\vec{\omega}) = \frac{1}{2\pi}$ et l'estimateur devient :
+    \begin{equation}
+        \langle L(x, \vec{\omega}_r) \rangle_N = L_e(x, \vec{\omega}_r) + \frac{2\pi}{N} \sum_{k=1}^N f_r(x, \vec{\omega}_{i,k}, \vec{\omega}_r) \, L_i(x, \vec{\omega}_{i,k}) \cos\theta_{i,k}.
+    \end{equation}
+\end{example}
+
+\begin{proposition}[Formulation surfacique]
+    Lorsque l'on cherche à évaluer la contribution directe de sources lumineuses étendues (aires d'émission finies $\mathcal{S}_{\text{source}}$), l'échantillonnage de directions angulaires est inefficace car la majorité des rayons aléatoires manquent la source. On effectue alors un changement de variable de la mesure angulaire $\dd\omega_i$ vers la mesure surfacique $\dd A_y$ sur la source lumineuse :
+    \begin{equation}
+        \dd\omega_i = \frac{\cos\theta_y}{\|x - y\|^2} \, \dd A_y = \frac{\cos\theta_y}{r_{xy}^2} \, \dd A_y.
+    \end{equation}
+
+    En introduisant explicitement la fonction de visibilité mutuelle $V(x, y) \in \{0, 1\}$ ($1$ si le segment $[x, y]$ est dégagé, $0$ sinon), l'irradiance ou la radiance réfléchie issue de la source s'écrit comme une intégrale sur sa surface $\mathcal{S}_{\text{source}}$ :
+    \begin{equation}
+        L_{\text{direct}}(x, \vec{\omega}_r) = \int_{\mathcal{S}_{\text{source}}} f_r(x, \vec{\omega}_{xy}, \vec{\omega}_r) \, L_e(y \to -\vec{\omega}_{xy}) \, V(x, y) \, \frac{\cos\theta_x \cos\theta_y}{r_{xy}^2} \, \dd A_y.
+    \end{equation}
+
+    Si l'on échantillonne uniformément des points $y$ sur la surface de la source d'aire $\operatorname{Aire}(\mathcal{S}_{\text{source}})$, la densité spatiale vaut $p_A(y) = \frac{1}{\operatorname{Aire}(\mathcal{S}_{\text{source}})}$. L'estimateur de Monte-Carlo pour $N$ échantillons s'obtient alors sous la forme canonique :
+    \begin{equation}
+        \boxed{\langle L_{\text{direct}}(x, \vec{\omega}_r) \rangle_N = \frac{\operatorname{Aire}(\mathcal{S}_{\text{source}})}{N} \sum_{k=1}^N f_r(x, \vec{\omega}_{x y_k}, \vec{\omega}_r) \, L_e(y_k) \, V(x, y_k) \, \frac{\cos\theta_x \cos\theta_{y_k}}{r_{x y_k}^2}}.
+    \end{equation}
+\end{proposition}
+
+La variance de cet estimateur provient principalement de la fonction indicatrice discontinue $V(x, y_k)$ (présence ou absence d'obstacles générant les ombres douces) ainsi que des variations de l'angle d'incidence et de la distance $r_{x y_k}$.
+
+% =======================================================
+% Réduction de variance et contrôle de l'erreur
+
+\section{Réduction de variance et contrôle de l'erreur}
+
+L'estimateur primaire converge avec une erreur en $\mathcal{O}(N^{-1/2})$, ce qui se traduit visuellement par un bruit haute fréquence dans l'image synthétisée. Pour accélérer la convergence sans augmenter excessivement le nombre d'échantillons $N$, plusieurs stratégies d'échantillonnage et de contrôle statistique sont mises en place.
+
+% ---------------------------------------------
+\subsection{Échantillonnage par importance (\emph{Importance Sampling})}
+
+Soit l'évaluation de $I = \int_D f(x) \, \dd x$ via l'estimateur $\langle I \rangle_N = \frac{1}{N} \sum_{i=1}^N \frac{f(X_i)}{p(X_i)}$ où $X_i \sim p$. La variance de cet estimateur s'écrit :
+\begin{equation}
+    \mathbb{V}\big(\langle I \rangle_N\big) = \frac{1}{N} \left[ \int_D \frac{f^2(x)}{p(x)} \, \dd x - I^2 \right].
+\end{equation}
+Pour réduire cette variance sans augmenter le nombre d'échantillons $N$, on peut choisir une densité $p$ pour $X$ qui s'approche de $f$ suffisament pour obtenir un rapport constant en moyenne. 
+
+\begin{proposition}[Densité optimale théorique]
+    L'échantillonnage par importance vise à mimer le comportement de $f$ par $p^*$ pour échantillonner les rayons en fonction de la luminance de la sourceL. On va donc choisir une densité de probabilité strictement proportionnelle à la fonction cible :
+    \begin{equation}
+        p^*(x) = \frac{|f(x)|}{\int_D |f(x)| \, \dd x} \propto |f(x)|
+    \end{equation}
+    permettant d'annuler strictement la variance de l'estimateur $\mathbb{V}(\langle I \rangle_N) = 0$.
+\end{proposition}
+
+\begin{remark}
+    Bien que le dénominateur de $p^*(x)$ contienne l'intégrale inconnue $I$, ce résultat fondamental guide l'échantillonnage pratique : on choisit une loi $p(x)$ analytiquement intégrable et inversible dont le profil mime au plus près les zones de forte énergie du produit integrande ($f_r \cdot \cos\theta_i$ ou sources lumineuses).
+\end{remark}
+
+% % ---------------------------------------------
+% \subsection{Qualité de l'échantillonnage : discrépance et stratification}
+
+% \begin{theorem}[Inégalité de Koksma-Hlawka]
+%     Soit $I^s = [0, 1]^s$ l'hypercube unité et $f$ une fonction à variation bornée au sens de Hardy-Krause[cite: 23]. Pour tout ensemble d'échantillons $\mathcal{P}_N = \{x_1, \dots, x_N\}$, l'erreur d'intégration vérifie[cite: 23] :
+%     \begin{equation}
+%         \left| \frac{1}{N} \sum_{i=1}^N f(x_i) - \int_{I^s} f(u) \, \dd u \right| \leqslant V(f) \cdot D^*(\mathcal{P}_N)
+%     \end{equation}
+%     où $V(f)$ est la variation totale de $f$ et $D^*(\mathcal{P}_N)$ désigne la \emph{discrépance étoilée} mesurant l'écart d'uniformité de l'ensemble de points[cite: 23].
+% \end{theorem}
+
+% L'inégalité met en évidence deux leviers d'amélioration[cite: 23] :
+% \begin{itemize}
+%     \item \textbf{Échantillonnage stratifié} : le domaine est partitionné en $K$ sous-domaines disjoints (strates), et un nombre fixé de tirages y est alloué[cite: 40]. Cela empêche le regroupement stochastique (\emph{clumping}) et réduit la variance globale[cite: 40].
+%     \item \textbf{Séquences à basse discrépance (Quasi-Monte Carlo)} : l'utilisation de suites quasi-aléatoires déterministes bien réparties (Sobol, Halton, séquence de Fibonacci sur la sphère [Keinert et al., 2015]) améliore le taux de convergence asymptotique de $\mathcal{O}(N^{-1/2})$ vers $\mathcal{O}(N^{-1})$[cite: 24, 42].
+% \end{itemize}
+
+% % ---------------------------------------------
+% \subsection{Contrôle adaptatif et intervalles de confiance}
+
+% Lorsque la densité $p$ est fixée, on détermine dynamiquement le nombre d'échantillons nécessaire en surveillant la convergence statistique locale[cite: 25, 29].
+
+% \subsubsection{Algorithme en ligne de Welford}
+
+% Pour estimer la moyenne et la variance sans stocker l'historique des réalisations, on utilise les récurrences numériquement stables de Welford[cite: 25] :
+% \begin{align}
+%     \bar{x}_n &= \bar{x}_{n-1} + \frac{x_n - \bar{x}_{n-1}}{n}, \label{eq:welford_mean} \\
+%     M_{2,n} &= M_{2,n-1} + (x_n - \bar{x}_{n-1})(x_n - \bar{x}_n), \label{eq:welford_m2}
+% \end{align}
+% avec la variance d'échantillon sans biais $s_n^2 = \frac{M_{2,n}}{n-1}$[cite: 25].
+
+% \subsubsection{Critères d'arrêt et intervalles de confiance}
+
+% Pour un niveau de confiance $c \in ]0, 1[$ et un paramètre $\alpha = \frac{1-c}{2}$, l'intervalle de confiance sur la moyenne s'écrit[cite: 28, 29] :
+% \begin{equation}
+%     I_c = \left[ \bar{x}_n - t_\alpha \frac{s_n}{\sqrt{n}} \, ; \, \bar{x}_n + t_\alpha \frac{s_n}{\sqrt{n}} \right]
+% \end{equation}
+% où $t_\alpha$ est le quantile de la loi de Student (ou de la loi normale centrée réduite pour $n$ grand via le TCL)[cite: 29]. Le processus de calcul par pixel s'arrête lorsque la demi-largeur de l'intervalle passe sous un seuil toléré : $2 t_\alpha \frac{s_n}{\sqrt{n}} < \varepsilon$[cite: 29].
+
+% % =======================================================
+% % Résolution récursive : Marches aléatoires et Roulette Russe
+% % =======================================================
+
+% \section{Résolution globale par marches aléatoires}
+
+% Pour calculer l'éclairage global (rebonds indirects multiples), l'équation du rendu se reformule sous la forme d'une équation intégrale de Fredholm du second ordre[cite: 4, 30] :
+% \begin{equation}
+%     f(x) = e(x) + \int_D K(x, y) f(y) \, \dd y.
+% \end{equation}
+
+% % ---------------------------------------------
+% \subsection{Développement stochastique en marche aléatoire}
+
+% En substituant récursivement $f$ dans son intégrale, on génère la série de Neumann[cite: 30]. L'estimateur primaire s'écrit sous forme d'une chaîne de points $\xi_0, \xi_1, \dots$[cite: 30] :
+% \begin{equation}
+%     \hat{f}(x) = e(x) + \frac{K(x, \xi_1)}{p_1(\xi_1)} \hat{f}(\xi_1) = \sum_{i=0}^\infty \left( \prod_{j=1}^i \frac{K(\xi_{j-1}, \xi_j)}{p_j(\xi_j)} \right) e(\xi_i), \quad \text{avec } \xi_0 = x.
+% \end{equation}
+% La suite de variables aléatoires $(\xi_0, \xi_1, \dots)$ forme une \emph{marche aléatoire} (ou chemin de rayons) à travers la scène[cite: 30].
+
+% % ---------------------------------------------
+% \subsection{Terminaison non biaisée par Roulette Russe}
+
+% Interrompre la marche à une profondeur maximale arbitraire $k_{\max}$ tronque l'opérateur intégral et introduit un \emph{biais systématique} (sous-estimation de l'énergie dans la scène)[cite: 31]. Pour garantir un arrêt en temps fini sans biaiser l'espérance, on applique une terminaison stochastique par \emph{roulette russe}[cite: 31, 32].
+
+% \begin{proposition}[Estimateur par roulette russe]
+%     Soit $\alpha_j \in ]0, 1]$ une probabilité de survie au rebond $j$[cite: 31, 32]. On définit l'estimateur corrigé :
+%     \begin{equation}
+%         \hat{I}_{\text{RR}} = 
+%         \begin{cases}
+%             \dfrac{1}{\alpha_j} f(\dots) & \text{avec probabilité } \alpha_j, \\[6pt]
+%             0 & \text{avec probabilité } 1 - \alpha_j.
+%         \end{cases}
+%     \end{equation}
+%     L'estimateur reste strictement non biaisé : $\mathbb{E}[\hat{I}_{\text{RR}}] = \alpha_j \cdot \left(\frac{1}{\alpha_j} \mathbb{E}[f]\right) + (1 - \alpha_j) \cdot 0 = \mathbb{E}[f]$[cite: 31, 32].
+% \end{proposition}
+
+% Pour une marche aléatoire interrompue au rebond $k$, l'estimateur de chemin combiné s'écrit[cite: 32] :
+% \begin{equation}
+%     \boxed{\hat{f}(x) = \sum_{i=0}^k \left( \prod_{j=1}^i \frac{K(\xi_{j-1}, \xi_j)}{\alpha_j \, p_j(\xi_j)} \right) e(\xi_i)}.
+% \end{equation}
+% La roulette russe élimine le biais au détriment d'une augmentation modérée de la variance, tout en garantissant une terminaison presque sûre des chemins[cite: 31, 32].
+
+% % =======================================================
+% % Échantillonnage pratique de directions
+% % =======================================================
+
+% \section{Échantillonnage de directions géométriques}
+
+% L'évaluation de la BRDF ou des radiances incidentes s'appuie sur la méthode de la transformée inverse pour convertir deux variables aléatoires uniformes $(r_1, r_2) \in [0, 1)^2$ en vecteurs directeurs 3D[cite: 17, 19, 42, 43].
+
+% \begin{itemize}
+%     \item \textbf{Distribution uniforme sur la sphère} ($p(x) = \frac{1}{4\pi R^2}$)[cite: 42] :
+%     \begin{equation}
+%         \phi = 2\pi r_1, \quad \theta = \arccos(1 - 2r_2).
+%     \end{equation}
+%     En coordonnées cartésiennes[cite: 42] :
+%     \begin{equation}
+%         x = c_x + 2R\cos(2\pi r_1)\sqrt{r_2(1-r_2)}, \quad y = c_y + 2R\sin(2\pi r_1)\sqrt{r_2(1-r_2)}, \quad z = r_2.
+%     \end{equation}
+
+%     \item \textbf{Distribution hémisphérique pondérée par le cosinus} ($p(\vec{\omega}) = \frac{\cos\theta}{\pi}$)[cite: 43] :
+%     \begin{equation}
+%         \phi = 2\pi r_1, \quad \theta = \arccos(\sqrt{r_2}) \implies z = \sqrt{r_2}, \quad x = \cos(2\pi r_1)\sqrt{1-r_2}, \quad y = \sin(2\pi r_1)\sqrt{1-r_2}.
+%     \end{equation}
+%     Cette loi correspond exactement à l'\emph{importance sampling} de la réflexion lambertienne diffuse[cite: 43].
+
+%     \item \textbf{Distribution hémisphérique selon un lobe spéculaire en puissance} ($p(\vec{\omega}) = \frac{n+1}{2\pi}\cos^n\theta$)[cite: 43] :
+%     \begin{equation}
+%         \phi = 2\pi r_1, \quad \theta = \arccos\left(r_2^{\frac{1}{n+1}}\right) \implies z = r_2^{\frac{1}{n+1}}.
+%     \end{equation}
+%     Ce tirage est utilisé pour l'échantillonnage préférentiel des réflexions brillantes (modèles empiriques de type Phong)[cite: 43].
+% \end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% Chapitre X : Méthodes Monte-Carlo d'estimation pour le rendu
+% ├── 1. Problématique de résolution de l'équation du rendu
+% │   ├── Limites des méthodes déterministes / éléments finis (Radiosité)
+% │   └── Intérêt des méthodes stochastiques en haute dimension
+% ├── 2. Fondements de l'intégration de Monte-Carlo
+% │   ├── Espérance, variance et estimateur primaire
+% │   ├── Vitesse de convergence en O(1/√N) et indépendance dimensionnelle
+% │   └── Inversion de fonction de répartition (Transformée inverse / quantiles)
+% ├── 3. Réduction de variance et contrôle de l'erreur
+% │   ├── Échantillonnage par importance (Importance Sampling)
+% │   ├── Échantillonnage stratifié et basse discrépance (Koksma-Hlawka)
+% │   └── Critères d'arrêt, algorithme de Welford et intervalles de confiance
+% ├── 4. Résolution de l'équation récursive : Marches aléatoires
+% │   ├── Développement en série de Neumann stochastique
+% │   └── Terminaison non biaisée par Roulette Russe
+% └── 5. Applications pratiques à l'éclairage
+%     ├── Échantillonnage direct des sources surfaciques
+%     └── Échantillonnage directionnel (sphère, hémisphère cosinus)
