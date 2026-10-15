@@ -3,3 +3,417 @@
 % =========================================================
 
 \chapter{Inégalités de concentration et régime sous-gaussien}
+
+\minitoc 
+
+Cette annexe rassemble les fondements probabilistes des inégalités de concentration mobilisées en théorie de l'apprentissage statistique. L'ensemble de la théorie repose sur une démarche unifiée : appliquer l'inégalité de Markov à une fonctionnelle exponentielle bien choisie.
+
+% ======================================================================
+% La méthode exponentielle de Cramér-Chernoff
+
+\section{La méthode exponentielle de Cramér-Chernoff}
+
+\subsection{Inégalité de Markov}
+
+Le socle de toutes les inégalités de déviation est le lemme de Markov.
+
+\begin{theorem}[Inégalité de Markov]
+    Soit $Z$ une variable aléatoire réelle presque sûrement positive ($Z \geqslant 0$ p.s.) et $t > 0$. Alors :
+    \begin{equation}
+        \mathbb{P}(Z \geqslant t) \leqslant \frac{\mathbb{E}[Z]}{t}.
+    \end{equation}
+\end{theorem}
+
+\begin{proof}
+    Comme $Z \geqslant 0$, on a l'inégalité ponctuelle $t \, \mathbbm{1}_{\{Z \geqslant t\}} \leqslant Z$. En prenant l'espérance par monotonie de l'intégrale :
+    \begin{equation*}
+        t \, \mathbb{P}(Z \geqslant t) = \mathbb{E}\left[ t \, \mathbbm{1}_{\{Z \geqslant t\}} \right] \leqslant \mathbb{E}[Z].
+    \end{equation*}
+\end{proof}
+
+Cette inégalité est à la base de toutes les autres. Nous l'améliorons en l'appliquant à des fonctions $ \phi$ bien choisies. Pour cela on utilise le résultat de la proposition suivante. 
+
+\begin{proposition}[Génération des inégalités de déviation] 
+    Soit $\phi : \R \to [0, \infty[$ une fonction strictement croissante sur son domaine. Pour tout $t$, l'inclusion d'événements $\{Z \geqslant t\} \subseteq \{\phi(Z) \geqslant \phi(t)\}$ assure que :
+    \begin{equation}
+        \mathbb{P}(Z \geqslant t) \leqslant \frac{\mathbb{E}[\phi(Z)]}{\phi(t)}.
+        \label{eq:generalisation-deviation-ineq}
+    \end{equation}
+\end{proposition}
+
+\begin{remark}[Bienaymé-Tchebychev]
+    L'application de cette proposition à la fonction quadratique $\phi(z) = z^2$ sur la variable centrée $|X - \mathbb{E}[X]|$ donne l'inégalité de Bienaymé-Tchebychev :
+    \begin{equation}
+        \mathbb{P}(|X - \mathbb{E}[X]| \geqslant t) \leqslant \frac{\operatorname{Var}(X)}{t^2}.
+    \end{equation}
+    Considérons une somme de $n$ variables i.i.d. centrées $S_n = \sum_{i=1}^n X_i$ de variance $\sigma^2$. Comme $\operatorname{Var}(S_n) = n\sigma^2$, Tchebychev fournit pour une déviation à l'échelle centrale $t = u \sigma \sqrt{n}$ :
+    \begin{equation}
+        \mathbb{P}(|S_n| \geqslant u \sigma \sqrt{n}) \leqslant \frac{n \sigma^2}{u^2 n \sigma^2} = \frac{1}{u^2}.
+    \end{equation}
+    Cette décroissance est purement polynomiale en $u^{-2}$. Or, d'après le théorème central limite, la loi limite de $S_n / (\sigma \sqrt{n})$ est gaussienne et sa queue décroît en réalité comme $\exp(-u^2 / 2)$. Contrôler seulement deux moments est donc insuffisant pour capturer les déviations exponentielles : il est nécessaire de contrôler des moments exponentiels, c'est la méthode de Cramér-Chernoff. 
+\end{remark}
+
+\subsection{La méthode de Cramér-Chernoff}
+
+Pour obtenir une vitesse exponentielle, on applique la proposition \ref{eq:generalisation-deviation-ineq} à la famille de fonctions $\phi(z) = e^{\lambda z}$ pour $\lambda > 0$. Mais avant, on définit la transformée de Log-Laplace possédant de bonnes propriétés analytiques et calculatoires. 
+
+\begin{definition}[Transformée log-Laplace]
+    Soit $X$ une variable aléatoire réelle. On définit sa \emph{transformée log-Laplace} (ou \emph{log-moment generating function}) $\psi_X : \R \longrightarrow ]-\infty, +\infty]$ par :
+    \begin{equation}
+       \boxed{ \psi_X(\lambda) = \ln \mathbb{E}\left[ e^{\lambda X} \right]},
+    \end{equation}
+    définie sur le domaine $D_X = \{\lambda \in \R \mid \psi_X(\lambda) < \infty\}$.
+\end{definition}
+
+En appliquant l'inégalité de Markov à la tranformée de Log-Laplace d'une variable aléatoire, on est capable de contrôler la queue de sa loi plus finement. D'où le théorème de Chernoff suivant. 
+
+\begin{theorem}[Borne de Chernoff] \label{thrm:chernoff-bound}
+    Soit $X$ une variable aléatoire réelle de transformée de log-Laplace $ \psi_X$. Pour tout seuil $t > 0$ et pour tout $\lambda > 0$ tel que $\lambda \in D_X$, on a : 
+    \begin{equation}
+        \mathbb{P}(X \geqslant t) \leqslant e^{-\lambda t} \cdot \mathbb{E}\left[ e^{\lambda X} \right] = \exp\big( -(\lambda t - \psi_X(\lambda)) \big).
+    \end{equation}
+    Comme le membre de gauche ne dépend pas du paramètre libre $\lambda$, on optimise en prenant le supremum sur $\lambda > 0$, et donc : 
+    \begin{equation}
+        \mathbb{P}(X \geqslant t) \leqslant \exp\left( - \sup_{\lambda > 0} \{ \lambda t - \psi_X(\lambda) \} \right).
+    \end{equation}
+\end{theorem}
+
+L'évaluation de la borne de Chernoff repose sur quatre propriétés structurelles de $\psi_X$.
+
+\begin{prop}[Log-Laplace $\psi_X$]
+    Supposons $X$ centrée ($\mathbb{E}[X] = 0$). Sur l'intérieur de son domaine de définition $D_X$, on a les propriétés suivantes : 
+    \begin{enumerate}
+        \item \emph{Convexité et ancrage :} $\psi_X(0) = 0$ et $\psi_X$ est convexe.
+        \item \emph{Décalage exponentiel (Exponential tilting) :} Pour $\lambda \in \mathring{D}_X$, on définit la mesure de probabilité décalée $\mathbb{P}_\lambda$ par sa densité $d\mathbb{P}_\lambda = e^{\lambda x - \psi_X(\lambda)} d\mathbb{P}$. Alors :
+        \begin{equation}
+            \psi_X'(\lambda) = \mathbb{E}_{X \sim \mathbb{P}_\lambda}[X] \quad \text{et} \quad \psi_X''(\lambda) = \operatorname{Var}_{X \sim \mathbb{P}_\lambda}(X).
+        \end{equation}
+        \item \emph{Comportement local au voisinage de $0$ :} On a $\psi_X'(0) = 0$, $\psi_X''(0) = \operatorname{Var}(X) = \sigma^2$, d'où le développement de Taylor en $0$ :
+        \begin{equation}
+            \psi_X(\lambda) = \frac{\sigma^2 \lambda^2}{2} + o(\lambda^2).
+        \end{equation}
+        \item \emph{Tensorisation :} Si $X_1, \dots, X_n$ sont des variables indépendantes, alors pour $S_n = \sum_{i=1}^n X_i$ :
+        \begin{equation}
+            \psi_{S_n}(\lambda) = \sum_{i=1}^n \psi_{X_i}(\lambda).
+        \end{equation}
+    \end{enumerate}
+\end{prop}
+
+\begin{proof}
+    \begin{enumerate}
+        \item $\psi_X(0) = \ln \mathbb{E}[1] = 0$. Pour la convexité, soient $\lambda_1, \lambda_2 \in D_X$ et $\alpha \in [0, 1]$. Posons $p = 1/\alpha$ et $q = 1/(1-\alpha)$ de sorte que $1/p + 1/q = 1$. Par l'inégalité de Hölder :
+        \begin{equation*}
+            \mathbb{E}\left[ e^{(\alpha \lambda_1 + (1-\alpha)\lambda_2)X} \right] \leqslant \left( \mathbb{E}\left[ e^{\lambda_1 X} \right] \right)^\alpha \left( \mathbb{E}\left[ e^{\lambda_2 X} \right] \right)^{1-\alpha}.
+        \end{equation*}
+        En prenant le logarithme, la concavité est exclue et on obtient la convexité de $\psi_X$.
+        \item La dérivation sous l'intégrale est licite sur l'intérieur du domaine :
+        \begin{equation*}
+            \psi_X'(\lambda) = \frac{\mathbb{E}[X e^{\lambda X}]}{\mathbb{E}[e^{\lambda X}]} = \int x \, e^{\lambda x - \psi_X(\lambda)} d\mathbb{P}(x) = \mathbb{E}_{X \sim \mathbb{P}_\lambda}[X].
+        \end{equation*}
+        En dérivant une seconde fois, la dérivée du quotient donne classiquement $\mathbb{E}_{\mathbb{P}_\lambda}[X^2] - (\mathbb{E}_{\mathbb{P}_\lambda}[X])^2 = \operatorname{Var}_{\mathbb{P}_\lambda}(X)$.
+        \item À $\lambda = 0$, la mesure $\mathbb{P}_0$ coïncide avec $\mathbb{P}$. Donc $\psi_X'(0) = \mathbb{E}[X] = 0$ et $\psi_X''(0) = \operatorname{Var}(X) = \sigma^2$. La formule de Taylor-Young en 0 fournit l'équivalent local.
+        \item Par indépendance mutuelle, l'espérance du produit se factorise :
+        \begin{equation*}
+            \mathbb{E}\left[ e^{\lambda S_n} \right] = \mathbb{E}\left[ \prod_{i=1}^n e^{\lambda X_i} \right] = \prod_{i=1}^n \mathbb{E}\left[ e^{\lambda X_i} \right] \implies \ln \mathbb{E}\left[ e^{\lambda S_n} \right] = \sum_{i=1}^n \ln \mathbb{E}\left[ e^{\lambda X_i} \right].
+        \end{equation*}
+    \end{enumerate}
+\end{proof}
+
+\begin{remark}
+    Dans le théorème précédent, on arrive à borner la queue de la variable aléatoire $X$ grâce à sa transformée de log-Laplace. Il reste cependant un paramètre $ \lambda > 0$ sur lequel on peut jouer pour améliorer cette borne, c'est pourquoi on propose une optimisation en $ \lambda$ pour obtenir : 
+    \begin{equation}
+        \mathbb{P}(X \geqslant t) \leqslant \exp\left( - \sup_{\lambda > 0} \{ \lambda t - \psi_X(\lambda) \} \right).
+    \end{equation}
+    L'idée de la partie suivante est de développer la théorie sur ce $\sup$ et de prouver que cette optimisation produit effectivement la meilleure borne. On définit pour cela l'exposant exponentiel comme la fonction $ \psi^*_X$. 
+\end{remark}
+
+\subsection{Transformée de Cramér-Legendre et exactitude asymptotique}
+
+\begin{definition}[Transformée de Cramér-Legendre]
+    On appelle \emph{transformée de Cramér} de la variable $X$ la fonction $\psi_X^* : \R_+ \longrightarrow [0, \infty]$ définie par :
+    \begin{equation}
+        \psi_X^*(t) = \sup_{\lambda > 0} \{ \lambda t - \psi_X(\lambda) \}.
+    \end{equation}
+    La borne de Chernoff \ref{thrm:chernoff-bound} s'écrit alors de manière compacte : $\mathbb{P}(X \geqslant t) \leqslant e^{-\psi_X^*(t)}$.
+\end{definition}
+
+\begin{prop}[$\psi_X^*$ et moyenne empirique]
+    La fonction $\psi_X^*$ est convexe, positive, nulle en $0$, et non décroissante sur $\R_+$. Au voisinage de $0$, le développement dual donne :
+    \begin{equation}
+        \psi_X^*(t) = \frac{t^2}{2\sigma^2} + o(t^2).
+    \end{equation}
+    De plus, pour des variables $(X_i)_{1 \leqslant i \leqslant n}$ i.i.d., la propriété de tensorisation entraîne $\psi_{S_n/n}^*(t) = n \psi_X^*(t)$, de sorte que la moyenne empirique vérifie :
+    \begin{equation}
+        \mathbb{P}\left( \frac{1}{n} S_n \geqslant t \right) \leqslant e^{-n \psi_X^*(t)}.
+    \end{equation}
+\end{prop}
+
+\begin{remark}[Théorème de Cramér, 1938 : l'optimalité de l'exposant]
+    Le théorème de Cramér en théorie des grandes déviations stipule que sous l'hypothèse où $\psi_X$ est finie au voisinage de $0$, on a pour tout $t > 0$ :
+    \begin{equation}
+        \lim_{n \to \infty} \frac{1}{n} \ln \mathbb{P}\left( \frac{1}{n} S_n \geqslant t \right) = - \psi_X^*(t).
+    \end{equation}
+    La méthode de Chernoff est donc \emph{asymptotiquement exacte} à l'échelle exponentielle : aucune information n'est perdue en passant par la transformée de Laplace. Les approximations qui interviendront par la suite (comme l'hypothèse sous-gaussienne) découleront uniquement de majorations analytiques de $\psi_X(\lambda)$, et non d'une faiblesse intrinsèque de la méthode de Chernoff.
+\end{remark}
+
+
+% ======================================================================
+% Régime Sous-Gaussien
+
+\section{Régime Sous-Gaussien}
+
+En probabilité, nous travaillons souvent avec des variables aléatoires Gaussiennes qui proviennent généralement de résultats de convergence tels que le TCL. Leur expression simple ainsi que leur bonnes propriétés calculatoires en font des outils pratiques à utiliser. On souhaite ici contrôler les queues d'une variable aléatoire à partir de variables gaussiennes. On les appellera des \emph{variables aléatoires sous-gausiennes}. 
+
+\subsection{Généralités}
+
+\begin{definition}[Variable aléatoire sous-gausienne]
+    Soit $X$ une variable aléatoire réelle, on dira que $X$ est une variable aléatoire \emph{sous-gaussienne} de \emph{variance proxy} $ \sigma^2$, noté $ X \sim \mathcal{G}(\sigma^2)$, si : 
+    \begin{equation}
+        \boxed{\forall \lambda \in \R, \quad \psi_X( \lambda) \leqslant \frac{ \sigma^2 \lambda^2}{2}.} 
+    \end{equation}
+\end{definition}
+
+\begin{proposition}
+    Soit $ X \sim \mathcal{G}( \sigma^2)$, en appliquant la borne de Chernoff à $-X$, on obtient la relation suivante : 
+    \begin{equation}
+        \forall \lambda > 0, \quad \myP_X(X \geqslant t) \leqslant e^{-t^2 / (2 \sigma^2)}, \quad \myP_X(|X| \geqslant t) \leqslant 2 e^{-t^2/ (2 \sigma^2)}. 
+    \end{equation}
+\end{proposition}
+
+Le théorème suivant propose d'autres écritures à cette conséquence. 
+
+\begin{theorem}[Équivalences]
+    Soit $X$ une variable aléatoire centrée. Les assertions ci-dessous sont équivalence à constante positives $K_i$ près :
+    \begin{enumerate}
+        \item $ \forall t > 0, \quad \myP_X (|X| \geqslant t) \leqslant 2 e^{-t^2 / K_1^2}$. 
+        \item $ \forall p \geqslant 1, \quad \left( \mathbb{E}_X |X|^p \right)^{1/p} \leqslant K_2 \sqrt{p}$. 
+        \item $ \mathbb{E}_X \left( e^{X^2 / K_3^2}\right) \leqslant 2$. 
+        \item $ \forall \lambda \in \R, \quad \psi_X( \lambda) \leqslant K_4^2 \times \displaystyle\frac{ \lambda^2}{2}$. 
+    \end{enumerate}
+\end{theorem}
+
+% TODO : Écrire les preuves 
+
+\subsection{Propriétés algébriques}
+
+Décrivons maintenant quelques opérations utiles sur les variables sous-gaussiennes. Commençons par définir la \emph{norme d'Orlicz}. 
+
+\begin{definition}[Norme d'Orlicz]
+    Soit $X$ une variable aléatoire, on définit sa \emph{norme d'Orlicz} comme : 
+    \begin{equation}
+        \|X\|_{ \psi_2} = \inf \left\{ K > 0 \mid \mathbb{E}_X \left[ e^{X^2/K^2} \leqslant 2\right] \right\}. 
+    \end{equation}
+\end{definition}
+
+\begin{proposition}[Scaling]
+    Soit $X \sim \mathcal{G}( \sigma^2)$, puisque $ \psi_X(x, \lambda) = \psi_{cX} ( \lambda)$, alors $ cX \sim \mathcal{G}(c^2 \sigma^2)$. 
+\end{proposition}
+
+\begin{proposition}[Somme]
+    Soient $X_1, \dots, X_n \in \mathcal{G}( \sigma_i^2)$, puisque : 
+    $$ 
+        \psi_{ \sum_i X_i} ( \lambda) = \sum_i \psi_{X_i}( \lambda) \leqslant \left( \sum_i \sigma_i^2 \right) \frac{ \lambda ^2}{2}, 
+    $$ 
+    alors : 
+    \begin{equation}
+        \sum_i X_i \sim \mathcal{G} \left( \sum_i \sigma_i^2\right). 
+    \end{equation}
+\end{proposition}
+
+\begin{proposition}
+    Sans indépendance, on a $ \| X + Y\|_{ \psi_2} \leqslant \|X\|_{\psi_2} + \|Y\|_{\psi_2}$. 
+\end{proposition}
+
+\begin{proposition}[Cas gaussien]
+    Soit $ X \sim \mathcal{N}(0, \sigma^2)$, alors $ \psi_X( \lambda) = \sigma^2 \lambda^2 / 2$, donc il existe bien des variables sous-gaussiennes. 
+\end{proposition}
+
+\begin{proposition}[Maximum]
+    Soient $X_1, \dots, X_n$ des variables gaussiennes $ \mathcal{G}( \sigma^2)$, pas nécessairement indépendantes. Alors on a : 
+    \begin{equation}
+        \mathbb{E}_S \left[ \max_{i \leqslant n} X_i\right] \leqslant \sigma \sqrt{2 \log n}. 
+    \end{equation}
+\end{proposition}
+
+\begin{proof}
+    Soit $ \lambda > 0$, alors :
+    \begin{align*}
+        \exp \left( \lambda \mathbb{E}_S \left[ \max_{i \leqslant n} X_i \right] \right) &\leqslant \mathbb{E}_S \left[ e^{ \lambda \max_{i \leqslant n} X_i }\right], &\text{Jensen}  \\ 
+        & \leqslant \sum_{ i \leqslant n} \mathbb{E}_{X_i} \left[ e^{ \lambda \max_{i \leqslant n} X_i }\right], &\text{car } \max \leqslant \mathrm{sum} \\
+        &\leqslant n e^{ \lambda^2 \sigma^2 / 2}. 
+    \end{align*}
+    En appliquant $ t \longmapsto \frac{\log t}{ \lambda}$, et en posant $ \lambda = \sqrt{ 2 \log n} / \sigma$, on obtient : 
+    $$ 
+        \mathbb{E}_S [ \max_{i \leqslant n} X_i ] \leqslant \frac{\log n}{ \lambda} + \frac{ \lambda \sigma^2}{n} = \sigma \sqrt{2 \log n}. 
+    $$
+\end{proof}
+
+\subsection{Des sommes aux fonctionnelles}
+
+Jusqu'ici, le régime sous-gaussien suppose une majoration a priori sur $\psi_X(\lambda)$. Le lemme suivant établit un résultat fondamental : toute variable aléatoire bornée presque sûrement est intrinsèquement sous-gaussienne, sans aucune hypothèse distributionnelle supplémentaire.
+
+\begin{lemma}[Hoeffding]
+    Soit $X$ une variable aléatoire centrée telle que $ X \in [a,b]$ p.s. Alors pour tout $ \lambda \in \R$, on a :
+    \begin{equation}
+        X \in \mathcal{G} \left( \frac{(b-a)^2}{4}\right) \quad \text{et} \quad \psi_X( \lambda) \leqslant \lambda^2 \frac{(b-a)^2}{8}. 
+    \end{equation}
+\end{lemma}
+
+\begin{proof}
+    La preuve se déroule en trois temps : on commence par borner la variable de $X$ en l'écrivant comme le minimiseur de l'écart quadratique moyen, ensuite on paramètre la densité de $X$ par $ \lambda$, on finit par appliquer l'étape 1 au développement de Taylor à l'ordre 2 de $ \psi_X$. 
+    \begin{enumerate}
+        \item \emph{Variance} : Soit $Y$ une variable aléatoire et $ c \in \R$. La variance minimise l'écart quadratique moyen, d'où : 
+        $$ 
+            \V(Y) = \underset{c \in \R}{\inf} \mathbb{E} \left( (Y - c)^2\right) 
+            \leqslant \mathbb{E} \left[ \left( Y - \frac{a + b}{2}\right)^2\right]
+        $$
+        car $ (a + b)/2 \in \R$. Or on sait que $ Y \in [a,b]$ donc on majore par l'écart maximal, puis on applique la fonction carré et on prend l'espérance : 
+        \begin{align*}
+            &  \left| Y - \frac{a + b}{2}\right| \leqslant \frac{b-a}{2}, \\ 
+            \Longrightarrow \quad & \left( Y - \frac{a + b}{2}\right)^2 \leqslant \frac{(b-a)^2}{4}, & t \mapsto t^2 \\ 
+            \Longrightarrow \quad & \V(Y) \leqslant \mathbb{E} \left[ \frac{(b - a)^2}{4}\right] = \frac{(b-a)^2}{4}. & \mathbb{E}(\cdot)
+        \end{align*}
+        \item \emph{Densité} : On peut paramétrer la densité de $X$ en définissant : 
+        $$ 
+            \dd \myP_\lambda (x) = e^{ \lambda x - \psi_X( \lambda)} \dd \myP(x). 
+        $$
+        donc si $X \in [a,b]$ sous $ \myP$, alors $ X \in [a,b]$ sous $ \myP_\lambda$ aussi. En appliquant l'étape 1) à $ \myP_\lambda$, on obtient : 
+        $$ 
+            \forall \lambda \in \R, \quad 
+            \psi''_X( \lambda) = \V_{ \myP_\lambda} (X) \leqslant \frac{(b-a)^2}{4}. 
+        $$
+        \item \emph{Accroissements finis} : En appliquant la formule des accroissements finis à l'ordre 2 à $ \psi_x$ entre $0$ et $ \lambda$, on a : 
+        $$ 
+            \psi_X( \lambda) = \psi_X(0) + \lambda \psi'_X(0) + \frac{ \lambda^2}{2} \psi_X''( \theta), \quad \theta \in [0, \lambda]. 
+        $$
+        Or $X$ est centrée donc $ \psi_X(0) = 0$ et $ \psi'_X(0) = \mathbb{E}(X) = 0$, d'où : 
+        $$ 
+            \psi_X( \lambda) = \frac{ \lambda^2}{2} \psi_X''( \theta) \leqslant \frac{ \lambda^2}{2} \frac{(b-a)^2}{4} = \frac{ \lambda^2(b-a)^2}{8}. 
+        $$
+    \end{enumerate}
+    Par définition, $X \in \mathcal{G} \left( \frac{(b-a)^2}{4}\right)$. 
+\end{proof}
+
+Si le lemme de Hoeffding résout le cas des sommes de variables indépendantes par simple tensorisation, il reste impuissant face à des fonctionnelles non linéaires comme les suprema d'écarts empiriques. L'inégalité de McDiarmid lève cette restriction en adaptant le contrôle sous-gaussien aux fonctions stables par coordonnées.
+
+\subsection{Au-delà des sommes indépendantes : l'inégalité de McDiarmid}
+
+L'inégalité de Hoeffding classique permet de contrôler finement la concentration d'une somme de variables aléatoires indépendantes $S_n = \sum_{i=1}^n X_i$. Toutefois, en théorie de l'apprentissage statistique, l'objet fondamental que l'on cherche à borner est l'écart uniforme sur une classe d'hypothèses $\mathcal{F}$ :
+\begin{equation}
+    \Phi(X_1, \dots, X_n) = \sup_{f \in \mathcal{F}} \big( R(f) - \hat{R}_S(f) \big).
+\end{equation}
+En raison de la présence de l'opérateur supremum, la fonctionnelle $\Phi$ n'est pas séparable en une somme de termes indépendants, ce qui rend l'inégalité de Hoeffding directement inapplicable.
+
+Pour étendre les propriétés de concentration sous-gaussiennes à de telles fonctionnelles arbitraires, la clé réside dans une hypothèse de stabilité par perturbation locale : si la modification d'une seule observation n'altère que marginalement la valeur globale de la fonction, alors cette dernière se concentre exponentiellement autour de son espérance.
+
+\begin{definition}[Propriété des différences bornées]
+Soit $\mathcal{X}$ un espace mesurable. Une fonction $f : \mathcal{X}^n \to \mathbb{R}$ satisfait la \emph{propriété des différences bornées} pour des constantes $c_1, \dots, c_n \geqslant 0$ si, pour tout indice $i \in \{1, \dots, n\}$ et pour tous $x_1, \dots, x_n, x_i' \in \mathcal{X}$ :
+\begin{equation}
+    |f(x_1, \dots, x_i, \dots, x_n) - f(x_1, \dots, x_i', \dots, x_n)| \leqslant c_i.
+\end{equation}
+Autrement dit, le remplacement de la $i$-ème coordonnée ne peut pas modifier la sortie de $f$ de plus de $c_i$, quelles que soient les valeurs fixées sur les autres composantes.
+\end{definition}
+
+\begin{theorem}[Inégalité de McDiarmid - Bounded Differences]
+Soient $X_1, \dots, X_n$ des variables aléatoires indépendantes à valeurs dans $\mathcal{X}$. Si la fonction $f : \mathcal{X}^n \to \mathbb{R}$ vérifie la propriété des différences bornées associée aux constantes $(c_1, \dots, c_n)$, alors la variable centrée $g(S) = f(S) - \mathbb{E}[f(S)]$ est sous-gaussienne de paramètre de variance :
+\begin{equation}
+    \sigma^2 = \frac{1}{4} \sum_{i=1}^n c_i^2.
+\end{equation}
+En particulier, pour tout seuil $t > 0$, on a les déviations unilatérales et bilatérales suivantes :
+\begin{align}
+    \mathbb{P}\big(f(S) - \mathbb{E}[f(S)] \geqslant t\big) & \leqslant \exp\left( - \frac{2t^2}{\sum_{i=1}^n c_i^2} \right), \\
+    \mathbb{P}\big(\mathbb{E}[f(S)] - f(S) \geqslant t\big) & \leqslant \exp\left( - \frac{2t^2}{\sum_{i=1}^n c_i^2} \right), \\
+    \mathbb{P}\big(|f(S) - \mathbb{E}[f(S)]| \geqslant t\big) & \leqslant 2\exp\left( - \frac{2t^2}{\sum_{i=1}^n c_i^2} \right).
+\end{align}
+\end{theorem}
+
+La démonstration repose sur une idée féconde due à Doob : décomposer l'écart global $f(S) - \mathbb{E}[f(S)]$ en une somme télescopique d'accroissements de martingale $V_i = D_i - D_{i-1}$, conditionner pas à pas pour appliquer le lemme de Hoeffding unitaire à chaque coordonnée, puis effeuiller le produit par récurrence.
+
+\begin{proof}
+    Sous les hypothèses du théorème, on veut montrer que $ g(S) = f(S) - \mathbb{E}_S(f(S))$ vérifie : 
+    $$ 
+        \psi_{g(S)} \leqslant \frac{ \lambda^2}{8} \sum_{ i \leqslant n} c_i^2. 
+    $$
+    Conditionnons $ \mathbb{E}(f(S))$ par une suite de filtrations $ \mathcal{F}_i = \sigma (X_1, \dots, X_i)$. On pose alors : 
+    $$ 
+        D_i = \mathbb{E}[ f(S) \mid \mathcal{F}_i] \quad \text{et} \quad 
+        \begin{cases}
+            D_0 = \mathbb{E}(f(S)) \\ 
+            D_n = f(S)
+        \end{cases}
+    $$
+    On a alors, par télescopage : 
+    \begin{align*}
+        f(S) - \mathbb{E}(f(S)) &= D_n - D_0 
+        = \sum_{i=1}^{n} \underbrace{D_i - D_{i-1}}_{V_i} = \sum_{i=1}^{n} V_i. 
+    \end{align*}
+    Calculons : 
+    \begin{align*}
+        \mathbb{E}[V_i \mid \mathcal{F}_{i-1}] &= \mathbb{E}(D_i - D_{i-1} \mid \mathcal{F}_{i-1}) \\ 
+        &= \mathbb{E}(D_i \mid \mathcal{F}_{i-1}) - \mathbb{E}(D_{i-1} \mid \mathcal{F}_{i-1}) \\ 
+        &= \mathbb{E}\left[ \mathbb{E}(f(S) \mid \mathcal{F}_{i}) \mid \mathcal{F}_{i-1}\right] - \mathbb{E}(D_{i-1} \mid \mathcal{F}_{i-1}) \\ 
+        &= \mathbb{E}(f(S) \mid \mathcal{F}_{i-1}) - \mathbb{E}(D_{i-1} \mid \mathcal{F}_{i-1}) \\ 
+        &= D_{i-1} - D_{i-1} = 0. 
+    \end{align*}
+    Essayons maintenant de borner les $V_i$ par les $c_i$ à partir de la propriété des différences bornés. Posons : 
+    $$ 
+        D_i = h_i(X_1, \dots, X_i) \quad \text{avec} \quad h_i(x_1, \dots, x_i) = \mathbb{E}[f(x_1, \dots, x_i, X_{i+1}, \dots, X_n)]
+    $$
+    On a alors : 
+    \begin{align*}
+        D_{i-1} &= \mathbb{E}\left[ f(X_1, \dots, X_n) \mid \mathcal{F}_{i-1}\right] \\ 
+        &= \mathbb{E} \left[D_i \mid \mathcal{F}_{i-1}\right] \\ 
+        &= \mathbb{E}\left[ h_i(X_1, \dots, X_{i-1}, X_i) \mid \mathcal{F}_{i-1}\right] \\ 
+        &= \mathbb{E}_{X_i'}\left[ h_i(X_1, \dots, X_{i-1}, X_i') \right]. 
+    \end{align*}
+    D'où la différence : 
+    $$
+        V_i = D_i - D_{i-1} = h_i(X_1, \dot, X_i) - \mathbb{E}_{X_i'}\left[ h_i(X_1, \dots, X_{i-1}, X_i') \right]. 
+    $$
+    Conditionnellement à $ \mathcal{F}_{i-1}$, les $X_1, \dots, X_{i-1}$ sont constants (i.e déjà connus). Quand $X_i$ varie, par différences bornées sur $h_i$, la quantité $h_i(X_1, \dots, X_i)$ ne varie pas de plus de $c_i$. Il existe donc $k \in \R$ tel que $ V_i \in [k - c_i, k + c_i]$, on peut donc appliquer l'ingalité de Hoeffding conditionnellement à $ \mathcal{F}_{i-1}$ :
+    $$  
+        \mathbb{E}\left[ e^{ \lambda V_i} \mid \mathcal{F}_{i-1} \right] \leqslant \exp \left( \frac{ \lambda^2 c_i^2}{8}\right). 
+    $$
+    On finit la preuve en sortant les $ e^{ \frac{ \lambda^2 c_n^2}{8}}$ itérativement de l'espérance : 
+    \begin{align*}
+        \mathbb{E} \left[ e^{ \lambda \sum_{i \leqslant n} V_i}\right] 
+        &= \mathbb{E} \left[ e^{ \lambda \sum_{i \leqslant n-1} V_i} \cdot e^{ \lambda V_n} \right] \\ 
+        &= \mathbb{E} \left[ e^{ \lambda \sum_{i \leqslant n-1} V_i} \cdot \mathbb{E} \left[ e^{ \lambda V_n} \mid \mathcal{F}_{n-1}\right]\right] \\ 
+        &\leqslant e^{ \frac{ \lambda ^2 c_n^2}{8}} \mathbb{E} \left[ e^{ \lambda \sum_{i=1}^{n-1} V_i} \right]. 
+    \end{align*}
+    On a donc au final : 
+    $$ 
+        \mathbb{E}\left[ e^{ \lambda g(S)}\right] \leqslant \prod_{i=1}^{n} e^{ \frac{\lambda^2 c_i^2}{8}} = \exp \left( \frac{ \lambda^2}{8} \sum_{i \leqslant n} c_i^2\right). 
+    $$
+\end{proof}
+
+% ======================================================================
+% Bilan : Architecture de la généralisation en apprentissage
+
+\section{Bilan : la division du travail en apprentissage statistique}
+
+Les outils probabilistes développés dans cette annexe fournissent le fondement rigoureux de l'analyse d'excès de risque menée au Chapitre~\ref{ch:theorie_apprentissage}. En apprentissage statistique, l'objectif central est de contrôler la déviation uniforme :
+\begin{equation}
+    \Phi(S) = \sup_{f \in \mathcal{F}} \big( R(f) - \hat{R}_S(f) \big).
+\end{equation}
+
+Grâce aux résultats établis, l'analyse théorique se découple naturellement en deux étapes hermétiques :
+
+\begin{enumerate}
+    \item \textbf{La concentration (Inégalité de McDiarmid) :}  
+    Sous l'hypothèse de pertes bornées dans $[0, l_\infty]$, la fonctionnelle $\Phi$ vérifie la propriété des différences bornées avec $c_i = l_\infty / n$. L'inégalité de McDiarmid assure alors que, pour tout $\delta \in ]0, 1[$, avec probabilité au moins $1 - \delta$ :
+    \begin{equation}
+        \sup_{f \in \mathcal{F}} \big( R(f) - \hat{R}_S(f) \big) \leqslant \mathbb{E}_S \left[ \sup_{f \in \mathcal{F}} \big( R(f) - \hat{R}_S(f) \big) \right] + l_\infty \sqrt{\frac{\ln(1/\delta)}{2n}}.
+    \end{equation}
+    Les fluctuations stochastiques d'échantillonnage sont ainsi universellement contrôlées à une vitesse en $\mathcal{O}(1/\sqrt{n})$, sans qu'aucune hypothèse de finitude ou de compacité ne soit requise sur la classe de prédicteurs $\mathcal{F}$.
+
+    \item \textbf{La complexité géométrique (Symétrisation et Rademacher) :}  
+    Le problème est ainsi ramené à l'évaluation d'une seule quantité scalaire déterministe, l'espérance résiduelle. C'est à ce stade précis que s'articulent les outils développés au cours :
+    \begin{itemize}
+        \item Le procédé de symétrisation majore cette espérance par la complexité de Rademacher $2\mathfrak{R}_n(\ell \circ \mathcal{F})$.
+        \item Le lemme de contraction sépare le critère de perte de la géométrie intrinsèque de $\mathcal{F}$.
+        \item Enfin, pour borner cette complexité, la proposition sur le maximum de variables sous-gaussiennes fournit directement le lemme de Massart pour les classes finies, tandis que la dualité de normes s'applique aux modèles linéaires sous contrainte de régularisation ($L^1$ et $L^2$).
+    \end{itemize}
+\end{enumerate}
+
+Cette division du travail illustre la complémentarité parfaite entre l'analyse de concentration sous-gaussienne (qui gère l'aléa) et l'analyse de complexité fonctionnelle (qui capture le pouvoir expressif de la classe d'hypothèses).
