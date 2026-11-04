@@ -5,7 +5,7 @@
 
 La planification est un outil essentiel dans beaucoup de domaines aujourd'hui et est utilisée par tout le monde : que ce soit pour prévoir des tâches à effectuer, suivre une recette de cuisine ou anticiper et prévoir l'évolution d'un programme industriel. 
 
-Toutes ces applications peuvent être formalisées et généralisées au sein de la théorie de la planification. Celle-ci cherche à synthétiser et résoudre de manière automatique un \emph{problème de planification} par la production d'un \emph{plan}. Ce dernier peut se voir comme une collection d'actions à effectuer pour modifier l'état courant de la tâche dans le but d'atteindre un \emph{état cible} appelé \emph{but}. L'exécution de ce plan est donc la réalisation de ces différentes étapes dans le monde pour lequel a été défini le problème. 
+Toutes ces applications peuvent être formalisées et généralisées au sein de la théorie de la planification. Celle-ci cherche à synthétiser et résoudre de manière automatique un \emph{problème de planification} par la production d'un \emph{plan}. Ce dernier peut se voir comme une collection d'actions à effectuer pour modifier l'état courant d'une tâche dans le but d'atteindre un \emph{état cible} appelé \emph{but}. L'exécution de ce plan est donc la réalisation de ces différentes étapes dans le monde pour lequel a été défini le problème. 
 
 Nous allons ici formaliser mathématiquement ces concepts pour l'instant abstrait et brièvement étudier la notion de complexité de résolution de tels problèmes. 
 
@@ -43,7 +43,7 @@ Pour passer d'un état à un autre, on définira des \emph{actions}.
     \end{equation}
     On définira alors l'état résultant $E'$ de l'action de $a$ sur $E$ par : 
     \begin{equation}
-        E' := E \uparrow a = (E \setminus \operatorname{Del}(a)) \cup \operatorname{Add}(a). 
+        \boxed{E' := E \uparrow a = (E \setminus \operatorname{Del}(a)) \cup \operatorname{Add}(a). }
     \end{equation}
 \end{definition}
 
@@ -78,10 +78,10 @@ Pour passer d'un état à un autre, on définira des \emph{actions}.
 % -----------------------------------------------------------
 \subsection{Plan d'action et problème de planification}
 
-La résolution d'un problème se fait par l'application séquentielle d'actions applicables sur un état initial $E$. On appelera cela, un \emph{plan séquentiel}. 
+La résolution d'un problème se fait par l'application séquentielle d'actions applicables sur un état initial $E$ : on appelera cela un \emph{plan séquentiel}. 
 
-\begin{definition}[Plan Séquentiel -- Application]
-    On appelle $P$ un \emph{plan séquentiel}, une séquence finie d'actions $ \langle a_1, a_2, \dots, a_n \rangle$. L'application d'un plan $P$ à un état $E$, notée $E \mathcal{A} P$, est définie par récurrence sur la longueur de $P$ :
+\begin{definition}[Plan Séquentiel \& Application]
+    On définit un \emph{plan séquentiel}, $P$, comme une séquence finie d'actions $ \langle a_1, a_2, \dots, a_n \rangle$. L'application d'un plan $P$ à un état $E$, notée $E \mathcal{A} P$, est définie par récurrence sur la longueur de $P$ :
     \begin{itemize}
         \item Si $E = \bot$, alors $\bot \mathcal{A} P := \bot$.
         \item Pour le plan vide : $E \mathcal{A} \langle \rangle := E$.
@@ -104,19 +104,23 @@ On peut alors définir le concept de \emph{problème de planification}, noté $ 
 \end{itemize}
 % Un \emph{plan-solution} $P$ est donc un séquence finie d'actions telle que son application à $I$ dans le contexte $ \mathcal{O}$ permet d'atteindre l'état $B$ (i.e $ B \subseteq I \mathcal{A} P$).
 
+L'objectif de la planification étant de développer un plan séquentiel permettant de résoudre le problème $ \langle \mathcal{O}, I, B \rangle$, on appellera un tel plan un \emph{plan solution}.
 
-\begin{definition}[Plan-solution -- flexibilité]
+\begin{definition}[Plan-solution]
     Soit $\mathcal{P} = \langle \mathcal{O}, I, B \rangle$ un problème de planification. Un plan séquentiel $P$ est un \emph{plan-solution} (ou \emph{plan correct}) si et seulement si :
     \begin{equation}
         I \mathcal{A} P \neq \bot \quad \text{et} \quad B \subseteq (I \mathcal{A} P)
     \end{equation}
-    La \emph{flexibilité} d'un plan-solution désigne sa capacité à subir des modifications (modification de l'ordonnancement d'actions non contraintes, instanciation retardée de variables libres) sans perdre sa correction.
 \end{definition}
+
+\begin{remark}[Flexibilité]
+    La \emph{flexibilité} d'un plan-solution désigne sa capacité à subir des modifications (modification de l'ordonnancement d'actions non contraintes, instanciation retardée de variables libres) sans perdre sa correction.
+\end{remark}
 
 % -----------------------------------------------------------
 \subsection{Propriétés et hypothèses du cadre classique}
 
-Enfin, la production d'un \emph{plan-solution} sera réalisée par un algorithme de planification, noté $ \operatorname{Planif}$. On pourra définir plusieurs propriétés recherchées pour cet algorithme. 
+La production d'un \emph{plan-solution} sera réalisée par un algorithme de planification, noté $ \operatorname{Planif}$. On pourra définir plusieurs propriétés recherchées pour cet algorithme. 
 
 \begin{prop}[Planificateur]
     Soit un algorithme de planification $\operatorname{Planif}$ opérant sur un formalisme donné.
@@ -271,7 +275,7 @@ Introduit pour lever la rigidité de STRIPS, ADL enrichit la description des op�
     \end{itemize}
 \end{definition}
 
-PDDL \emph{Planning Domain Description Language} sépare formellement la physique du système de l'instance concrète à résoudre afin de rendre les solveurs indépendants des domaines d'application.
+PDDL - \emph{Planning Domain Description Language} sépare formellement la physique du système de l'instance concrète à résoudre afin de rendre les solveurs indépendants des domaines d'application.
 
 \begin{definition}[Architecture PDDL]
     Une instance PDDL dissocie la modélisation en deux composantes :

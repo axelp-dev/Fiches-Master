@@ -1,0 +1,64 @@
+
+\begin{algorithm}[htpb]
+    \DontPrintSemicolon
+    \caption{Algorithme \textsc{Graphplan}}\label{algo:graphplan}
+    \SetKwInOut{Input}{Entrées}\SetKwInOut{Output}{Sortie}
+    \SetKwFunction{FExtract}{ExtrairePlan}
+
+    \Input{Problème de planification $\mathcal{P} = \langle \mathcal{F}, \mathcal{A}, I, B \rangle$}
+    \Output{Un plan d'ensembles d'actions $P = \langle Q_1, \dots, Q_k \rangle$, ou \textbf{échec}}
+
+    \BlankLine
+    \tcp{Initialisation du niveau 0}
+    $k \leftarrow 0$\;
+    $F_0 \leftarrow I$\;
+    $\operatorname{Mutex}(F_0) \leftarrow \emptyset$\;
+    $\mathcal{M} \leftarrow \emptyset$ \tcp*{Table de mémorisation (nogoods)}
+
+    \BlankLine
+    \While{\textbf{vrai}}{
+        \tcp{Condition de déclenchement de la recherche arrière}
+        \If{$B \subseteq F_k \textbf{ et } \forall (g_1, g_2) \in B \times B, \; \neg \operatorname{Mutex}(g_1, g_2 \mid F_k)$}{
+            $P \leftarrow \FExtract(B, k, \mathcal{M})$\;
+            \If{$P \neq \textbf{échec}$}{
+                \Return $P$\;
+            }
+        }
+        
+        \tcp{Test de stabilisation (incomplétude prouvée)}
+        \If{$k > 0 \textbf{ et } F_k = F_{k-1} \textbf{ et } \operatorname{Mutex}(F_k) = \operatorname{Mutex}(F_{k-1})$}{
+            \Return \textbf{échec} \tcp*{Le graphe a stationné sans solution}
+        }
+        
+        \BlankLine
+        \tcp{Phase d'extension vers le niveau $k+1$}
+        $k \leftarrow k + 1$\;
+        $A_k \leftarrow \{ N_f \mid f \in F_{k-1} \} \cup \{ a \in \mathcal{A} \mid \operatorname{Prec}(a) \subseteq F_{k-1} \land \forall p, q \in \operatorname{Prec}(a), \neg \operatorname{Mutex}(p, q \mid F_{k-1}) \}$\;
+        Calculer $\operatorname{Mutex}(A_k)$ via conflits directs et préconditions concurrentes\;
+        $F_k \leftarrow \bigcup_{a \in A_k} \operatorname{Add}(a)$\;
+        Calculer $\operatorname{Mutex}(F_k)$ via paires d'actions productrices exclusives\;
+    }
+
+    \BlankLine
+    \SetKwProg{Fn}{Procédure}{:}{}
+    \Fn{\FExtract{$G, i, \mathcal{M}$}}{
+        \If{$i = 0$}{
+            \Return $\langle \rangle$ \tcp*{Succès : le niveau initial est atteint}
+        }
+        \If{$(i, G) \in \mathcal{M}$}{
+            \Return \textbf{échec} \tcp*{Sous-but déjà exploré et prouvé stérile}
+        }
+        
+        \ForEach{ensemble non mutex $Q \subseteq A_i$ tel que $G \subseteq \bigcup_{a \in Q} \operatorname{Add}(a)$}{
+            $G' \leftarrow \bigcup_{a \in Q} \operatorname{Prec}(a)$\;
+            $P' \leftarrow \FExtract(G', i - 1, \mathcal{M})$\;
+            \If{$P' \neq \textbf{échec}$}{
+                \Return $P' \oplus \langle Q \rangle$\;
+            }
+        }
+        $\mathcal{M} \leftarrow \mathcal{M} \cup \{(i, G)\}$ \tcp*{Mémorisation du conflit (nogood)}
+        \Return \textbf{échec}\;
+    }
+\end{algorithm}
+
+\newpage
