@@ -1,0 +1,96 @@
+\begin{figure}[htpb]
+    \centering
+    \begin{tikzpicture}[
+        node distance=1.5cm,
+        fluent/.style={rectangle, draw=black!80, fill=blue!10, thick, minimum size=0.55cm, font=\footnotesize\bfseries},
+        action/.style={rectangle, draw=black!80, fill=orange!15, thick, minimum size=0.55cm, font=\footnotesize\bfseries},
+        noop/.style={rectangle, draw=black!60, fill=gray!15, thick, dashed, minimum size=0.55cm, font=\scriptsize},
+        edge/.style={-{Stealth[scale=0.9]}, thick, draw=black!70},
+        del_edge/.style={-{Stealth[scale=0.9]}, thick, draw=black!70, densely dotted},
+        mutex_act/.style={draw=cyan!80!blue, thick, bend left=25},
+        mutex_flu/.style={draw=green!60!black, thick, dashed, bend right=25}
+    ]
+
+        % =========================================================
+        % NIVEAU 0 : Fluents
+        % =========================================================
+        \node[fluent] (f0_a) at (0, 0) {$a$};
+        \node[font=\footnotesize\bfseries] at (0, 2.5) {$F_0$};
+
+        % =========================================================
+        % NIVEAU 1 : Actions & Fluents
+        % =========================================================
+        \node[font=\footnotesize\bfseries] at (2.2, 2.5) {$A_1$};
+        \node[action] (a1_A) at (2.2, 1.4) {$A$};
+        \node[noop]   (a1_Na) at (2.2, 0) {$N_a$};
+        \node[action] (a1_B) at (2.2, -1.4) {$B$};
+
+        % Preconditions N0 -> N1
+        \draw[edge] (f0_a) -- (a1_A);
+        \draw[edge] (f0_a) -- (a1_Na);
+        \draw[edge] (f0_a) -- (a1_B);
+
+        % Mutex actions A1 : B supprime a (effet de Na)
+        \draw[mutex_act] (a1_Na) to (a1_B);
+
+        \node[font=\footnotesize\bfseries] at (4.0, 2.5) {$F_1$};
+        \node[fluent] (f1_b) at (4.0, 1.4) {$b$};
+        \node[fluent] (f1_a) at (4.0, 0) {$a$};
+        \node[fluent] (f1_c) at (4.0, -1.4) {$c$};
+
+        % Effets N1 -> F1
+        \draw[edge] (a1_A) -- (f1_b);
+        \draw[edge] (a1_Na) -- (f1_a);
+        \draw[edge] (a1_B) -- (f1_c);
+        \draw[del_edge] (a1_B) -- (f1_a);
+
+        % Mutex fluents F1 : a et c (produits par Na et B qui sont mutex)
+        \draw[mutex_flu] (f1_a) to (f1_c);
+
+        % =========================================================
+        % NIVEAU 2 : Actions & Fluents
+        % =========================================================
+        \node[font=\footnotesize\bfseries] at (6.2, 2.5) {$A_2$};
+        \node[noop]   (a2_Nb) at (6.2, 1.8) {$N_b$};
+        \node[action] (a2_A)  at (6.2, 0.8) {$A$};
+        \node[noop]   (a2_Na) at (6.2, 0) {$N_a$};
+        \node[action] (a2_B)  at (6.2, -0.8) {$B$};
+        \node[noop]   (a2_Nc) at (6.2, -1.8) {$N_c$};
+
+        % Preconditions F1 -> A2
+        \draw[edge] (f1_b) -- (a2_Nb);
+        \draw[edge] (f1_a) -- (a2_A);
+        \draw[edge] (f1_a) -- (a2_Na);
+        \draw[edge] (f1_a) -- (a2_B);
+        \draw[edge] (f1_c) -- (a2_Nc);
+
+        % Mutex actions A2 (exemples clairs)
+        \draw[mutex_act] (a2_Na) to (a2_B);
+
+        \node[font=\footnotesize\bfseries] at (8.2, 2.5) {$F_2$};
+        \node[fluent] (f2_b) at (8.2, 1.4) {$b$};
+        \node[fluent] (f2_a) at (8.2, 0) {$a$};
+        \node[fluent] (f2_c) at (8.2, -1.4) {$c$};
+
+        \draw[edge] (a2_Nb) -- (f2_b);
+        \draw[edge] (a2_A)  -- (f2_b);
+        \draw[edge] (a2_Na) -- (f2_a);
+        \draw[edge] (a2_B)  -- (f2_c);
+        \draw[edge] (a2_Nc) -- (f2_c);
+
+        % =========================================================
+        % NIVEAU 3 : Action C et But d
+        % =========================================================
+        \node[font=\footnotesize\bfseries] at (10.2, 2.5) {$A_3$};
+        \node[action, draw=red!80, fill=red!15] (a3_C) at (10.2, 0.6) {$C$};
+        \node[font=\footnotesize\bfseries] at (11.8, 2.5) {$F_3$};
+        \node[fluent, draw=red!80, fill=red!20] (f3_d) at (11.8, 0.6) {$d$};
+
+        \draw[edge, draw=red!80] (f2_b) -- (a3_C);
+        \draw[edge, draw=red!80] (f2_c) -- (a3_C);
+        \draw[edge, draw=red!80] (a3_C) -- node[above, font=\scriptsize\bfseries] {But} (f3_d);
+
+    \end{tikzpicture}
+    \caption{Représentation du graphe de planification pour le domaine canonique. Les traits pleins bleus représentent les mutex d'actions, les pointillés verts les mutex de fluents. Le but $d$ est atteint et extrait au niveau 3.}
+    \label{fig:graphplan-deroulement-canonique}
+\end{figure}
