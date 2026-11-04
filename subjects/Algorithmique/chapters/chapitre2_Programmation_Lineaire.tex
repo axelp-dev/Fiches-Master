@@ -764,20 +764,21 @@ problème initial $\Pi$. L'algorithme s'arrête lorsque tous les nœuds feuilles
 \end{definition}
 
 \begin{algorithm}[H]
-\caption{Branch and Bound pour un programme linéaire en nombres entiers}
-\begin{algorithmic}[1]
-\State Résoudre la relaxation linéaire du problème $\Pi$.
-\If{le nœud est fathomé}
-    \State arrêter l'exploration de ce nœud.
-\Else
-    \State Identifier une variable $x_i$ fractionnaire dans la solution $x^*$.
-    \State Créer deux sous-problèmes en ajoutant respectivement les contraintes :
-    \[
-        x_i \leqslant \lfloor x^*_i \rfloor \quad \text{et} \quad x_i \geqslant \lceil x^*_i \rceil
-    \]
-    \State Appeler \textbf{Branch and Bound} récursivement sur ces sous-problèmes.
-\EndIf
-\end{algorithmic}
+    \DontPrintSemicolon
+    \caption{Branch and Bound pour un programme linéaire en nombres entiers}\label{algo:branch_and_bound}
+    \SetKwInOut{Input}{Entrée}\SetKwInOut{Output}{Sortie}
+
+    Résoudre la relaxation linéaire du problème $\Pi$\;
+    \eIf{le nœud est fathomé (élagué)}{
+        Arrêter l'exploration de ce nœud\;
+    }{
+        Identifier une variable $x_i$ fractionnaire dans la solution $x^*$\;
+        Créer deux sous-problèmes en ajoutant respectivement les contraintes :\;
+        \Indp
+        $x_i \leqslant \lfloor x^*_i \rfloor \quad \text{et} \quad x_i \geqslant \lceil x^*_i \rceil$\;
+        \Indm
+        Appeler \textbf{Branch and Bound} récursivement sur ces sous-problèmes\;
+    }
 \end{algorithm}
 
 \begin{remark}
