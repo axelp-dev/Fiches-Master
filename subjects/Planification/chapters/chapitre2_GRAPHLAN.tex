@@ -3,14 +3,14 @@
 % ===========================================================
 % Introduction 
 
-% TODO : Ajouter intro à GRAPHLAN
+% TODO : Ajouter intro à GRAPHPLAN
 
 % ===========================================================
 % Définitions et fonctionnement
 
 \section{Définitions et fonctionnement}
 
-L'algorithme de planification GRAPHLAN sépare le processus de planification en deux étapes différentes.
+L'algorithme de planification GRAPHPLAN sépare le processus de planification en deux étapes différentes.
 
 La première consiste en la construction d'un graphe de planification représentant les interdépendances entre les états au travers des actions possibles. Cette construction se fait avec une complexité polynômiale en temps et en espace par rapport à la taille du problème posé. 
 
@@ -31,8 +31,8 @@ La seconde étape est la recherche d'un solution (s'il en existe) à partir d'un
         \draw[arrow] (pb) -- node[midway, above, font=\scriptsize] {Calcul du graphe} (trans);
         \draw[arrow] (trans) -- node[midway, above, font=\scriptsize] {Recherche} (plan);
     \end{tikzpicture}
-    \caption{Schéma représentant les étapes de l'algorithme GRAPHLAN pour la recherche d'un plan solution à partir d'un problème de planification énoncé dans le langage STRIPS.}
-    \label{fig:pipeline-GRAPHLAN}
+    \caption{Schéma représentant les étapes de l'algorithme GRAPHPLAN pour la recherche d'un plan solution à partir d'un problème de planification énoncé dans le langage STRIPS.}
+    \label{fig:pipeline-GRAPHPLAN}
 \end{figure}
 
 Nous allons ici commencer par poser un formalisme supplémentaire pour traduire les relations d'inter-dépendances dans un tel graphe d'état. 
@@ -239,12 +239,46 @@ Le graphe de planification sur-approximant l'ensemble des états atteignables, d
     Autrement dit, $p$ et $q$ ne sont pas mutex dans $F_i$ dès lors qu'il existe au moins une paire d'actions $(a_1, a_2)$ non mutex à l'étape $i$ telle que $p \in \operatorname{Add}(a_1)$ et $q \in \operatorname{Add}(a_2)$.
 \end{definition}
 
+On pourra aussi définir deux types de mutex : 
+\begin{itemize}
+    \item \emph{Les mutex structurels} : Produits lorsqu'une action supprime des préconditions ou des ajouts d'une autre action. Elles seront alors toujours en mutex dans chaque couche. 
+    \item \emph{Les mutex contextuels} : Lorsque deux actions ont des mutex comme préconditions. 
+\end{itemize}
+
 \begin{remark}[Rôle des actions de persistance]
     Une action de maintien $N_f = \langle \{f\}, \{f\}, \emptyset \rangle$ est traitée comme une action usuelle. Par conséquent, si une action $a \in A_i$ supprime le fluent $f$ ($f \in \operatorname{Del}(a)$), elle entre directement en conflit de non-indépendance avec $N_f$ car $\operatorname{Del}(a) \cap \operatorname{Add}(N_f) = \{f\} \neq \emptyset$. Cela garantit qu'un fluent $f$ et sa négation deviennent automatiquement mutex au niveau suivant.
 \end{remark}
+
+\subsection{Algorithme GRAPHPLAN}
+
+% TODO : Définir algorithme + ajouter exemple du cours
+
+% TODO : Ajouter insuffisance sur les mutex binaire => Algo de recherche d'un plan solution. 
+
 
 % ===========================================================
 % Améliorations
 
 \section{Améliorations}
+
+\subsection{LCGP - Relations d'Autorisation}
+
+% TODO : Rédiger cette partie 
+
+\subsection{Codages SAT du graphe}
+
+% TODO : Améliorer la rédaction de cette sous-section 
+
+\begin{definition}[Règles de Codage - Kautz, Selman, 1999]
+    Pour encoder un graphe produit par l'algorithme GRAPHPLAN, Kautz et Selman ont défini diférentes règles qui constitueront les assertions du problème SAT : 
+    \begin{enumerate}
+        \item $$ \left( \bigwedge_{n_f \in NoeudsInit(GP)} n_f  \right) \land \left( \bigwedge_{n_f \in NoeudsBut(GP)} n_f \right) $$
+        \item $$ \bigwedge_{(n_f, n_a) \in ArcsPrec(GP)} \left(  n_a \Longrightarrow n_f\right) $$
+        \item $$ \bigwedge_{n_f \in (Noeuds(GP) / NoeudsInit(GP))} \left( n_f \Longrightarrow \bigvee_{(n_a, n_f) \in ArcsAdd(GP)} n_a\right) $$
+        \item $$ \bigwedge_{\{n_a, n_b\} \in MutexA(GP)}\left(  \lnot n_a \lor \lnot n_b\right)$$. 
+    \end{enumerate}
+\end{definition}
+
+\subsection{Codages CSP du graphe}
+
 
