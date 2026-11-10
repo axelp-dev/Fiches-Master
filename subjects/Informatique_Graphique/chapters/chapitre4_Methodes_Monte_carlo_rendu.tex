@@ -151,7 +151,7 @@ Cette observation simple permet alors de définir un estimateur convergent de l'
 La principale difficulté repose maintenant dans la simulation de la variable aléatoire $X$. Un cours précédent est consacré aux différentes techniques possibles. L'une des plus utilisées reste quand même la méthode par transformée inverse. 
 
 \begin{proposition}[Simulation par transformée inverse]
-    Pour simuler une variable aléatoire unidimensionnelle $X$ de fonction de répartition $F_X(x) = \mathbb{P}(X \le x)$ continue et strictement croissante, on utilise la fonction quantile $Q = F_X^{-1}$ vérifiant :
+    Pour simuler une variable aléatoire unidimensionnelle $X$ de fonction de répartition $F_X(x) = \mathbb{P}(X \leqslant x)$ continue et strictement croissante, on utilise la fonction quantile $Q = F_X^{-1}$ vérifiant :
     \begin{equation}
         U \sim \mathcal{U}(]0, 1[) \implies X = F_X^{-1}(U) \sim p_X.
     \end{equation}
@@ -160,7 +160,7 @@ La principale difficulté repose maintenant dans la simulation de la variable al
 % ---------------------------------------------
 \subsection{Application directe à l'équation du rendu}
 
-Appliquons la méthode vu précédement à notre équation du rendu. 
+Appliquons la méthode vue précédement à notre équation du rendu. 
 L'évaluation de la luminance sortante $L(x, \vec{\omega}_r)$ nécessite de calculer l'intégrale de réflexion sur l'hémisphère $\Omega^+$ :
 \begin{equation}
     L(x, \vec{\omega}_r) = L_e(x, \vec{\omega}_r) + \int_{\Omega^+} f_r(x, \vec{\omega}_i, \vec{\omega}_r) L_i(x, \vec{\omega}_i) \cos\theta_i \, \dd\omega_i.
@@ -212,6 +212,7 @@ L'estimateur primaire converge avec une erreur en $\mathcal{O}(N^{-1/2})$, ce qu
 
 % ---------------------------------------------
 \subsection{Échantillonnage par importance (\emph{Importance Sampling})}
+\label{subsec:importance-sampling}
 
 Soit l'évaluation de $I = \int_D f(x) \, \dd x$ via l'estimateur $\langle I \rangle_N = \frac{1}{N} \sum_{i=1}^N \frac{f(X_i)}{p(X_i)}$ où $X_i \sim p$. La variance de cet estimateur s'écrit :
 \begin{equation}
@@ -231,44 +232,136 @@ Pour réduire cette variance sans augmenter le nombre d'échantillons $N$, on pe
     Bien que le dénominateur de $p^*(x)$ contienne l'intégrale inconnue $I$, ce résultat fondamental guide l'échantillonnage pratique : on choisit une loi $p(x)$ analytiquement intégrable et inversible dont le profil mime au plus près les zones de forte énergie du produit integrande ($f_r \cdot \cos\theta_i$ ou sources lumineuses).
 \end{remark}
 
-% % ---------------------------------------------
-% \subsection{Qualité de l'échantillonnage : discrépance et stratification}
+% ---------------------------------------------
+\subsection{Qualité de l'échantillonnage : discrépance et stratification}
 
-% \begin{theorem}[Inégalité de Koksma-Hlawka]
-%     Soit $I^s = [0, 1]^s$ l'hypercube unité et $f$ une fonction à variation bornée au sens de Hardy-Krause[cite: 23]. Pour tout ensemble d'échantillons $\mathcal{P}_N = \{x_1, \dots, x_N\}$, l'erreur d'intégration vérifie[cite: 23] :
-%     \begin{equation}
-%         \left| \frac{1}{N} \sum_{i=1}^N f(x_i) - \int_{I^s} f(u) \, \dd u \right| \leqslant V(f) \cdot D^*(\mathcal{P}_N)
-%     \end{equation}
-%     où $V(f)$ est la variation totale de $f$ et $D^*(\mathcal{P}_N)$ désigne la \emph{discrépance étoilée} mesurant l'écart d'uniformité de l'ensemble de points[cite: 23].
-% \end{theorem}
+Dans l'approche de Monte-Carlo standard, la convergence en $\mathcal{O}(N^{-1/2})$ est purement probabiliste et résulte de tirages pseudo-aléatoires indépendants. En pratique, ces tirages souffrent du phénomène d'agglomération (\emph{clumping}) : certaines régions du domaine reçoivent plusieurs échantillons redondants, tandis que d'autres restent sous-échantillonnées (une comparaison des différente méthodes est donnée en Figure~\ref{fig:comparatif_sampling_mc_qmc}). L'approche dite de \emph{Quasi-Monte Carlo} (QMC) cherche à éliminer ce défaut en substituant au hasard des configurations de points dont la répartition spatiale optimise le recouvrement du domaine.
 
-% L'inégalité met en évidence deux leviers d'amélioration[cite: 23] :
-% \begin{itemize}
-%     \item \textbf{Échantillonnage stratifié} : le domaine est partitionné en $K$ sous-domaines disjoints (strates), et un nombre fixé de tirages y est alloué[cite: 40]. Cela empêche le regroupement stochastique (\emph{clumping}) et réduit la variance globale[cite: 40].
-%     \item \textbf{Séquences à basse discrépance (Quasi-Monte Carlo)} : l'utilisation de suites quasi-aléatoires déterministes bien réparties (Sobol, Halton, séquence de Fibonacci sur la sphère [Keinert et al., 2015]) améliore le taux de convergence asymptotique de $\mathcal{O}(N^{-1/2})$ vers $\mathcal{O}(N^{-1})$[cite: 24, 42].
-% \end{itemize}
+L'inégalité de Koksma-Hlawka (ci-dessous) borne l'erreur d'estimation Monte-Carlo en deux composantes indépendantes : 
+\begin{enumerate}
+    \item La composante $V(f)$ liée à \emph{l'intégrande} : en rendu, cette variation est élevée en raison des discontinuités géométriques franches introduites par la fonction de visibilité $V(x, y) \in \{0, 1\}$ (bords d'ombres portées) et par les lobes spéculaires. L'échantillonnage par importance intervient précisément pour atténuer cette composante en lissant le rapport $f/p$ (voir \ref{subsec:importance-sampling}).
+    \item La composante $D^*(\mathcal{P}_N)$ liée à la \emph{géométrie des points} : elle mesure l'écart à l'uniformité idéale. Réduire la discrépance revient à garantir que la densité empirique des échantillons dans toute sous-région correspond fidèlement au volume de cette région.
+\end{enumerate}
 
-% % ---------------------------------------------
-% \subsection{Contrôle adaptatif et intervalles de confiance}
+\begin{theorem}[Inégalité de Koksma-Hlawka]
+    Soit $I^s = [0, 1]^s$ l'hypercube unité et $f$ une fonction à variation bornée au sens de Hardy-Krause. Pour tout ensemble d'échantillons $\mathcal{P}_N = \{x_1, \dots, x_N\} \subset I^s$, l'erreur absolue d'intégration vérifie :
+    \begin{equation}
+        \left| \frac{1}{N} \sum_{i=1}^N f(x_i) - \int_{I^s} f(u) \, \dd u \right| \leqslant V(f) \cdot D^*(\mathcal{P}_N)
+    \end{equation}
+    où :
+    \begin{itemize}
+        \item $V(f)$ est la \emph{variation totale} de la fonction $f$ sur $I^s$, qui quantifie la régularité, les pentes et les discontinuités de l'intégrande ;
+        \item $D^*(\mathcal{P}_N)$ est la \emph{discrépance étoilée} de l'ensemble des points $\{x_1, \dots, x_N\}$ distribués uniformément dans $I^S$. 
+    \end{itemize}
+\end{theorem}
 
-% Lorsque la densité $p$ est fixée, on détermine dynamiquement le nombre d'échantillons nécessaire en surveillant la convergence statistique locale[cite: 25, 29].
+Pour minimiser $D^*(\mathcal{P}_N)$ et éliminer les agrégats de points, deux approches pratiques complémentaires sont employées :
 
-% \subsubsection{Algorithme en ligne de Welford}
+\begin{proposition}[Échantillonnage stratifié - \emph{Stratified Sampling}]
+    Le domaine $I^s$ est partitionné en $K$ sous-domaines disjoints (strates) de même mesure. Un nombre fixé d'échantillons indépendants est tiré au sein de chaque strate. 
+    \begin{itemize}
+        \item Cette contrainte interdit structurellement le regroupement stochastique de points tout en préservant le caractère non biaisé de l'estimateur de Monte-Carlo.
+        \item Sur le calcul de l'éclairage direct issu de sources étendues, la stratification transforme le bruit poivre et sel aléatoire en une transition douce et homogène dès un faible nombre de rayons d'ombrage .
+    \end{itemize}
+\end{proposition}
 
-% Pour estimer la moyenne et la variance sans stocker l'historique des réalisations, on utilise les récurrences numériquement stables de Welford[cite: 25] :
-% \begin{align}
-%     \bar{x}_n &= \bar{x}_{n-1} + \frac{x_n - \bar{x}_{n-1}}{n}, \label{eq:welford_mean} \\
-%     M_{2,n} &= M_{2,n-1} + (x_n - \bar{x}_{n-1})(x_n - \bar{x}_n), \label{eq:welford_m2}
-% \end{align}
-% avec la variance d'échantillon sans biais $s_n^2 = \frac{M_{2,n}}{n-1}$[cite: 25].
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{subjects/Informatique_Graphique/figures/sampling_10.png}
+        \label{fig:sampling-10}
+    \end{subfigure}
 
-% \subsubsection{Critères d'arrêt et intervalles de confiance}
+    \vspace{0.4em}
 
-% Pour un niveau de confiance $c \in ]0, 1[$ et un paramètre $\alpha = \frac{1-c}{2}$, l'intervalle de confiance sur la moyenne s'écrit[cite: 28, 29] :
-% \begin{equation}
-%     I_c = \left[ \bar{x}_n - t_\alpha \frac{s_n}{\sqrt{n}} \, ; \, \bar{x}_n + t_\alpha \frac{s_n}{\sqrt{n}} \right]
-% \end{equation}
-% où $t_\alpha$ est le quantile de la loi de Student (ou de la loi normale centrée réduite pour $n$ grand via le TCL)[cite: 29]. Le processus de calcul par pixel s'arrête lorsque la demi-largeur de l'intervalle passe sous un seuil toléré : $2 t_\alpha \frac{s_n}{\sqrt{n}} < \varepsilon$[cite: 29].
+    \begin{subfigure}[b]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{subjects/Informatique_Graphique/figures/sampling_200.png}
+        \label{fig:sampling-200}
+    \end{subfigure}
+
+    \vspace{0.4em}
+
+    \begin{subfigure}[b]{\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{subjects/Informatique_Graphique/figures/sampling_500.png}
+        \label{fig:sampling-500}
+    \end{subfigure}
+
+    \caption{Comparaison de motifs d'échantillonnage 2D sur le domaine unitaire $[0, 1]^2$ pour $N \in \{10, 200, 500\}$~:
+    \textbf{(a)} Tirage pseudo-aléatoire uniforme : forte discrépance locale avec présence simultanée d'agrégats de points (\emph{clumping}) et de zones non couvertes, source directe de bruit résiduel dans le calcul de luminance.
+    \textbf{(b)} Échantillonnage stratifié : partitionnement régulier en $\sqrt{N} \times \sqrt{N}$ mailles garantissant un échantillon par cellule, ce qui supprime le regroupement tout en conservant une composante aléatoire intra-cellulaire.
+    \textbf{(c)} Quasi-Monte Carlo (séquence déterministe de Halton en bases 2 et 3) : maximisation déterministe de l'espacement mutuel et basse discrépance asymptotique $D^*(\mathcal{P}_N)$, accélérant la convergence vers $\mathcal{O}(N^{-1})$.}
+    
+    \label{fig:comparatif_sampling_mc_qmc}
+\end{figure}
+
+\begin{proposition}[Séquences à basse discrépance - Quasi-Monte Carlo)]
+    Au lieu de tirer des variables aléatoires, on utilise des suites déterministes spécifiquement construites pour maximiser la distance minimale entre échantillons (suites de Sobol, de Halton ou réseau sphérique de Fibonacci) :
+    \begin{itemize}
+        \item Ces suites atteignent une discrépance asymptotique $D^*(\mathcal{P}_N) = \mathcal{O}\left(\frac{(\ln N)^s}{N}\right)$.
+        \item L'erreur d'intégration converge alors à une vitesse proche de $\mathcal{O}(N^{-1})$, surpassant notablement le taux $\mathcal{O}(N^{-1/2})$ du Monte-Carlo pseudo-aléatoire pur.
+    \end{itemize}    
+\end{proposition}
+
+\begin{remark}[Limites]
+    La seconde méthode est théoriquement la plus optimake pour réduire la variance des échantillons générés. Or elle repose sur la génération d'une suite déterministe définie par une optimisation entre chaque point : la génération d'un échantillon supplémentaire nécessaite donc de re-générer toute la suite. 
+\end{remark}
+
+% ---------------------------------------------
+\subsection{Contrôle adaptatif et critères d'arrêt stochastiques}
+
+L'évaluation uniforme d'un nombre constant d'échantillons $N$ par pixel est sous-optimale : les régions lisses et directement éclairées convergent rapidement, tandis que les zones d'occlusion ou de pénombres exigent un échantillonnage dense pour dissiper la variance. 
+
+Le \emph{contrôle adaptatif} consiste à estimer dynamiquement la précision statistique acquise à chaque pas d'itération et à interrompre les calculs de manière autonome dès qu'un seuil de tolérance visuelle est franchi.
+
+\begin{remark}
+    Pour évaluer la qualité d'un estimateur en cours de calcul sans saturer la mémoire, il est impératif de calculer la moyenne empirique $\bar{x}_n$ et la variance sans biais $s_n^2$ de façon incrémentale, sans conserver l'historique des tirages $x_1, \dots, x_n$.
+
+    La formule naïve d'actualisation $\sum x_i^2 - n \bar{x}_n^2$ est à proscrire en arithmétique flottante car elle souffre d'annulation catastrophique lorsque la variance est faible devant la moyenne.
+\end{remark}
+
+On lui préfère donc la récurrence en ligne numériquement stable de Welford [1962] :
+
+\begin{proposition}[Formulation récursive de Welford]
+    À la réception du $n$-ième échantillon $x_n$, les grandeurs statistiques sont actualisées par les relations :
+    \begin{align}
+        \bar{x}_n &= \bar{x}_{n-1} + \frac{x_n - \bar{x}_{n-1}}{n}, \label{eq:welford_mean} \\
+        M_{2,n} &= M_{2,n-1} + (x_n - \bar{x}_{n-1})(x_n - \bar{x}_n), \label{eq:welford_m2}
+    \end{align}
+    initialisées à $\bar{x}_0 = 0$ et $M_{2,0} = 0$.
+    La variance d'échantillon sans biais $s_n^2$ et la variance de population $\sigma_n^2$ s'en déduisent directement par :
+    \begin{equation}
+        s_n^2 = \frac{M_{2,n}}{n-1} \quad (n \geqslant 2), \qquad \sigma_n^2 = \frac{M_{2,n}}{n}.
+    \end{equation}
+\end{proposition}
+
+\begin{proposition}[Heuristiques de terminaison et limites]
+    Deux approches empiriques simples permettent de piloter l'arrêt des tirages mais comportent chacune des désavantages :
+    \begin{enumerate}
+        \item \emph{Majoration de l'erreur type empirique} : condition de la forme $\sigma_{\bar{x}} = \frac{s_n}{\sqrt{n}} < \varepsilon$. Ce critère absolu ignore l'échelle de luminosité du pixel (un même écart type est acceptable dans une zone spéculaire éclatante mais très bruité dans une demi-teinte).
+        \item \emph{Majoration du coefficient de variation} : condition normalisée $c_v = \frac{s_n}{\bar{x}_n} < \varepsilon$. Bien qu'adaptée aux contrastes perceptifs relatifs, elle diverge dans les zones très sombres ($\bar{x}_n \to 0$), ce qui piège l'algorithme dans un sur-échantillonnage inutile des ombres pures.
+    \end{enumerate}    
+\end{proposition}
+
+On peut alors envisager des critères basés sur les intervalles de confiance. 
+La formalisation la plus robuste s'appuie sur la théorie de l'estimation statistique par intervalle de confiance.
+
+\begin{definition}[Intervalle de confiance de la radiance estimée]
+    Soit $c \in ]0, 1[$ un niveau de confiance fixé (typiquement $95\,\%$) et $\alpha = \frac{1-c}{2}$ le risque bilatéral associé. L'intervalle de confiance $I_c$ centré sur l'estimateur $\bar{x}_n$ s'écrit :
+    \begin{equation}
+        I_c = \left[ \bar{x}_n - t_\alpha \frac{s_n}{\sqrt{n}} \; ; \; \bar{x}_n + t_\alpha \frac{s_n}{\sqrt{n}} \right]
+    \end{equation}
+    où $t_\alpha$ désigne le quantile d'ordre $1-\alpha$ de la loi de distribution de l'estimateur autour de sa moyenne :
+    \begin{itemize}
+        \item pour un faible nombre de tirages $n$, $t_\alpha$ est extrait d'une loi de Student à $n-1$ degrés de liberté ;
+        \item pour $n$ suffisamment grand ($n > 30$), le théorème central limite garantit la convergence vers les quantiles de la loi normale centrée réduite $\mathcal{N}(0, 1)$ ($t_\alpha \approx 1{,}96$ pour $c = 0{,}95$).
+    \end{itemize}
+\end{definition}
+
+Le calcul pour un pixel donné s'interrompt dès que la largeur totale de l'intervalle $L_n = 2 t_\alpha \frac{s_n}{\sqrt{n}}$ devient inférieure à une tolérance absolue $\varepsilon$ ou relative $\varepsilon \, \bar{x}_n$, garantissant une convergence visuellement uniforme sur toute l'image.
+
 
 % % =======================================================
 % % Résolution récursive : Marches aléatoires et Roulette Russe
