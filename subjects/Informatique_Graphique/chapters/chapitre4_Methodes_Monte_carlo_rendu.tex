@@ -362,109 +362,149 @@ La formalisation la plus robuste s'appuie sur la théorie de l'estimation statis
 
 Le calcul pour un pixel donné s'interrompt dès que la largeur totale de l'intervalle $L_n = 2 t_\alpha \frac{s_n}{\sqrt{n}}$ devient inférieure à une tolérance absolue $\varepsilon$ ou relative $\varepsilon \, \bar{x}_n$, garantissant une convergence visuellement uniforme sur toute l'image.
 
+% =======================================================
+% Résolution globale par marches aléatoires
+% =======================================================
 
-% % =======================================================
-% % Résolution récursive : Marches aléatoires et Roulette Russe
-% % =======================================================
+\section{Résolution globale par marches aléatoires}
 
-% \section{Résolution globale par marches aléatoires}
+L'évaluation de l'éclairage direct ne traite que le premier ordre d'interaction entre les surfaces visibles et les émetteurs. Or dans une scène réelle, la radiance d'un point sur une surface dépend d'une infinité de rayons ayant effectué une infinité de rebonds dans la scène. Pour simuler la luminance, de chaque rebond d'un rayon, l'équation du rendu peut se reformuler sous la forme d'une intégrale de Fredholm du second ordre à noyau continu :
+\begin{equation}
+    f(x) = e(x) + \int_D K(x, y) f(y) \, \dd y
+\end{equation}
+où $e(x)$ représente le terme source (émission propre) et $K(x, y)$ est le noyau de transport radiatif couplant les points de surface $x$ et $y$.
 
-% Pour calculer l'éclairage global (rebonds indirects multiples), l'équation du rendu se reformule sous la forme d'une équation intégrale de Fredholm du second ordre[cite: 4, 30] :
-% \begin{equation}
-%     f(x) = e(x) + \int_D K(x, y) f(y) \, \dd y.
-% \end{equation}
+% ---------------------------------------------
+\subsection{Développement stochastique en marche aléatoire}
 
-% % ---------------------------------------------
-% \subsection{Développement stochastique en marche aléatoire}
+En réinjectant récursivement l'expression de $f$ dans son intégrale, on engendre le développement formel en série de Neumann :
+\begin{align}
+    f(x) &= e(x) + \int_D K(x, y) e(y) \, \dd y + \int_D \int_D K(x, y) K(y, z) e(z) \, \dd y \, \dd z + \dots \nonumber \\
+         &= e(x) + \sum_{i=1}^\infty \int_{D^i} \left( \prod_{j=1}^i K(y_{j-1}, y_j) \right) e(y_i) \, \dd y_1 \dots \dd y_i \quad \text{avec } y_0 = x.
+\end{align}
+Chaque terme d'ordre $i$ représente physiquement l'énergie transportée le long de chemins optiques à $i$ rebonds successifs.
 
-% En substituant récursivement $f$ dans son intégrale, on génère la série de Neumann[cite: 30]. L'estimateur primaire s'écrit sous forme d'une chaîne de points $\xi_0, \xi_1, \dots$[cite: 30] :
-% \begin{equation}
-%     \hat{f}(x) = e(x) + \frac{K(x, \xi_1)}{p_1(\xi_1)} \hat{f}(\xi_1) = \sum_{i=0}^\infty \left( \prod_{j=1}^i \frac{K(\xi_{j-1}, \xi_j)}{p_j(\xi_j)} \right) e(\xi_i), \quad \text{avec } \xi_0 = x.
-% \end{equation}
-% La suite de variables aléatoires $(\xi_0, \xi_1, \dots)$ forme une \emph{marche aléatoire} (ou chemin de rayons) à travers la scène[cite: 30].
+Pour évaluer cette somme d'intégrales de dimensions arbitrairement élevées sans explosion combinatoire, on utilise un estimateur primaire défini sur une chaîne d'échantillonnage :
+\begin{equation}
+    \hat{f}(x) = e(x) + \frac{K(x, \xi_1)}{p_1(\xi_1)} \hat{f}(\xi_1)
+\end{equation}
+où $\xi_1$ est une réalisation tirée selon la densité de probabilité $p_1$ conditionnée par $x$. En déroulant cette récurrence, on obtient l'estimateur de chemin :
+\begin{equation}
+    \hat{f}(x) = \sum_{i=0}^\infty \left( \prod_{j=1}^i \frac{K(\xi_{j-1}, \xi_j)}{p_j(\xi_j)} \right) e(\xi_i), \quad \text{avec } \xi_0 = x.
+\end{equation}
+La trajectoire discrète $(\xi_0, \xi_1, \xi_2, \dots)$ constitue une \emph{marche aléatoire} (ou chemin de Markov) reliant les points d'interaction géométrique dans la scène.
 
-% % ---------------------------------------------
-% \subsection{Terminaison non biaisée par Roulette Russe}
+% ---------------------------------------------
+\subsection{Terminaison non biaisée par Roulette Russe}
 
-% Interrompre la marche à une profondeur maximale arbitraire $k_{\max}$ tronque l'opérateur intégral et introduit un \emph{biais systématique} (sous-estimation de l'énergie dans la scène)[cite: 31]. Pour garantir un arrêt en temps fini sans biaiser l'espérance, on applique une terminaison stochastique par \emph{roulette russe}[cite: 31, 32].
+En pratique, une marche aléatoire ne peut pas explorer une infinité d'arêtes : il faut définir un seuil d'arrêt de la marche aléatoire. Deux alternatives se présentent pour clore la récurrence :
+\begin{itemize}
+    \item \emph{Troncature déterministe} : fixer arbitrairement un nombre maximal de rebonds $k_{\max}$. Ce procédé tronque brutalement la série et introduit un \emph{biais systématique} par défaut (l'énergie associée aux réflexions d'ordre supérieur à $k_{\max}$ est annihilée, assombrissant l'image).
+    \item \emph{Terminaison stochastique  - Roulette Russe} : substituer à la coupure rigide un mécanisme probabiliste qui préserve strictement l'espérance mathématique de l'intégrale.
+\end{itemize}
 
-% \begin{proposition}[Estimateur par roulette russe]
-%     Soit $\alpha_j \in ]0, 1]$ une probabilité de survie au rebond $j$[cite: 31, 32]. On définit l'estimateur corrigé :
-%     \begin{equation}
-%         \hat{I}_{\text{RR}} = 
-%         \begin{cases}
-%             \dfrac{1}{\alpha_j} f(\dots) & \text{avec probabilité } \alpha_j, \\[6pt]
-%             0 & \text{avec probabilité } 1 - \alpha_j.
-%         \end{cases}
-%     \end{equation}
-%     L'estimateur reste strictement non biaisé : $\mathbb{E}[\hat{I}_{\text{RR}}] = \alpha_j \cdot \left(\frac{1}{\alpha_j} \mathbb{E}[f]\right) + (1 - \alpha_j) \cdot 0 = \mathbb{E}[f]$[cite: 31, 32].
-% \end{proposition}
+\begin{proposition}[Estimateur de la roulette russe]
+    Soit une intégrale $I = \int_0^1 f(t) \, \dd t$ et une probabilité de survie $\alpha \in ]0, 1]$. En appliquant le changement de variable $x = \alpha t$, l'intégrale se réécrit :
+    \begin{equation}
+        I = \int_0^\alpha \frac{1}{\alpha} f\left(\frac{x}{\alpha}\right) \dd x = \int_0^1 \frac{1}{\alpha} f\left(\frac{x}{\alpha}\right) \mathbbm{1}_{[0, \alpha[}(x) \, \dd x.
+    \end{equation}
+    On en déduit l'estimateur stochastique à un tirage $X \sim \mathcal{U}([0, 1[)$ :
+    \begin{equation}
+        \hat{I}_{\text{RR}} = 
+        \begin{cases}
+            \dfrac{1}{\alpha} f\left(\dfrac{X}{\alpha}\right) & \text{si } X < \alpha, \\[8pt]
+            0 & \text{si } X \geqslant \alpha.
+        \end{cases}
+    \end{equation}
+    Cet estimateur est rigoureusement non biaisé :
+    \begin{equation}
+        \mathbb{E}[\hat{I}_{\text{RR}}] = \mathbb{P}(X < \alpha) \cdot \mathbb{E}\left[ \frac{1}{\alpha} f\left(\frac{X}{\alpha}\right) \;\middle|\; X < \alpha \right] + \mathbb{P}(X \geqslant \alpha) \cdot 0 = \alpha \cdot \frac{I}{\alpha} = I.
+    \end{equation}
+\end{proposition}
 
-% Pour une marche aléatoire interrompue au rebond $k$, l'estimateur de chemin combiné s'écrit[cite: 32] :
-% \begin{equation}
-%     \boxed{\hat{f}(x) = \sum_{i=0}^k \left( \prod_{j=1}^i \frac{K(\xi_{j-1}, \xi_j)}{\alpha_j \, p_j(\xi_j)} \right) e(\xi_i)}.
-% \end{equation}
-% La roulette russe élimine le biais au détriment d'une augmentation modérée de la variance, tout en garantissant une terminaison presque sûre des chemins[cite: 31, 32].
+Appliquée à chaque rebond $j$ d'une marche aléatoire avec une probabilité de survie $\alpha_j \in ]0, 1]$, la roulette russe pondère la contribution portée par le facteur compensateur $\frac{1}{\alpha_j}$ si le rayon continue, ou stoppe net l'exploration si le rayon est rejeté. 
 
-% % =======================================================
-% % Échantillonnage pratique de directions
-% % =======================================================
+Pour une marche interrompue stochastiquement après $k$ interactions effectives, l'estimateur final prend la forme :
+\begin{equation}
+    \boxed{\hat{f}(x) = \sum_{i=0}^k \left( \prod_{j=1}^i \frac{K(\xi_{j-1}, \xi_j)}{\alpha_j \, p_j(\xi_j)} \right) e(\xi_i)}.
+\end{equation}
 
-% \section{Échantillonnage de directions géométriques}
+\begin{remark}[Compromis biais-variance]
+    La roulette russe supprime intégralement le biais d'évaluation sans imposer de profondeur maximale de calcul, au prix d'une augmentation mesurée de la variance locale lorsque $\alpha_j$ est faible. En synthèse d'images, on calibre canoniquement la probabilité $\alpha_j$ sur la réflectance spectrale maximale du matériau au point d'impact ($\alpha_j \approx \max(\rho_R, \rho_V, \rho_B)$) afin d'interrompre rapidement les rayons frappant des surfaces absorbantes sans disperser d'échantillons inutiles.
+\end{remark}
 
-% L'évaluation de la BRDF ou des radiances incidentes s'appuie sur la méthode de la transformée inverse pour convertir deux variables aléatoires uniformes $(r_1, r_2) \in [0, 1)^2$ en vecteurs directeurs 3D[cite: 17, 19, 42, 43].
+% =======================================================
+% Échantillonnage pratique de directions géométriques
+% =======================================================
 
-% \begin{itemize}
-%     \item \textbf{Distribution uniforme sur la sphère} ($p(x) = \frac{1}{4\pi R^2}$)[cite: 42] :
-%     \begin{equation}
-%         \phi = 2\pi r_1, \quad \theta = \arccos(1 - 2r_2).
-%     \end{equation}
-%     En coordonnées cartésiennes[cite: 42] :
-%     \begin{equation}
-%         x = c_x + 2R\cos(2\pi r_1)\sqrt{r_2(1-r_2)}, \quad y = c_y + 2R\sin(2\pi r_1)\sqrt{r_2(1-r_2)}, \quad z = r_2.
-%     \end{equation}
+\section{Échantillonnage pratique de directions géométriques}
 
-%     \item \textbf{Distribution hémisphérique pondérée par le cosinus} ($p(\vec{\omega}) = \frac{\cos\theta}{\pi}$)[cite: 43] :
-%     \begin{equation}
-%         \phi = 2\pi r_1, \quad \theta = \arccos(\sqrt{r_2}) \implies z = \sqrt{r_2}, \quad x = \cos(2\pi r_1)\sqrt{1-r_2}, \quad y = \sin(2\pi r_1)\sqrt{1-r_2}.
-%     \end{equation}
-%     Cette loi correspond exactement à l'\emph{importance sampling} de la réflexion lambertienne diffuse[cite: 43].
+La simulation des marches aléatoires requiert de générer à chaque rebond un vecteur unitaire de direction $\vec{\omega} = (x, y, z)^\top \in \mathcal{S}^2$ selon une densité de probabilité prescrite $p(\vec{\omega})$. On applique la méthode de la transformée inverse 2D en coordonnées sphériques locales $(\theta, \phi)$ à partir de deux variables aléatoires uniformes et indépendantes $(r_1, r_2) \sim \mathcal{U}([0, 1[^2)$.
 
-%     \item \textbf{Distribution hémisphérique selon un lobe spéculaire en puissance} ($p(\vec{\omega}) = \frac{n+1}{2\pi}\cos^n\theta$)[cite: 43] :
-%     \begin{equation}
-%         \phi = 2\pi r_1, \quad \theta = \arccos\left(r_2^{\frac{1}{n+1}}\right) \implies z = r_2^{\frac{1}{n+1}}.
-%     \end{equation}
-%     Ce tirage est utilisé pour l'échantillonnage préférentiel des réflexions brillantes (modèles empiriques de type Phong)[cite: 43].
-% \end{itemize}
+Rappelons que la mesure différentielle d'angle solide s'exprime par :
+\begin{equation}
+    \dd\omega = \sin\theta \, \dd\theta \, \dd\phi.
+\end{equation}
+Par conséquent, la densité jointe sur les angles vérifie la relation de transfert $p(\theta, \phi) = p(\vec{\omega}) \sin\theta$. Par symétrie de révolution autour de la normale locale (invariance azimutale), l'angle d'azimut $\phi$ est systématiquement distribué de manière uniforme sur $[0, 2\pi[$ :
+\begin{equation}
+    \phi = 2\pi r_1.
+\end{equation}
 
+% ---------------------------------------------
+\subsection{Distribution uniforme sur la sphère}
 
+Pour distribuer des points de façon isotrope sur une sphère de centre $c = (c_x, c_y, c_z)$ et de rayon $R$, la densité par unité d'aire vaut $p(x) = \frac{1}{4\pi R^2}$.
 
+\begin{proposition}[Tirage sphérique uniforme]
+    L'angle d'élévation $\theta \in [0, \pi]$ et les coordonnées cartésiennes se déduisent des variables $(r_1, r_2)$ par :
+    \begin{align}
+        \theta &= \arccos(1 - 2r_2), \\
+        x &= c_x + 2R \cos(2\pi r_1) \sqrt{r_2(1 - r_2)}, \\
+        y &= c_y + 2R \sin(2\pi r_1) \sqrt{r_2(1 - r_2)}, \\
+        z &= c_z + R(1 - 2r_2).
+    \end{align}
+\end{proposition}
 
+\begin{remark}[Séquence sphérique de Fibonacci]
+    Dans le cadre d'un échantillonnage quasi-Monte Carlo déterministe à basse discrépance, Keinert et al. [2015] proposent de positionner $n$ points réguliers sur la sphère unité via le nombre d'or $\Phi = \frac{1 + \sqrt{5}}{2}$ :
+    \begin{equation}
+        \phi_i = 2\pi \left[ \frac{i}{\Phi} \right], \qquad z_i = 1 - \frac{2i + 1}{n}, \quad \forall i \in \{0, \dots, n-1\}
+    \end{equation}
+    où $[x] = x - \lfloor x \rfloor$ désigne la partie fractionnaire.
+\end{remark}
 
+% ---------------------------------------------
+\subsection{Distribution hémisphérique pondérée par le cosinus}
 
+Pour échantillonner efficacement la réflexion sur une surface diffuse idéale (loi de Lambert), la densité directionnelle optimale est proportionnelle au facteur géométrique : $p(\vec{\omega}) = \frac{\cos\theta}{\pi}$ sur l'hémisphère supérieur $\Omega^+$ ($\theta \in [0, \frac{\pi}{2}]$).
 
+\begin{proposition}[Importance sampling lambertien]
+    La densité angulaire polaire s'écrit $p(\theta) = \int_0^{2\pi} \frac{\cos\theta}{\pi} \sin\theta \, \dd\phi = 2 \cos\theta \sin\theta = \sin(2\theta)$. Sa fonction de répartition vaut $F(\theta) = \sin^2\theta$. Par inversion analytique :
+    \begin{align}
+        \theta &= \arccos(\sqrt{r_2}) \implies \cos\theta = \sqrt{r_2} \quad \text{et} \quad \sin\theta = \sqrt{1 - r_2}, \\
+        x &= \cos(2\pi r_1) \sqrt{1 - r_2}, \\
+        y &= \sin(2\pi r_1) \sqrt{1 - r_2}, \\
+        z &= \sqrt{r_2}.
+    \end{align}
+\end{proposition}
 
+Sous cette loi, le ratio $\frac{f_r \cos\theta_i}{p(\vec{\omega}_i)} = \frac{\frac{\rho}{\pi} \cos\theta_i}{\frac{\cos\theta_i}{\pi}} = \rho$ devient strictement indépendant de la direction d'incidence, éliminant la variance imputable à l'orientation géométrique.
 
+% ---------------------------------------------
+\subsection{Distribution selon un lobe spéculaire en puissance}
 
+Pour modéliser des réflexions directionnelles brillantes (lobes spéculaires de type Blinn-Phong), la densité angulaire privilégie l'axe polaire selon un exposant $n \geqslant 1$ :
+\begin{equation}
+    p(\vec{\omega}) = \frac{n + 1}{2\pi} \cos^n\theta.
+\end{equation}
 
-
-
-
-% Chapitre X : Méthodes Monte-Carlo d'estimation pour le rendu
-% ├── 1. Problématique de résolution de l'équation du rendu
-% │   ├── Limites des méthodes déterministes / éléments finis (Radiosité)
-% │   └── Intérêt des méthodes stochastiques en haute dimension
-% ├── 2. Fondements de l'intégration de Monte-Carlo
-% │   ├── Espérance, variance et estimateur primaire
-% │   ├── Vitesse de convergence en O(1/√N) et indépendance dimensionnelle
-% │   └── Inversion de fonction de répartition (Transformée inverse / quantiles)
-% ├── 3. Réduction de variance et contrôle de l'erreur
-% │   ├── Échantillonnage par importance (Importance Sampling)
-% │   ├── Échantillonnage stratifié et basse discrépance (Koksma-Hlawka)
-% │   └── Critères d'arrêt, algorithme de Welford et intervalles de confiance
-% ├── 4. Résolution de l'équation récursive : Marches aléatoires
-% │   ├── Développement en série de Neumann stochastique
-% │   └── Terminaison non biaisée par Roulette Russe
-% └── 5. Applications pratiques à l'éclairage
-%     ├── Échantillonnage direct des sources surfaciques
-%     └── Échantillonnage directionnel (sphère, hémisphère cosinus)
+\begin{proposition}[Tirage directionnel selon un lobe $\cos^n\theta$]
+    L'inversion de la fonction de répartition polaire conduit aux relations :
+    \begin{align}
+        \theta &= \arccos\left( r_2^{\frac{1}{n+1}} \right), \\
+        x &= \cos(2\pi r_1) \sqrt{1 - r_2^{\frac{2}{n+1}}}, \\
+        y &= \sin(2\pi r_1) \sqrt{1 - r_2^{\frac{2}{n+1}}}, \\
+        z &= r_2^{\frac{1}{n+1}}.
+    \end{align}
+\end{proposition}
+Plus l'exposant de brillance $n$ est élevé, plus les rayons générés se concentrent dans un cône étroit autour du sommet de l'hémisphère ($z \to 1$), concentrant l'effort de calcul là où l'énergie réfléchie est prépondérante.
