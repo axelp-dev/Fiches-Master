@@ -1,0 +1,435 @@
+% =============================================================
+% Apprentissage par Renforcement
+% =============================================================
+
+\minitoc
+
+Dans ce chapitre, nous présentons et développons brièvement la théorie de l'Apprentissage par Renforcement. Au contraire de l'apprentissage dit \emph{supervisé} traité jusqu'ici, on ne dispose plus de \emph{données} ou \emph{d'étiquettes}, mais d'un \emph{agent} dans un \emph{environnement}. 
+
+% =============================================================
+% Cadre général 
+
+\section{Cadre général}
+
+Commençons par formaliser le cadre général de \emph{l'apprentissage par renforcement}. 
+
+\subsection{Agent et environnement}
+
+On considère donc un \emph{environnement} dans lequel évolue un \emph{agent} (voir Figure~\ref{fig:reinforcement-basic-schema}). Ce dernier peut effectuer des \emph{actions} qui influent sur son état actuel ainsi que celui de l'environnement. On pourra classifier/ordonner les différentes actions jouées par l'agent en fonction de leur \emph{intérêt} à réaliser une tâche : pour cela, on leur associera un coût et une pénalité. 
+
+\begin{figure}[thbp]
+    \centering
+    \begin{tikzpicture}[
+        >=stealth,
+        node distance=2.2cm,
+        boite/.style={
+            rectangle, 
+            draw=black, 
+            thick, 
+            rounded corners=3pt,
+            minimum width=3.2cm, 
+            minimum height=1.1cm, 
+            align=center,
+            font=\bfseries
+        },
+        fleche/.style={
+            draw, 
+            thick, 
+            ->
+        }
+    ]
+        % Blocs
+        \node[boite, fill=blue!10] (agent) {Agent};
+        \node[boite, fill=green!10, below=of agent] (env) {Environnement};
+
+        % Action (Agent -> Environnement)
+        \draw[fleche] (agent.east) -- ++(1.5,0) 
+            |- node[pos=0.25, right] {Choix d'une action} (env.east);
+
+        % Retour (Environnement -> Agent)
+        \draw[fleche] (env.west) -- ++(-1.5,0) 
+            |- node[pos=0.25, left, align=right] {Nouvel état\\+ Récompense / Coût} (agent.west);
+    \end{tikzpicture}
+    \caption{Schéma simplifié de l'évolution d'un agent dans un environnement.}
+    \label{fig:reinforcement-basic-schema}
+\end{figure}
+
+L'objectif est de faire \emph{apprendre} à l'agent un comportement en fonction de la structure de l'environnement pour qu'il réalise une tâche donnée. On appellera cela l'apprentissage d'une \emph{politique}. 
+
+\begin{example}[Gestion de l'énergie d'un satellite en orbite]
+    Soit un nano-satellite en orbite basse équipé d'une batterie et d'un instrument scientifique (caméra ou émetteur). À chaque révolution orbitale, un agent embarqué doit décider du mode d'opération en fonction de la réserve d'énergie disponible.
+    On discrétise la capacité de la batterie en trois niveaux de charge :
+    \begin{itemize}
+        \item $s_0$ : \emph{Batterie critique} (niveau minimal de survie),
+        \item $s_1$ : \emph{Batterie moyenne},
+        \item $s_2$ : \emph{Batterie pleine}.
+    \end{itemize}
+    Depuis chaque état, l'agent peut choisir entre deux modes d'action :
+    \begin{itemize}
+        \item $a_{\text{eco}}$ (\emph{Mode veille / recharge}) : les instruments sont coupés pour recharger la batterie grâce aux panneaux solaires,
+        \item $a_{\text{mission}}$ (\emph{Exécution de mission}) : l'instrument est activé pour acquérir et transmettre des données scientifiques, ce qui consomme une quantité importante d'énergie.
+    \end{itemize}
+    Chaque transmission réussie rapporte une récompense positive ($+10$), tandis que laisser le satellite tomber en décharge critique ($s_0$) ou tenter d'activer la charge utile sans énergie suffisante engendre une pénalité sévère (coût négatif ou risque de perte de la mission).
+\end{example}
+
+\subsection{Cadre mathématique : processus Markovien}
+
+Définissons maintenant un cadre mathématique à l'étude des modèles d'apprentissage par renforcement. Dans ce cours, on fait l'hypothèse que chaque action faite par l'agent ne dépend que de son état courant et de la dernière action effectuée. On appelle cela une hypothèse \emph{markovienne} : le cadre défini ci-dessous dépend de celle-ci. 
+
+\begin{definition}[Cadre Markovien]
+    On peut modéliser ce problème d'apprentissage de la façon suivante : 
+    \begin{itemize}
+        \item $S$ représente l'espace des états, 
+        \item $A$ est l'ensemble des actions, 
+        \item $A(s)$ est l'ensemble des actions réalisables dans l'état $s \in S$, 
+        \item $r(s,a) \in \R$ est la récompense immédiate lorsque l'agent exécute l'action $a \in A(s)$ à partir de l'état $s \in S$, 
+        \item $ \delta(s, a) \in S$ donne l'état résultant de l'action $a$ depuis l'état $s$. 
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    On suppose ici que l'on a une parfaite connaissance de l'environnement (i.e espace d'états $S$) ainsi que des actions que l'on peut effectuer dans un état (fonction $A$). 
+    D'autre part, dans des problèmes d'apprentissage par renforcement complexes, l'application $r$ n'est pas toujours connue : on n'est pas capable de prévoir exactement quelles vont être les récompenses/pénalités obtenus en effectuant une action $a \in A(s)$ depuis un état $s \in S$. 
+\end{remark}
+
+\begin{example}[Gestion de l'énergie d'un satellite en orbite] \label{ex:nano-satellite-ar}
+    On peut désormais reprendre l'exemple introduit précédemment pour lui appliquer le formalisme tout juste défini. On a donc : 
+    \begin{itemize}
+        \item {Espace des états} : $S = \{s_0, s_1, s_2\}$ avec $|S| = 3$.
+        \item {Espace des actions} : $A = \{a_{\text{eco}}, a_{\text{mission}}\}$, avec $A(s) = A$ pour tout $s \in S$.
+        \item {Dynamique déterministe} $\delta : S \times A \to S$ :
+        \begin{align*}
+            \delta(s_0, a_{\text{eco}}) &= s_1, & \delta(s_0, a_{\text{mission}}) &= s_0, \\
+            \delta(s_1, a_{\text{eco}}) &= s_2, & \delta(s_1, a_{\text{mission}}) &= s_0, \\
+            \delta(s_2, a_{\text{eco}}) &= s_2, & \delta(s_2, a_{\text{mission}}) &= s_1.
+        \end{align*}
+        \item {Fonction de récompense} $r : S \times A \to \R$ :
+        \begin{align*}
+            r(s_0, a_{\text{eco}}) &= 0,  & r(s_0, a_{\text{mission}}) &= -10 \quad \text{(échec / pénalité critique)}, \\
+            r(s_1, a_{\text{eco}}) &= 0,  & r(s_1, a_{\text{mission}}) &= +10, \\
+            r(s_2, a_{\text{eco}}) &= 0,  & r(s_2, a_{\text{mission}}) &= +10.
+        \end{align*}
+    \end{itemize}
+\end{example}
+
+Dans certaines situations, on peut définir des modèles \emph{non déterministes}. Autrement dit, il se peut que les transitions entre les états soient probabilistes : pour un même état de départ et une même action, l'agent peut se retrouver dans des états différents. 
+
+\subsection{Politique}
+
+Dans le cadre de l'apprentissage par renforcement, la notion d'apprentissage est modélisée par une \emph{politique}. 
+
+\begin{definition}[Politique]
+    Soit le cadre mathématique défini plus haut. On appelle \emph{politique} associée à un agent et un environnement donné, l'application $ \pi : S \longrightarrow A$ telle que $ \forall s \in S, \pi(s) \in A(s)$.
+\end{definition}
+
+Cette application définit l'action que doit effectuer l'agent pour chaque état atteignable $s \in S$. La propriété $ \forall s \in S, \pi(s) \in A(s)$ permet de toujours orienter l'agent vers un état atteignable depuis l'état courant. 
+
+\begin{remark}
+    Une politique est une application $ \pi : S \longrightarrow A$, il existe donc $ |A|^{|S|}$ politiques possible pour chaque ensemble $A$ et $S$. Dans notre exemple précédent il existe donc $2^3 = 8$ politiques différentes. On pourrait ainsi toutes les considérer et choisir celle qui maximise la récompense $r$ pour l'ensemble des transitions. En pratique, il est souvent impossible d'énumérer toutes les politiques possibles pour choisir la meilleure. On doit donc développer des approches algorithmiques plus performantes. 
+\end{remark}
+
+\begin{definition}[Récompense à long terme]
+    L'objectif de l'apprentissage d'une politique est de maximiser les récompenses de l'agent sur le long terme. On définit donc la \emph{récompense à long terme} comme la somme des récompenses obtenues depuis le début de la simulation : 
+    \begin{equation}
+        R(s) = \sum_{i=0}^{\infty} \gamma^i \cdot r(s_i, a_i)
+    \end{equation}
+    pour une séquence d'états et d'actions $s = (s_0, a_0, s_1, a_1, \dots)$ donnée. On prendra $ \gamma \in ]0, 1]$ tel que $ \gamma < 1$ favorisant ainsi les récompenses immédiates et la convergence de la somme si les récompenses sont bornées. 
+\end{definition}
+
+\begin{proposition}
+    Soit $ \pi$ une politique, on peut alors calculer la récompense obtenue par l'application de cette politique à partir de l'état $s_0 \in S$ avec :
+    \begin{equation}
+        V_\pi(s_0) = R( \pi, s_0) = \sum_{i=0}^{\infty} \gamma^i \cdot r(s_i, a_i) \quad \text{avec} \quad a_i = \pi(s_i), s_{i+1} = \delta(s_i, a_i). 
+    \end{equation}
+\end{proposition}
+
+\begin{proposition}[Comparaison de politiques]
+    On peut comparer deux politiques $ \pi$ et $ \pi'$ sur deux mêmes espaces $A$ et $S$ en comparant simplement leur récompense à long terme. On dira alors que $ \pi \succeq \pi'$ ssi 
+    \begin{equation}
+        \forall s_0 \in S, \quad R( \pi, s_0) \geqslant R( \pi', s_0). 
+    \end{equation}
+\end{proposition}
+
+On peut alors se demander s'il existe une politique optimale pour un problème d'apprentissage par renforcement donné et s'il est possible de concevoir un algorithme qui nous permette de l'apprendre. 
+
+% =============================================================
+% Équations de Bellman et Programmation Dynamique
+
+\section{Des équations de Bellman à la Programmation Dynamique}
+
+Dans cette section, on développe différentes approches et algorithmes pour l'apprentissage d'une politique. On se base pour cela sur les équations de Bellman qui utilisent l'hypothèse Markovienne. 
+
+\subsection{Premier algorithme : rétropropagation}
+
+\begin{proposition}[Équations de Bellman]
+    Soient $S$ et $A$ respectivement un espace d'état et un espace d'actions. On note $r$ la récompense, $ \delta$ les transitions et $ \gamma$ le facteur de rabais de ce problème d'apprentissage par renforcement. En adoptant l'hypothèse Markovienne sur la dépendances des états entre eux, pour tout état $s \in S$ et politique $ \pi$, on a : 
+    \begin{equation}
+        R( \pi, s) = r(s, \pi(s)) + \gamma R( \pi, \delta(s, \pi(s))). 
+        \label{eq:recomp-markov}
+    \end{equation}
+\end{proposition}
+
+À partir de cette proposition, on est donc capable de calculer une politique optimale si l'on connaît toutes les transitions $ \delta$ et les récompenses $r$. Il suffit alors de résoudre un système linéaire où les inconnues sont $ R( \pi, s)$. 
+
+L'algorithme ci-dessous utilise la proposition précédente pour calculer itérativement la récompense à long terme d'une politique. 
+
+\begin{algorithm}[H]
+\caption{Calcul de la récompense à long terme}
+\begin{enumerate}
+    \item $ R( \pi, s) \longleftarrow 0$ pour tout $s \in S$. 
+    \item Tant que pas fini, faire: 
+    \begin{enumerate}
+        \item Pour tout $s \in S$, si $ a = \pi(s), s' = \delta(s, a)$ alors : 
+            $$ temp(s) \longleftarrow r(s,a) + \gamma R( \pi, s')$$ 
+        \item $R( \pi, s) \longleftarrow temp(s)$ pour tout $s \in S$. 
+    \end{enumerate}
+\end{enumerate}
+\end{algorithm}
+
+À noter qu'il est toujours nécessaire de connaître parfaitement les transition $ \delta$ et les récompenses pour chaque transition possible $ r$. 
+
+\begin{proposition}[Amélioration locale d'une politique] \label{prop:policy-improving}
+    On peut alors améliorer localement une politique en comparant les récompenses de chaque transition possibles depuis un état. Soit $ \pi$ une politique donnée, $ s \in S$ et $a \in A(s)$. On pose $ s' = \delta(s, a) \in S$, si : 
+    \begin{equation}
+        R( \pi, s) < r(s, a) + \gamma R( \pi, s')
+    \end{equation}
+    alors on pose $\pi'(x) = \pi(x)$ pour tout état $ x \in S$ sauf $s$ où $ \pi'(s) = a$. On aura alors construit une politique $ \pi'$ meilleure que $ \pi$ (i.e $ \pi' \succ \pi$). 
+\end{proposition}
+
+\subsection{Fonction $Q$}
+
+Les propositions précédentes basées sur la récompense à long terme $ R(\cdot, s)$ depuis un état $s \in S$ semblent montrer que cette application est la clé pour calculer (ou estimer) une politique optimale pour notre agent. On définit donc une fonction permettant d'évaluer la récompense à long terme d'une politique $ \pi$ depuis un état $s \in S$ en commençant par effectuer une action $a \in A(s)$. Cette fonction, notée $Q$, sera directement définie par l'équation~\ref{eq:recomp-markov}. 
+
+\begin{definition}[Fonction $Q$]
+    Soient $r, \delta, \gamma$ défini dans le contexte précédent et $ \pi$ une politique. On défini la fonction $Q$ par : 
+    \begin{equation}
+        \forall s \in S, \forall a \in A(s), \quad Q( \pi, s, a) = r(s, a) + \gamma R( \pi, \delta(s, a)). 
+    \end{equation}
+\end{definition}
+
+La propriété suivante est obtenue par un jeu d'écriture sur l'équation~\ref{eq:recomp-markov} et la défintion de $Q$. 
+
+\begin{prop}[Évaluation d'un état]
+    D'après la définition précédente, on peut remarquer que : 
+    \begin{equation}
+        \forall s \in S, \forall a \in A(s), \quad R( \pi, s) = Q( \pi, s, \pi(s)). 
+    \end{equation}
+    Ainsi, pour une politique donnée, $Q$ vérifie la relation suivante : 
+    \begin{equation}
+        \boxed{Q( \pi, s, a) = r(s, a) + \gamma Q( \pi, s', \pi(s'))}
+    \end{equation}
+    où $s' = \delta(s,a)$. 
+\end{prop}
+
+L'évaluation via la fonction $Q$ permettrait donc d'analyser l'impact d'une déviation ponctuelle par rapport à la politique courante $\pi$. $Q(\pi, s, a)$ mesure le \emph{gain espéré} si l'agent effectue immédiatement l'action $a$, puis se conforme à $\pi$ pour toutes les étapes futures.
+
+\begin{theorem}[Caractérisation de Bellman]
+    Une politique $\pi^*$ est \emph{optimale} si et seulement si, pour tout état $s \in S$ et pour toute action réalisable $a \in A(s)$, la fonction $Q$ associée vérifie le système d'équations non linéaires :
+    \begin{equation}
+        Q(\pi^*, s, a) = r(s, a) + \gamma \max_{a' \in A(s')} Q(\pi^*, s', a')
+    \end{equation}
+    où $s' = \delta(s, a)$. 
+    La politique optimale déterministe s'en déduit alors de manière gloutonne :
+    \begin{equation}
+        \label{eq:system-max-bellman}
+        \pi^*(s) = \arg\max_{a \in A(s)} Q(\pi^*, s, a), \quad \forall s \in S.
+    \end{equation}
+\end{theorem}
+
+Dans le cas simple de l'Exemple~\ref{ex:nano-satellite-ar}, il était possible de calculer explicitement la politique optimale par force brute en considérant les 8 politiques possibles. Or, lorsque ce nombre devient exponentiel, la complexité algorithmique de résolution rend la recherche infaisable. La solution consiste donc à résoudre le système présenté en \ref{eq:system-max-bellman}. Toutefois, celui-ci comporte un opérateur $\max$ à chaque ligne : nos algorithmes itératifs d'inversion de matrice ne sont donc plus applicables. 
+
+C'est pourquoi nous avons recours à la \emph{programmation dynamique}. 
+
+% -------------------------------------------------------------
+\subsection{Amélioration itérative de politique (\emph{Policy Iteration})}
+
+Nous présentons un premier algorithme de \emph{policy-iteration} permettant d'améliorer une politique de façon itérative basé sur la Proposition~\ref{prop:policy-improving}. L'idée est de considérer toutes les actions possibles $A(s)$ pour un état $s \in S$ donné et de calculer la récompense à long terme de chacune de ces actions $a \in A(s)$. On choisit ensuite celle avec la récompense la plus importante pour modifier notre politique. 
+
+L'algorithme d'\emph{itération sur les politiques} alterne ainsi deux étapes fondamentales jusqu'à convergence. La première est \emph{l'évaluation de la politique courante} par le calcul exact ou approché de $R(\pi, \cdot)$ ou $Q(\pi, \cdot, \cdot)$. La seconde est \emph{l'amélioration gloutonne} : il sélectionne l'action qui maximise la fonction $Q$ courante en chaque état. 
+
+\begin{algorithm}[H]
+\caption{Amélioration itérative de politique (\emph{Policy Iteration})}
+\begin{enumerate}
+    \item Initialiser arbitrairement une politique $\pi_0$ (par exemple uniforme ou aléatoire).
+    \item \textbf{Tant que} $\pi_{k+1} \neq \pi_k$ (ou condition d'arrêt satisfaite), \textbf{faire} :
+    \begin{enumerate}
+        \item \textbf{Évaluation} : pour tout $s \in S$ et tout $a \in A(s)$, calculer $Q(\pi_k, s, a)$ :
+        \begin{equation}
+            Q(\pi_k, s, a) = r(s, a) + \gamma R(\pi_k, \delta(s, a)).
+        \end{equation}
+        \item \textbf{Amélioration} : pour tout état $s \in S$, mettre à jour la politique de manière gloutonne :
+        \begin{equation}
+            \pi_{k+1}(s) \longleftarrow \arg\max_{a \in A(s)} Q(\pi_k, s, a).
+        \end{equation}
+    \end{enumerate}
+    \item Retourner la politique optimale $\pi^* = \pi_k$.
+\end{enumerate}
+\end{algorithm}
+
+\begin{remark}[Convergence et coût de calcul]
+    Puisque le nombre de politiques déterministes est fini ($|A|^{|S|}$) et que chaque étape d'amélioration garantit $\pi_{k+1} \succeq \pi_k$, l'algorithme converge en un nombre fini d'itérations vers une politique optimale globale. Cependant, évaluer intégralement la fonction $Q(\pi_k, \cdot, \cdot)$ à chaque boucle exige de résoudre un système de $|S|$ équations linéaires, ce qui devient prohibitif quand $|S|$ est grand.
+\end{remark}
+
+% -------------------------------------------------------------
+\subsection{Itération sur la valeur (\emph{Value Iteration})}
+
+\begin{algorithm}[H]
+    \caption{Itération sur la valeur (\emph{Value Iteration})}
+    \begin{enumerate}
+        \item Initialiser $R(s) \longleftarrow 0$ pour tout $s \in S$.
+        \item \textbf{Tant que} non convergé (par exemple $\max_{s} |R_{\text{nouveau}}(s) - R(s)| > \varepsilon$), \textbf{faire} :
+        \begin{enumerate}
+            \item Pour tout $s \in S$ :
+            \begin{align}
+                \forall a \in A(s), \quad Q(s, a) &\longleftarrow r(s, a) + \gamma R(\delta(s, a)), \\
+                R_{\text{temp}}(s) &\longleftarrow \max_{a \in A(s)} Q(s, a).
+            \end{align}
+            \item $R(s) \longleftarrow R_{\text{temp}}(s)$ pour tout $s \in S$.
+        \end{enumerate}
+        \item \textbf{Extraction de la politique finale} : pour tout $s \in S$,
+        \begin{equation}
+            \pi^*(s) \longleftarrow \arg\max_{a \in A(s)} \left( r(s, a) + \gamma R(\delta(s, a)) \right).
+        \end{equation}
+    \end{enumerate}
+\end{algorithm}
+
+Pour contourner le coût de l'évaluation complète d'une politique intermédiaire, l'\emph{itération sur la valeur} fusionne les étapes d'évaluation et d'amélioration en une seule mise à jour basée sur l'opérateur de Bellman optimal. 
+
+Au lieu de calculer le résultat de la politique courante $ \pi_k$ jusqu'à la fin de la simulation (Étape d'évaluation) qu'on modifie un de ses termes (Étape d'amélioration) puis que l'on recalcule le résultat de cette nouvelle politique $ \pi_{k+1}$, on choisit plutôt de calculer la récompense à long terme pour chaque action $a \in A(s)$ puis on choisit la meilleure. On effectue ces deux étapes tant que l'on n'a pas convergé. La politique est obtenue en choississant à chaque étape la meilleure action au sens des récompenses. 
+
+\begin{remark}[Q-learning]
+    Ces deux algorithmes de programmation dynamique supposent la connaissance exacte du modèle de l'environnement, à savoir la fonction de transition $\delta$ et la fonction de récompense $r$. Lorsque ces fonctions sont inconnues de l'agent, celui-ci doit interagir directement avec l'environnement pour échantillonner ses transitions : c'est le cadre du \emph{Q-learning}.
+\end{remark}
+
+% =============================================================
+% Apprentissage par renforcement
+
+\section{Apprentissage par renforcement}
+
+La plupart du temps on ne dispose pas de modèle explicite ou calculable de l'environnement (fonctions $r$ et $\delta$) : les algorithmes précédents ne fonctionnent plus. On va donc chercher à les estimer par \emph{échantillonnage} en explorant l'environnement et en observant les récompenses obtenues pour chaque couple $(s,a) \in S \times A(s)$. 
+
+% -------------------------------------------------------------
+\subsection{Cadre général sans modèle - \emph{Model-Free}}
+
+Lorsque l'agent ne connaît pas les lois $r$ et $\delta$, il ne peut plus évaluer l'opérateur de Bellman par calcul direct. Il doit interagir avec l'environnement par essais et erreurs en collectant des trajectoires sous forme d'expériences :
+\begin{equation}
+    (s_t, a_t, r_{t+1}, s_{t+1}) \in S \times A \times \R \times S.
+\end{equation}
+
+\begin{algorithm}[H]
+    \caption{Schéma générique d'interaction par épisodes}
+    \begin{enumerate}
+        \item Initialiser une représentation du MDP (typiquement une table de valeurs $Q(s, a)$ arbitraire).
+        \item \textbf{Répéter} pour chaque épisode :
+        \begin{enumerate}
+            \item Sélectionner un état initial $s_0 \in S$.
+            \item \textbf{Tant que} l'état courant $s$ n'est pas terminal, \textbf{faire} :
+            \begin{enumerate}
+                \item Choisir une action $a \in A(s)$ selon une stratégie d'exploration.
+                \item Exécuter $a$, puis observer la récompense immédiate $r$ et l'état résultant $s'$.
+                \item Mettre à jour la fonction $Q(s, a)$ à partir du quadruplet $(s, a, r, s')$.
+                \item Transitionner : $s \longleftarrow s'$.
+            \end{enumerate}
+        \end{enumerate}
+    \end{enumerate}
+\end{algorithm}
+
+% -------------------------------------------------------------
+\subsection{Algorithme de $Q$-learning}
+
+Introduit par Watkins (1989), le $Q$-learning cherche à approximer la fonction d'action-valeur optimale $Q^*$ sans jamais modéliser la dynamique $\delta$ ni la fonction $r$. Dans un cadre déterministe, chaque transition observée $(s, a, r, s')$ lors d'une trajectoire permet d'effectuer une mise à jour par écrasement direct inspirée de l'équation d'optimalité de Bellman :
+\begin{equation}
+    Q(s, a) \longleftarrow r + \gamma \max_{a' \in A(s')} Q(s', a').
+\end{equation}
+
+\begin{theorem}[Convergence en univers déterministe]
+    Si les récompenses immédiates $r(s,a)$ sont bornées, si $\gamma \in [0, 1[$, et si la stratégie de sélection d'actions garantit que chaque couple $(s, a)$ est visité une infinité de fois, alors la table $Q(s, a)$ converge vers la fonction optimale $Q^*(s, a)$.
+\end{theorem}
+
+\begin{remark}[Accélération par rétropropagation intra-épisode]
+    Lorsque les récompenses sont rares (\emph{sparse rewards}) — par exemple si la seule récompense non nulle n'intervient qu'à l'état final $s_T$ —, mettre à jour la table au fil de l'eau propage l'information d'un seul pas par épisode.
+    
+    Pour accélérer la diffusion de l'information, on stocke la trajectoire complète $(s_0, a_0, r_1, s_1, \dots, s_T)$ et l'on applique les mises à jour en sens inverse, de $t = T-1$ jusqu'à $t = 0$ :
+    \begin{equation}
+        Q(s_t, a_t) \longleftarrow r_{t+1} + \gamma \max_{a'} Q(s_{t+1}, a').
+    \end{equation}
+    La récompense finale rétropropage immédiatement sa contribution sur l'ensemble des états visités au cours de l'épisode.
+\end{remark}
+
+\begin{proposition}[Cas non-déterministe]
+    Dans les systèmes stochastiques, une même action $a$ exécutée dans un même état $s$ peut conduire à des états d'arrivée $s'$ distincts avec des récompenses différentes. Réécraser brutalement la valeur $Q(s, a)$ provoquerait des oscillations permanentes sans convergence.
+
+    On stabilise donc la dynamique en introduisant un taux d'apprentissage $\alpha \in ]0, 1]$, calculant ainsi une moyenne glissante temporelle entre l'estimation passée et la nouvelle observation :
+    \begin{equation}
+        Q(s, a) \longleftarrow (1 - \alpha) Q(s, a) + \alpha \left( r + \gamma \max_{a' \in A(s')} Q(s', a') \right).
+    \end{equation}
+\end{proposition}
+
+\begin{remark}[\emph{TD-error}]
+    Cette équation de mise à jour se reformule de façon canonique sous la forme d'un ajustement proportionnel à un résidu d'erreur :
+    \begin{equation}
+        Q(s, a) \longleftarrow Q(s, a) + \alpha \cdot \delta_{\text{TD}}
+    \end{equation}
+    où le terme $\delta_{\text{TD}}$ représente \emph{l'erreur de différence temporelle} (erreur TD) :
+    \begin{equation}
+        \delta_{\text{TD}} \triangleq \underbrace{\left( r + \gamma \max_{a' \in A(s')} Q(s', a') \right)}_{\text{Cible TD (valeur visée)}} - \underbrace{Q(s, a)}_{\text{Estimation courante}}.
+\end{equation}
+\end{remark}
+
+\begin{remark}[Régime du taux d'apprentissage]
+    La convergence théorique vers $Q^*$ en environnement stochastique impose les conditions de Robbins-Monro sur la suite des pas $(\alpha_t)$ :
+    \begin{equation}
+        \sum_{t=1}^\infty \alpha_t(s, a) = \infty \quad \text{et} \quad \sum_{t=1}^\infty \alpha_t(s, a)^2 < \infty.
+    \end{equation}
+    En pratique, on adopte souvent soit un pas constant faible ($\alpha \in [0{,}01 ; 0{,}1]$), soit une décroissance dépendante du nombre de passages : $\alpha(s, a) = \frac{1}{1 + \operatorname{visites}(s, a)}$.
+\end{remark}
+
+% -------------------------------------------------------------
+\subsection{Alternative \emph{On-Policy} : L'algorithme SARSA}
+
+Une distinction fondamentale structure les algorithmes d'apprentissage par renforcement :
+\begin{itemize}
+    \item \textbf{Approche hors politique (\emph{Off-Policy})} : l'algorithme apprend la valeur d'une politique cible tout en suivant une politique de comportement différente. Le $Q$-learning est \emph{off-policy} car sa cible de mise à jour utilise l'opérateur optimal $\max_{a'}$, indépendamment de l'action qui sera réellement choisie à l'instant suivant.
+    \item \textbf{Approche sur politique (\emph{On-Policy})} : l'algorithme évalue et met à jour la valeur de la politique effectivement suivie par l'agent.
+\end{itemize}
+
+L'algorithme SARSA (\emph{State-Action-Reward-State-Action}) applique ce principe : au lieu d'optimiser par un $\max$ théorique, il utilise l'action $a' = \pi(s')$ réellement sélectionnée pour l'étape suivante :
+\begin{equation}
+    Q(s, a) \longleftarrow (1 - \alpha) Q(s, a) + \alpha \Big( r + \gamma Q(s', a') \Big) \quad \text{avec } a' \sim \pi(\cdot \mid s').
+\end{equation}
+
+% -------------------------------------------------------------
+\subsection{Compromis Exploration vs Exploitation}
+
+Dans le cadre d'un apprentissage \emph{model-free}, l'agent est soumis à un arbitrage permanent entre \emph{exploration} et \emph{exploitation} pour d'une part, comprendre l'environnement dans lequel il évolue mais aussi construire rapidement une politique optimale d'exploitation de cet environnement. On parlera de compromis \emph{exploration/exploitation} : 
+\begin{itemize}
+    \item \emph{Exploiter} : sélectionner l'action maximisant $Q(s, a)$ pour maximiser les gains connus.
+    \item \emph{Explorer} : essayer des actions d'apparence sous-optimale pour découvrir de meilleures trajectoires à long terme.
+\end{itemize}
+
+\begin{definition}[Stratégies de sélection d'actions]
+    Soit un état $s \in S$. On distingue principalement trois mécanismes de sélection :
+    \begin{enumerate}
+        \item \textbf{Politique gloutonne (\emph{Greedy})} : aucun compromis d'exploration, choix systématique du meilleur score :
+        \begin{equation}
+            a = \arg\max_{a \in A(s)} Q(s, a).
+        \end{equation}
+        \item \textbf{Politique $\varepsilon$-gloutonne ($\varepsilon$-Greedy)} : avec une probabilité $1 - \varepsilon$, l'agent exploite la meilleure action ; avec une probabilité $\varepsilon$, il tire une action au hasard selon une loi uniforme sur $A(s)$ :
+        \begin{equation}
+            \pi(a \mid s) = 
+            \begin{cases}
+                1 - \varepsilon + \dfrac{\varepsilon}{|A(s)|} & \text{si } a = \arg\max_{a'} Q(s, a'), \\[8pt]
+                \dfrac{\varepsilon}{|A(s)|} & \text{sinon.}
+            \end{cases}
+        \end{equation}
+        \item \textbf{Sélection Softmax (loi de Boltzmann)} : chaque action reçoit une probabilité de tirage pondérée par sa valeur relative, modulée par un paramètre de température $\tau > 0$ :
+        \begin{equation}
+            \pi(a \mid s) = \frac{\exp\left( \dfrac{Q(s, a)}{\tau} \right)}{\sum_{a' \in A(s)} \exp\left( \dfrac{Q(s, a')}{\tau} \right)}.
+        \end{equation}
+        Lorsque $\tau \to \infty$, la sélection tend vers une loi uniforme (exploration pure) ; lorsque $\tau \to 0^+$, elle converge vers la politique gloutonne déterministe (exploitation pure).
+    \end{enumerate}
+\end{definition}
+
+\begin{remark}
+    La politique $ \varepsilon$-gloutonne peut être intéressante pour régler le compromis exploration/exploitation. En début d'apprentissage, $ \varepsilon$ peut être relativement haut pour favoriser l'exploration de l'environnement. Au fur et à mesure des épisodes, $ \varepsilon$ peut diminuer pour favoriser progressivement l'exploitation de l'environnement découvert. 
+\end{remark}
